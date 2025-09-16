@@ -6,12 +6,23 @@
 //
 
 import SwiftUI
+import FirebaseCore
 
 @main
 struct sportsApp: App {
+    @StateObject private var firebaseService = FirebaseService.shared
+    
+    init() {
+        FirebaseApp.configure()
+    }
+    
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            if firebaseService.isAuthenticated {
+                MainTabView()
+            } else {
+                AuthenticationView()
+            }
         }
     }
 }
