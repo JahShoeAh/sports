@@ -2,6 +2,10 @@ Monday 9/29
 accomplished:
 - app interface visualized and mostly working
 - firebase somewhat set up
-to do:
+to do next:
 - complete firebase verification, still a bit buggy
-notes: 
+- successfully test 2 different accounts. create, log out, sign in again. 
+notes for future implementation: 
+- use our own automated email system to send verification codes
+- check within our program to confirm the user inputted the matching code
+- send user email and password info to firebase to store account
