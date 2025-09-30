@@ -6,6 +6,12 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		AE88C4412E8B679A00E5A169 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = AE88C4402E8B679A00E5A169 /* FirebaseAuth */; };
+		AE88C4432E8B679A00E5A169 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = AE88C4422E8B679A00E5A169 /* FirebaseFirestore */; };
+		AE88C4452E8B6BEF00E5A169 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = AE88C4442E8B6BEF00E5A169 /* GoogleService-Info.plist */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		AE88C3ED2E78DF1800E5A169 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -27,6 +33,7 @@
 		AE88C3DF2E78DF1700E5A169 /* sports.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = sports.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		AE88C3EC2E78DF1800E5A169 /* sportsTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = sportsTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		AE88C3F62E78DF1800E5A169 /* sportsUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = sportsUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		AE88C4442E8B6BEF00E5A169 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -52,6 +59,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				AE88C4412E8B679A00E5A169 /* FirebaseAuth in Frameworks */,
+				AE88C4432E8B679A00E5A169 /* FirebaseFirestore in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -75,6 +84,7 @@
 		AE88C3D62E78DF1700E5A169 = {
 			isa = PBXGroup;
 			children = (
+				AE88C4442E8B6BEF00E5A169 /* GoogleService-Info.plist */,
 				AE88C3E12E78DF1700E5A169 /* sports */,
 				AE88C3EF2E78DF1800E5A169 /* sportsTests */,
 				AE88C3F92E78DF1800E5A169 /* sportsUITests */,
@@ -112,6 +122,8 @@
 			);
 			name = sports;
 			packageProductDependencies = (
+				AE88C4402E8B679A00E5A169 /* FirebaseAuth */,
+				AE88C4422E8B679A00E5A169 /* FirebaseFirestore */,
 			);
 			productName = sports;
 			productReference = AE88C3DF2E78DF1700E5A169 /* sports.app */;
@@ -195,6 +207,9 @@
 			);
 			mainGroup = AE88C3D62E78DF1700E5A169;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				AE88C43F2E8B679900E5A169 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = AE88C3E02E78DF1700E5A169 /* Products */;
 			projectDirPath = "";
@@ -212,6 +227,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				AE88C4452E8B6BEF00E5A169 /* GoogleService-Info.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -558,6 +574,30 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		AE88C43F2E8B679900E5A169 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 12.3.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		AE88C4402E8B679A00E5A169 /* FirebaseAuth */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = AE88C43F2E8B679900E5A169 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAuth;
+		};
+		AE88C4422E8B679A00E5A169 /* FirebaseFirestore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = AE88C43F2E8B679900E5A169 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseFirestore;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = AE88C3D72E78DF1700E5A169 /* Project object */;
 }

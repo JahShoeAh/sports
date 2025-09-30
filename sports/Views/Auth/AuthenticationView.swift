@@ -16,6 +16,7 @@ struct AuthenticationView: View {
     @State private var displayName = ""
     @State private var isLoading = false
     @State private var errorMessage: String?
+    @State private var showSignUpSuccess = false
     
     var body: some View {
         NavigationView {
@@ -68,6 +69,14 @@ struct AuthenticationView: View {
                             .multilineTextAlignment(.center)
                     }
                     
+                    if showSignUpSuccess {
+                        Text("Account created! Please check your email for verification.")
+                            .font(.caption)
+                            .foregroundColor(.green)
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal)
+                    }
+                    
                     Button(action: {
                         Task {
                             await handleAuthentication()
@@ -101,6 +110,16 @@ struct AuthenticationView: View {
                         .foregroundColor(.blue)
                 }
                 
+                // Admin Login Button (for development)
+                Button(action: {
+                    firebaseService.adminLogin()
+                }) {
+                    Text("Admin Login (Dev)")
+                        .font(.subheadline)
+                        .foregroundColor(.orange)
+                        .padding(.top, 8)
+                }
+                
                 Spacer()
             }
             .padding()
@@ -114,18 +133,28 @@ struct AuthenticationView: View {
         
         do {
             if isSignUp {
+                print("🔐 Attempting to sign up user: \(email)")
                 try await firebaseService.signUp(
                     email: email,
                     password: password,
                     username: username,
                     displayName: displayName
                 )
+                print("✅ Sign up successful!")
+                await MainActor.run {
+                    self.showSignUpSuccess = true
+                    self.isLoading = false
+                }
             } else {
+                print("🔐 Attempting to sign in user: \(email)")
                 try await firebaseService.signIn(email: email, password: password)
+                print("✅ Sign in successful!")
             }
         } catch {
+            print("❌ Authentication error: \(error)")
+            print("❌ Error details: \(error.localizedDescription)")
             await MainActor.run {
-                self.errorMessage = error.localizedDescription
+                self.errorMessage = "Error: \(error.localizedDescription)"
                 self.isLoading = false
             }
         }

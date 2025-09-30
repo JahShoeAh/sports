@@ -18,8 +18,10 @@ struct sportsApp: App {
     
     var body: some Scene {
         WindowGroup {
-            if firebaseService.isAuthenticated {
+            if firebaseService.isAuthenticated && firebaseService.isEmailVerified {
                 MainTabView()
+            } else if firebaseService.isAuthenticated && firebaseService.needsEmailVerification {
+                EmailVerificationView()
             } else {
                 AuthenticationView()
             }

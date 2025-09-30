@@ -32,6 +32,24 @@ struct Player: Identifiable, Codable {
         case headshotURL, isActive, careerStats
     }
     
+    init(id: String, name: String, firstName: String, lastName: String, jerseyNumber: Int? = nil, position: String, height: String? = nil, weight: Int? = nil, age: Int? = nil, birthDate: Date? = nil, birthPlace: String? = nil, currentTeam: Team? = nil, headshotURL: String? = nil, isActive: Bool = true, careerStats: [String: Any] = [:]) {
+        self.id = id
+        self.name = name
+        self.firstName = firstName
+        self.lastName = lastName
+        self.jerseyNumber = jerseyNumber
+        self.position = position
+        self.height = height
+        self.weight = weight
+        self.age = age
+        self.birthDate = birthDate
+        self.birthPlace = birthPlace
+        self.currentTeam = currentTeam
+        self.headshotURL = headshotURL
+        self.isActive = isActive
+        self.careerStats = careerStats
+    }
+    
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         id = try container.decode(String.self, forKey: .id)

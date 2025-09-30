@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct List: Identifiable, Codable {
+struct GameList: Identifiable, Codable {
     let id: String
     let title: String
     let description: String?
@@ -42,7 +42,7 @@ struct List: Identifiable, Codable {
 struct Watchlist: Identifiable, Codable {
     let id: String
     let userId: String
-    let gameIds: [String]
+    var gameIds: [String]
     let createdAt: Date
     let updatedAt: Date
     
