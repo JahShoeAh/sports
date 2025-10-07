@@ -1,0 +1,52 @@
+# Xcode
+.DS_Store
+*/build/*
+*.pbxuser
+!default.pbxuser
+*.mode1v3
+!default.mode1v3
+*.mode2v3
+!default.mode2v3
+*.perspectivev3
+!default.perspectivev3
+xcuserdata/
+*.moved-aside
+*.xccheckout
+*.xcscmblueprint
+
+# Firebase - CRITICAL: Never commit these files!
+GoogleService-Info.plist
+google-services.json
+firebase_options.dart
+
+# API Keys and Secrets
+*.pem
+*.p12
+*.mobileprovision
+*.cer
+
+# CocoaPods
+Pods/
+*.xcworkspace
+
+# Swift Package Manager
+.swiftpm/
+
+# AppCode
+.idea/
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.temp
