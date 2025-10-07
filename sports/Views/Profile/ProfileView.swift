@@ -242,14 +242,15 @@ struct ProfileMenuSection: View {
 struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject private var firebaseService = FirebaseService.shared
+    @State private var showingEditProfile = false
     
     var body: some View {
         NavigationView {
             List {
                 Section("Account") {
                     Button("Edit Profile") {
-                        print("Clicked: Edit Profile. From page: Settings. Actions performed: none. TODO: Navigate to edit profile")
-                        // TODO: Navigate to edit profile
+                        print("Clicked: Edit Profile. From page: Settings. Actions performed: showingEditProfile = true. TODO: Navigate to edit profile")
+                        showingEditProfile = true
                     }
                     
                     Button("Change Password") {
@@ -299,6 +300,9 @@ struct SettingsView: View {
                         dismiss()
                     }
                 }
+            }
+            .sheet(isPresented: $showingEditProfile) {
+                EditProfileView()
             }
         }
     }
