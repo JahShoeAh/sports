@@ -338,10 +338,20 @@ struct EditProfileView: View {
     }
     
     private func loadCurrentProfile() {
+        print("🔍 Loading current profile...")
+        print("🔍 Current user: \(firebaseService.currentUser?.displayName ?? "nil")")
+        
         if let user = firebaseService.currentUser {
             displayName = user.displayName
             username = user.username
             bio = user.bio ?? ""
+            print("✅ Profile loaded: \(displayName), @\(username)")
+        } else {
+            print("❌ No current user found - this might be due to Firestore not being enabled")
+            // Set some default values for testing
+            displayName = "User"
+            username = "username"
+            bio = ""
         }
     }
     
@@ -360,15 +370,16 @@ struct EditProfileView: View {
         isLoading = true
         
         do {
-            // Update user profile
+            // Update user profile - preserve all existing data
+            guard let currentUser = firebaseService.currentUser else { return }
+            
             let updatedUser = User(
                 id: userId,
-                email: firebaseService.currentUser?.email ?? "",
+                email: currentUser.email,
                 username: username,
                 displayName: displayName,
                 bio: bio.isEmpty ? nil : bio,
-                followers: firebaseService.currentUser?.followers ?? [],
-                following: firebaseService.currentUser?.following ?? []
+                avatarURL: currentUser.avatarURL
             )
             
             try await firebaseService.updateUser(updatedUser)
