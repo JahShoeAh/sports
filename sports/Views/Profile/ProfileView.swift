@@ -44,6 +44,7 @@ struct ProfileView: View {
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button(action: {
+                        print("Clicked: Settings. From page: Profile. Actions performed: showingSettings = true. TODO: Show settings sheet")
                         showingSettings = true
                     }) {
                         Image(systemName: "gearshape.fill")
@@ -208,6 +209,7 @@ struct ProfileMenuSection: View {
         VStack(spacing: 0) {
             ForEach(ProfileView.ProfileMenu.allCases, id: \.self) { menu in
                 Button(action: {
+                    print("Clicked: \(menu.rawValue). From page: Profile. Actions performed: selectedMenu = \(menu). TODO: Show \(menu.rawValue) content")
                     selectedMenu = menu
                 }) {
                     HStack {
@@ -240,42 +242,50 @@ struct ProfileMenuSection: View {
 struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject private var firebaseService = FirebaseService.shared
+    @State private var showingEditProfile = false
     
     var body: some View {
         NavigationView {
             List {
                 Section("Account") {
                     Button("Edit Profile") {
-                        // TODO: Navigate to edit profile
+                        print("Clicked: Edit Profile. From page: Settings. Actions performed: showingEditProfile = true. TODO: Navigate to edit profile")
+                        showingEditProfile = true
                     }
                     
                     Button("Change Password") {
+                        print("Clicked: Change Password. From page: Settings. Actions performed: none. TODO: Navigate to change password")
                         // TODO: Navigate to change password
                     }
                 }
                 
                 Section("Preferences") {
                     Button("Notifications") {
+                        print("Clicked: Notifications. From page: Settings. Actions performed: none. TODO: Navigate to notification settings")
                         // TODO: Navigate to notification settings
                     }
                     
                     Button("Privacy") {
+                        print("Clicked: Privacy. From page: Settings. Actions performed: none. TODO: Navigate to privacy settings")
                         // TODO: Navigate to privacy settings
                     }
                 }
                 
                 Section("Support") {
                     Button("Help & Support") {
+                        print("Clicked: Help & Support. From page: Settings. Actions performed: none. TODO: Navigate to help")
                         // TODO: Navigate to help
                     }
                     
                     Button("About") {
+                        print("Clicked: About. From page: Settings. Actions performed: none. TODO: Navigate to about")
                         // TODO: Navigate to about
                     }
                 }
                 
                 Section {
                     Button("Sign Out", role: .destructive) {
+                        print("Clicked: Sign Out. From page: Settings. Actions performed: firebaseService.signOut(), dismiss(). TODO: Sign out user and return to auth")
                         try? firebaseService.signOut()
                         dismiss()
                     }
@@ -286,9 +296,13 @@ struct SettingsView: View {
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Done") {
+                        print("Clicked: Done. From page: Settings. Actions performed: dismiss(). TODO: Close settings sheet")
                         dismiss()
                     }
                 }
+            }
+            .sheet(isPresented: $showingEditProfile) {
+                EditProfileView()
             }
         }
     }

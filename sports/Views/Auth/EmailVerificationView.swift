@@ -44,6 +44,7 @@ struct EmailVerificationView: View {
                 // Verification Actions
                 VStack(spacing: 20) {
                     Button(action: {
+                        print("Clicked: Send Verification Email. From page: Email Verification. Actions performed: resendVerificationEmail(). TODO: Send verification email with cooldown")
                         Task {
                             await resendVerificationEmail()
                         }
@@ -86,6 +87,7 @@ struct EmailVerificationView: View {
                 // Back to Sign In and Sign Out Options
                 VStack(spacing: 12) {
                     Button(action: {
+                        print("Clicked: Back to Sign In. From page: Email Verification. Actions performed: firebaseService.signOut(). TODO: Sign out and return to authentication")
                         do {
                             try firebaseService.signOut()
                         } catch {

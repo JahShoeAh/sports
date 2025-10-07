@@ -13,6 +13,7 @@ struct GamePosterCard: View {
     
     var body: some View {
         Button(action: {
+            print("Clicked: Game Card (\(game.displayTitle)). From page: Feed. Actions performed: none. TODO: Navigate to Game Menu")
             // TODO: Navigate to Game Menu
         }) {
             VStack(alignment: .leading, spacing: 0) {

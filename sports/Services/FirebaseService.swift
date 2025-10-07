@@ -223,6 +223,15 @@ class FirebaseService: ObservableObject {
         self.currentUser = user
     }
     
+    func checkUsernameAvailability(_ username: String) async throws -> Bool {
+        let snapshot = try await db.collection("users")
+            .whereField("username", isEqualTo: username)
+            .limit(to: 1)
+            .getDocuments()
+        
+        return !snapshot.documents.isEmpty
+    }
+    
     // MARK: - Reviews
     func saveReview(_ review: Review) async throws {
         try db.collection("reviews").document(review.id).setData(from: review)
