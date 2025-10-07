@@ -18,6 +18,7 @@ xcuserdata/
 GoogleService-Info.plist
 google-services.json
 firebase_options.dart
+*firebase-adminsdk*.json
 
 # API Keys and Secrets
 *.pem

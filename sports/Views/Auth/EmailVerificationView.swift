@@ -12,6 +12,10 @@ struct EmailVerificationView: View {
     @State private var isLoading = false
     @State private var errorMessage: String?
     @State private var showResendConfirmation = false
+    @State private var resendCooldown = 0
+    @State private var cooldownTimer: Timer?
+    
+    private let cooldownDuration = 30
     
     var body: some View {
         NavigationView {
@@ -41,7 +45,7 @@ struct EmailVerificationView: View {
                 VStack(spacing: 20) {
                     Button(action: {
                         Task {
-                            await checkVerificationStatus()
+                            await resendVerificationEmail()
                         }
                     }) {
                         HStack {
@@ -50,7 +54,10 @@ struct EmailVerificationView: View {
                                     .progressViewStyle(CircularProgressViewStyle(tint: .white))
                                     .scaleEffect(0.8)
                             }
-                            Text("I've Verified My Email")
+                            Text(resendCooldown > 0
+                                 ? "Send Verification (\(resendCooldown)s)"
+                                 : "Send Verification Email")
+                                .fontWeight(.semibold)
                         }
                         .frame(maxWidth: .infinity)
                         .padding()
@@ -58,18 +65,7 @@ struct EmailVerificationView: View {
                         .foregroundColor(.white)
                         .cornerRadius(10)
                     }
-                    .disabled(isLoading)
-                    
-                    Button(action: {
-                        Task {
-                            await resendVerificationEmail()
-                        }
-                    }) {
-                        Text("Resend Verification Email")
-                            .font(.subheadline)
-                            .foregroundColor(.blue)
-                    }
-                    .disabled(isLoading)
+                    .disabled(isLoading || resendCooldown > 0)
                     
                     if let errorMessage = errorMessage {
                         Text(errorMessage)
@@ -100,44 +96,10 @@ struct EmailVerificationView: View {
                             .font(.subheadline)
                             .foregroundColor(.blue)
                     }
-                    
-                    Button(action: {
-                        do {
-                            try firebaseService.signOut()
-                        } catch {
-                            print("Sign out error: \(error)")
-                        }
-                    }) {
-                        Text("Sign Out")
-                            .font(.subheadline)
-                            .foregroundColor(.red)
-                    }
                 }
             }
             .padding()
             .navigationBarHidden(true)
-        }
-    }
-    
-    private func checkVerificationStatus() async {
-        await MainActor.run {
-            self.isLoading = true
-            self.errorMessage = nil
-        }
-        
-        do {
-            // Check if email is verified
-            try await firebaseService.checkEmailVerificationStatus()
-            print("✅ Email verification successful!")
-            
-            await MainActor.run {
-                self.isLoading = false
-            }
-        } catch {
-            await MainActor.run {
-                self.errorMessage = error.localizedDescription
-                self.isLoading = false
-            }
         }
     }
     
@@ -153,11 +115,26 @@ struct EmailVerificationView: View {
             await MainActor.run {
                 self.showResendConfirmation = true
                 self.isLoading = false
+                startCooldown()
             }
         } catch {
             await MainActor.run {
                 self.errorMessage = "Failed to resend verification email: \(error.localizedDescription)"
                 self.isLoading = false
+            }
+        }
+    }
+    
+    private func startCooldown() {
+        cooldownTimer?.invalidate()
+        resendCooldown = cooldownDuration
+        
+        cooldownTimer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { timer in
+            if self.resendCooldown > 0 {
+                self.resendCooldown -= 1
+            } else {
+                timer.invalidate()
+                self.cooldownTimer = nil
             }
         }
     }

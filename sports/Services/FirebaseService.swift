@@ -183,6 +183,10 @@ class FirebaseService: ObservableObject {
         DispatchQueue.main.async {
             self.currentUser = adminUser
             self.isAuthenticated = true
+            self.isEmailVerified = true
+            self.needsEmailVerification = false
+            self.pendingVerificationEmail = nil
+            self.pendingUserData = nil
         }
     }
     
