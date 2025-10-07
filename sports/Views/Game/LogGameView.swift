@@ -71,6 +71,7 @@ struct LogGameView: View {
                         HStack(spacing: 16) {
                             ForEach(ReactionIcon.allCases, id: \.self) { reaction in
                                 Button(action: {
+                                    print("Clicked: \(reaction.systemImageName) (Reaction). From page: Log Game. Actions performed: selectedReaction = \(reaction). TODO: Select reaction icon")
                                     selectedReaction = reaction
                                 }) {
                                     Image(systemName: reaction.systemImageName)
@@ -92,6 +93,7 @@ struct LogGameView: View {
                         VStack(spacing: 8) {
                             ForEach(ViewingMethod.allCases, id: \.self) { method in
                                 Button(action: {
+                                    print("Clicked: \(method.displayName) (Viewing Method). From page: Log Game. Actions performed: selectedViewingMethod = \(method). TODO: Select viewing method")
                                     selectedViewingMethod = method
                                 }) {
                                     HStack {
@@ -142,6 +144,7 @@ struct LogGameView: View {
                                 .textFieldStyle(RoundedBorderTextFieldStyle())
                             
                             Button("Add") {
+                                print("Clicked: Add (Tag). From page: Log Game. Actions performed: tags.append(\(newTag)), newTag = \"\". TODO: Add tag to list")
                                 if !newTag.isEmpty && !tags.contains(newTag) {
                                     tags.append(newTag)
                                     newTag = ""
@@ -158,6 +161,7 @@ struct LogGameView: View {
                                         Text(tag)
                                             .font(.caption)
                                         Button(action: {
+                                            print("Clicked: Remove (\(tag)) (Tag). From page: Log Game. Actions performed: tags.removeAll(\(tag)). TODO: Remove tag from list")
                                             tags.removeAll { $0 == tag }
                                         }) {
                                             Image(systemName: "xmark.circle.fill")
@@ -181,12 +185,14 @@ struct LogGameView: View {
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button("Cancel") {
+                        print("Clicked: Cancel. From page: Log Game. Actions performed: dismiss(). TODO: Close log game sheet")
                         dismiss()
                     }
                 }
                 
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Save") {
+                        print("Clicked: Save. From page: Log Game. Actions performed: saveReview(). TODO: Save review to database")
                         Task {
                             await saveReview()
                         }

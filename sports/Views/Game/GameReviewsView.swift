@@ -45,6 +45,7 @@ struct GameReviewsView: View {
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Done") {
+                        print("Clicked: Done. From page: Game Reviews. Actions performed: dismiss(). TODO: Close reviews sheet")
                         dismiss()
                     }
                 }

@@ -41,6 +41,7 @@ struct SearchView: View {
                             HStack(spacing: 12) {
                                 ForEach(SearchCategory.allCases, id: \.self) { category in
                                     Button(action: {
+                                        print("Clicked: \(category.rawValue). From page: Search. Actions performed: selectedCategory = \(category). TODO: Filter search by \(category.rawValue)")
                                         selectedCategory = category
                                     }) {
                                         Text(category.rawValue)
@@ -113,6 +114,7 @@ struct SearchView: View {
                                         .fontWeight(.semibold)
                                     Spacer()
                                     Button("See All") {
+                                        print("Clicked: See All (Staff Lists). From page: Search. Actions performed: none. TODO: Navigate to staff lists")
                                         // TODO: Navigate to staff lists
                                     }
                                     .font(.subheadline)
@@ -157,6 +159,7 @@ struct BrowseRow: View {
                 HStack(spacing: 8) {
                     ForEach(items, id: \.name) { item in
                         Button(action: {
+                            print("Clicked: \(item.name). From page: Search. Actions performed: none. TODO: Handle browse item selection")
                             // TODO: Handle browse item selection
                         }) {
                             Text(item.name)
@@ -188,6 +191,7 @@ struct DiscoverRow: View {
                     .fontWeight(.semibold)
                 Spacer()
                 Button("See All") {
+                    print("Clicked: See All. From page: Search. Actions performed: none. TODO: Navigate to full list")
                     // TODO: Navigate to full list
                 }
                 .font(.subheadline)

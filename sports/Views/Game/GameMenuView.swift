@@ -129,6 +129,7 @@ struct ActionButtonsView: View {
         VStack(spacing: 12) {
             HStack(spacing: 12) {
                 Button(action: {
+                    print("Clicked: To Watch. From page: Game Menu. Actions performed: none. TODO: Toggle watchlist")
                     // TODO: Toggle watchlist
                 }) {
                     HStack {
@@ -142,6 +143,7 @@ struct ActionButtonsView: View {
                 }
                 
                 Button(action: {
+                    print("Clicked: \(hasUserLogged ? "Log Again" : "Log, rate, review, tag..."). From page: Game Menu. Actions performed: showingLogGame = true. TODO: Show log game sheet")
                     showingLogGame = true
                 }) {
                     HStack {
@@ -157,6 +159,7 @@ struct ActionButtonsView: View {
             }
             
             Button(action: {
+                print("Clicked: What they're saying. From page: Game Menu. Actions performed: showingReviews = true. TODO: Show reviews sheet")
                 showingReviews = true
             }) {
                 HStack {
@@ -189,6 +192,7 @@ struct PollSectionView: View {
                     isSelected: selectedOption == game.awayTeam.id,
                     isEnabled: !hasVoted && !game.isCompleted
                 ) {
+                    print("Clicked: \(game.awayTeam.name) (Poll). From page: Game Menu. Actions performed: selectedOption = \(game.awayTeam.id). TODO: Submit vote")
                     selectedOption = game.awayTeam.id
                     // TODO: Submit vote
                 }
@@ -198,6 +202,7 @@ struct PollSectionView: View {
                     isSelected: selectedOption == game.homeTeam.id,
                     isEnabled: !hasVoted && !game.isCompleted
                 ) {
+                    print("Clicked: \(game.homeTeam.name) (Poll). From page: Game Menu. Actions performed: selectedOption = \(game.homeTeam.id). TODO: Submit vote")
                     selectedOption = game.homeTeam.id
                     // TODO: Submit vote
                 }

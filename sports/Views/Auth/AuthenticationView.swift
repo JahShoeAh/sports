@@ -78,6 +78,7 @@ struct AuthenticationView: View {
                     }
                     
                     Button(action: {
+                        print("Clicked: \(isSignUp ? "Sign Up" : "Sign In"). From page: Authentication. Actions performed: handleAuthentication(). TODO: Authenticate user")
                         Task {
                             await handleAuthentication()
                         }
@@ -102,6 +103,7 @@ struct AuthenticationView: View {
                 
                 // Toggle Sign Up/Sign In
                 Button(action: {
+                    print("Clicked: \(isSignUp ? "Already have an account? Sign In" : "Don't have an account? Sign Up"). From page: Authentication. Actions performed: isSignUp.toggle(), errorMessage = nil. TODO: Toggle between sign up and sign in")
                     isSignUp.toggle()
                     errorMessage = nil
                 }) {
@@ -112,6 +114,7 @@ struct AuthenticationView: View {
                 
                 // Admin Login Button (for development)
                 Button(action: {
+                    print("Clicked: Admin Login (Dev). From page: Authentication. Actions performed: firebaseService.adminLogin(). TODO: Bypass authentication for development")
                     firebaseService.adminLogin()
                 }) {
                     Text("Admin Login (Dev)")
