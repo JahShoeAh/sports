@@ -9,7 +9,11 @@
     "dev:fetch": "FETCH_ON_STARTUP=true nodemon server.js",
     "start:fetch": "FETCH_ON_STARTUP=true node server.js",
     "setup": "node database/setup.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "test:thesportsdb": "node test-thesportsdb.js",
+    "test:nfl": "node test-nfl-specific.js",
+    "test:comprehensive": "node test-thesportsdb-comprehensive.js",
+    "test:all": "npm run test:thesportsdb && npm run test:nfl && npm run test:comprehensive"
   },
   "keywords": ["sports", "api", "nfl", "nodejs", "express"],
   "author": "Joyce Zhang",
