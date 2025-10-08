@@ -69,6 +69,24 @@ class DataRefreshService {
       let gamesSaved = 0;
       
       for (const gameData of gamesData) {
+        // Validate and parse date
+        let gameDate, gameTime;
+        if (gameData.game.date) {
+          const parsedDate = new Date(gameData.game.date);
+          if (!isNaN(parsedDate.getTime())) {
+            gameDate = parsedDate;
+            gameTime = parsedDate;
+          } else {
+            console.warn(`Invalid date for game ${gameData.game.id}: ${gameData.game.date}`);
+            gameDate = new Date(); // Use current date as fallback
+            gameTime = new Date();
+          }
+        } else {
+          console.warn(`No date for game ${gameData.game.id}`);
+          gameDate = new Date(); // Use current date as fallback
+          gameTime = new Date();
+        }
+
         const game = {
           id: gameData.game.id.toString(),
           homeTeamId: gameData.teams.home.id.toString(),
@@ -76,8 +94,8 @@ class DataRefreshService {
           leagueId: leagueId,
           season: season,
           week: gameData.game.week,
-          gameDate: new Date(gameData.game.date),
-          gameTime: new Date(gameData.game.date),
+          gameDate: gameDate,
+          gameTime: gameTime,
           venueId: null, // API doesn't provide venue ID
           venue: gameData.game.venue?.name || 'Unknown',
           city: gameData.game.venue?.city || 'Unknown',

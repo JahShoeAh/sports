@@ -31,6 +31,7 @@ class ApiSportsService {
         console.log(`Successfully fetched ${response.data.response.length} NFL teams`);
         return response.data.response;
       } else {
+        console.log('API Response:', JSON.stringify(response.data, null, 2));
         throw new Error('Invalid response format from API-Sports');
       }
     } catch (error) {
