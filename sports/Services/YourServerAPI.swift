@@ -87,7 +87,7 @@ class YourServerAPI: ObservableObject {
     }
     
     // MARK: - Data Refresh
-    func refreshData(leagueId: String = "1", season: String = "2025") async throws -> RefreshResponse {
+    func refreshData(leagueId: String = "1", season: String = "2023") async throws -> RefreshResponse {
         guard let url = URL(string: "\(baseURL)/refresh") else {
             throw APIError.invalidURL
         }

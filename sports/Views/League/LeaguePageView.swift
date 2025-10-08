@@ -10,7 +10,7 @@ import SwiftUI
 struct LeaguePageView: View {
     let league: League
     @State private var selectedTab: LeagueTab = .schedule
-    @State private var selectedSeason: String = "2025"
+    @State private var selectedSeason: String = "2023"
     @State private var games: [Game] = []
     @State private var teams: [Team] = []
     @State private var isLoading = false
@@ -64,9 +64,8 @@ struct LeaguePageView: View {
                             .foregroundColor(.secondary)
                         
                         Picker("Season", selection: $selectedSeason) {
-                            Text("2025-2026").tag("2025")
-                            Text("2024-2025").tag("2024")
                             Text("2023-2024").tag("2023")
+                            Text("2021-2022").tag("2021")
                         }
                         .pickerStyle(MenuPickerStyle())
                         .onChange(of: selectedSeason) { _, newSeason in

@@ -130,7 +130,7 @@ router.get('/:id', async (req, res) => {
 // POST /api/teams/refresh - Force refresh teams data
 router.post('/refresh', async (req, res) => {
   try {
-    const { leagueId = '1', season = '2025' } = req.body;
+    const { leagueId = '1', season = '2023' } = req.body;
     
     const result = await dataRefresh.forceRefreshLeagueData(leagueId, season);
     

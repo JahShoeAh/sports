@@ -40,7 +40,7 @@ class ApiSportsService {
   }
 
   // Fetch NFL games
-  async fetchNFLGames(season = '2025', week = null) {
+  async fetchNFLGames(season = '2023', week = null) {
     try {
       console.log(`Fetching NFL games for season ${season}${week ? `, week ${week}` : ''}...`);
       
@@ -70,7 +70,7 @@ class ApiSportsService {
   }
 
   // Fetch NFL players (for future use)
-  async fetchNFLPlayers(teamId = null, season = '2025') {
+  async fetchNFLPlayers(teamId = null, season = '2023') {
     try {
       console.log(`Fetching NFL players${teamId ? ` for team ${teamId}` : ''}...`);
       

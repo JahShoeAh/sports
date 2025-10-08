@@ -8,7 +8,7 @@ class DataRefreshService {
   }
 
   // Main refresh method for a specific league
-  async refreshLeagueData(leagueId, season = '2025') {
+  async refreshLeagueData(leagueId, season = '2023') {
     if (this.isRefreshing) {
       console.log('Data refresh already in progress, skipping...');
       return { success: false, message: 'Refresh already in progress' };
@@ -133,7 +133,7 @@ class DataRefreshService {
     
     const results = [];
     const leagues = [
-      { id: '1', name: 'NFL', season: '2025' }
+      { id: '1', name: 'NFL', season: '2023' }
       // Add more leagues here as needed
     ];
 
@@ -159,7 +159,7 @@ class DataRefreshService {
   }
 
   // Force refresh (ignores freshness check)
-  async forceRefreshLeagueData(leagueId, season = '2025') {
+  async forceRefreshLeagueData(leagueId, season = '2023') {
     console.log(`Force refreshing data for league ${leagueId}`);
     
     // Temporarily set a very short max age to force refresh
