@@ -11,7 +11,7 @@ class APIService: ObservableObject {
     static let shared = APIService()
     
     private let baseURL = "https://v1.american-football.api-sports.io"
-    private let apiKey = "YOUR_API_KEY" // TODO:QUESTION - Add API key configuration
+    private let apiKey = "9316aa1d2d0c2d55eb84b0dc566fc21a"
     private let session = URLSession.shared
     
     private init() {}
@@ -47,8 +47,13 @@ class APIService: ObservableObject {
     }
     
     // MARK: - NFL Teams
-    func fetchNFLTeams() async throws -> [Team] {
-        let urlComponents = URLComponents(string: "\(baseURL)/teams")!
+    func fetchNFLTeams(season: String = "2025") async throws -> [Team] {
+        var urlComponents = URLComponents(string: "\(baseURL)/teams")!
+        urlComponents.queryItems = [
+            URLQueryItem(name: "league", value: "1"), // NFL league ID
+            URLQueryItem(name: "season", value: season)
+        ]
+        
         guard let url = urlComponents.url else {
             throw APIError.invalidURL
         }
@@ -191,17 +196,21 @@ struct NFLTeam: Codable {
     let id: Int
     let name: String
     let logo: String?
+    let city: String?
+    let abbreviation: String?
+    let conference: String?
+    let division: String?
     
     func toTeam() -> Team {
         return Team(
             id: String(id),
             name: name,
-            city: name, // TODO:QUESTION - Parse city from team name or get from API
-            abbreviation: name, // TODO:QUESTION - Get proper abbreviation from API
+            city: city ?? name,
+            abbreviation: abbreviation ?? name,
             logoURL: logo,
             league: League(id: "1", name: "NFL", abbreviation: "NFL", logoURL: nil, sport: .football, level: .professional, season: "2025", isActive: true),
-            conference: nil, // TODO:QUESTION - Get conference info from API
-            division: nil, // TODO:QUESTION - Get division info from API
+            conference: conference,
+            division: division,
             colors: nil
         )
     }
@@ -226,7 +235,17 @@ struct NFLTeamResponse: Codable {
     let season: [NFLSeason]?
     
     func toTeam() -> Team {
-        return team.toTeam()
+        return Team(
+            id: String(team.id),
+            name: team.name,
+            city: team.city ?? team.name, // Use city if available, fallback to name
+            abbreviation: team.abbreviation ?? team.name,
+            logoURL: team.logo,
+            league: League(id: "1", name: "NFL", abbreviation: "NFL", logoURL: nil, sport: .football, level: .professional, season: "2025", isActive: true),
+            conference: team.conference,
+            division: team.division,
+            colors: nil
+        )
     }
 }
 

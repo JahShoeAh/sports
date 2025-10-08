@@ -1,0 +1,33 @@
+{
+  "name": "sports-api-server",
+  "version": "1.0.0",
+  "description": "Backend server for Sports app - fetches data from API-Sports and serves to iOS app",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js",
+    "dev:fetch": "FETCH_ON_STARTUP=true nodemon server.js",
+    "start:fetch": "FETCH_ON_STARTUP=true node server.js",
+    "setup": "node database/setup.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": ["sports", "api", "nfl", "nodejs", "express"],
+  "author": "Joyce Zhang",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "axios": "^1.6.0",
+    "sqlite3": "^5.1.6",
+    "node-cron": "^3.0.3",
+    "cors": "^2.8.5",
+    "helmet": "^7.1.0",
+    "compression": "^1.7.4",
+    "express-rate-limit": "^7.1.5"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
