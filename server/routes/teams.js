@@ -32,10 +32,10 @@ router.get('/', async (req, res) => {
         name: leagueInfo ? leagueInfo.name : team.league_id,
         abbreviation: leagueInfo ? leagueInfo.abbreviation : team.league_id,
         logoURL: null,
-        sport: leagueInfo ? leagueInfo.sport : 'unknown',
-        level: leagueInfo ? leagueInfo.level : 'professional',
+        sport: leagueInfo ? leagueInfo.sport.toLowerCase() : 'unknown',
+        level: leagueInfo ? leagueInfo.level.toLowerCase() : 'professional',
         season: leagueInfo ? leagueInfo.season : '2024-25',
-        isActive: leagueInfo ? leagueInfo.is_active : true
+        isActive: leagueInfo ? Boolean(leagueInfo.is_active) : true
       },
       conference: team.conference,
       division: team.division,
@@ -108,10 +108,10 @@ router.get('/:id', async (req, res) => {
         name: leagueInfo ? leagueInfo.name : team.league_id,
         abbreviation: leagueInfo ? leagueInfo.abbreviation : team.league_id,
         logoURL: null,
-        sport: leagueInfo ? leagueInfo.sport : 'unknown',
-        level: leagueInfo ? leagueInfo.level : 'professional',
+        sport: leagueInfo ? leagueInfo.sport.toLowerCase() : 'unknown',
+        level: leagueInfo ? leagueInfo.level.toLowerCase() : 'professional',
         season: leagueInfo ? leagueInfo.season : '2024-25',
-        isActive: leagueInfo ? leagueInfo.is_active : true
+        isActive: leagueInfo ? Boolean(leagueInfo.is_active) : true
       },
       conference: team.conference,
       division: team.division,
