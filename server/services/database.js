@@ -11,8 +11,8 @@ class DatabaseService {
     return new Promise((resolve, reject) => {
       const stmt = this.db.prepare(`
         INSERT OR REPLACE INTO leagues 
-        (id, name, abbreviation, logo_url, sport, level, season, is_active, updated_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+        (id, name, abbreviation, logo_url, sport, level, is_active, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
       `);
       
       stmt.run([
@@ -22,7 +22,6 @@ class DatabaseService {
         league.logoURL,
         league.sport,
         league.level,
-        league.season,
         league.isActive
       ], function(err) {
         if (err) {
@@ -106,6 +105,25 @@ class DatabaseService {
     });
   }
 
+  async getTeamsWithLeague(leagueId) {
+    return new Promise((resolve, reject) => {
+      this.db.all(`
+        SELECT t.*, l.name as league_name, l.abbreviation as league_abbreviation, 
+               l.logo_url as league_logo_url, l.sport as league_sport, l.level as league_level, l.is_active as league_is_active
+        FROM teams t
+        LEFT JOIN leagues l ON t.league_id = l.id
+        WHERE t.league_id = ?
+        ORDER BY t.conference, t.division, t.name
+      `, [leagueId], (err, rows) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(rows);
+        }
+      });
+    });
+  }
+
   // Game operations
   async saveGame(game) {
     return new Promise((resolve, reject) => {
@@ -156,10 +174,12 @@ class DatabaseService {
                g.venue_id, g.venue, g.city, g.state, g.country, g.home_score, g.away_score,
                g.quarter, g.time_remaining, g.is_live, g.is_completed, g.created_at, g.updated_at,
                ht.name as home_team_name, ht.city as home_team_city, ht.abbreviation as home_team_abbr, ht.logo_url as home_team_logo, ht.conference as home_team_conference, ht.division as home_team_division,
-               at.name as away_team_name, at.city as away_team_city, at.abbreviation as away_team_abbr, at.logo_url as away_team_logo, at.conference as away_team_conference, at.division as away_team_division
+               at.name as away_team_name, at.city as away_team_city, at.abbreviation as away_team_abbr, at.logo_url as away_team_logo, at.conference as away_team_conference, at.division as away_team_division,
+               l.name as league_name, l.abbreviation as league_abbreviation, l.logo_url as league_logo_url, l.sport as league_sport, l.level as league_level, l.is_active as league_is_active
         FROM games g
         LEFT JOIN teams ht ON g.home_team_id = ht.id
         LEFT JOIN teams at ON g.away_team_id = at.id
+        LEFT JOIN leagues l ON g.league_id = l.id
         WHERE g.league_id = ?
       `;
       

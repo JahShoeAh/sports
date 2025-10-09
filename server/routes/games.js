@@ -28,13 +28,12 @@ router.get('/', async (req, res) => {
         logoURL: game.home_team_logo,
         league: {
           id: game.league_id,
-          name: game.league_id === 'NBA' ? 'National Basketball Association' : 'Unknown League',
-          abbreviation: game.league_id,
-          logoURL: null,
-          sport: game.league_id === 'NBA' ? 'basketball' : 'unknown',
-          level: 'professional',
-          season: game.season,
-          isActive: true
+          name: game.league_name || 'Unknown League',
+          abbreviation: game.league_abbreviation || game.league_id,
+          logoURL: game.league_logo_url,
+          sport: game.league_sport || 'unknown',
+          level: game.league_level || 'professional',
+          isActive: Boolean(game.league_is_active)
         },
         conference: game.home_team_conference,
         division: game.home_team_division,
@@ -48,13 +47,12 @@ router.get('/', async (req, res) => {
         logoURL: game.away_team_logo,
         league: {
           id: game.league_id,
-          name: game.league_id === 'NBA' ? 'National Basketball Association' : 'Unknown League',
-          abbreviation: game.league_id,
-          logoURL: null,
-          sport: game.league_id === 'NBA' ? 'basketball' : 'unknown',
-          level: 'professional',
-          season: game.season,
-          isActive: true
+          name: game.league_name || 'Unknown League',
+          abbreviation: game.league_abbreviation || game.league_id,
+          logoURL: game.league_logo_url,
+          sport: game.league_sport || 'unknown',
+          level: game.league_level || 'professional',
+          isActive: Boolean(game.league_is_active)
         },
         conference: game.away_team_conference,
         division: game.away_team_division,
@@ -62,13 +60,12 @@ router.get('/', async (req, res) => {
       },
       league: {
         id: game.league_id,
-        name: game.league_id === 'NBA' ? 'National Basketball Association' : 'Unknown League',
-        abbreviation: game.league_id,
-        logoURL: null,
-        sport: game.league_id === 'NBA' ? 'basketball' : 'unknown',
-        level: 'professional',
-        season: game.season,
-        isActive: true
+        name: game.league_name || 'Unknown League',
+        abbreviation: game.league_abbreviation || game.league_id,
+        logoURL: game.league_logo_url,
+        sport: game.league_sport || 'unknown',
+        level: game.league_level || 'professional',
+        isActive: Boolean(game.league_is_active)
       },
       season: game.season,
       week: game.week,
@@ -133,16 +130,15 @@ router.get('/:id', async (req, res) => {
         logoURL: game.home_team_logo,
         league: {
           id: game.league_id,
-          name: game.league_id === 'NBA' ? 'National Basketball Association' : 'Unknown League',
-          abbreviation: game.league_id,
-          logoURL: null,
-          sport: game.league_id === 'NBA' ? 'basketball' : 'unknown',
-          level: 'professional',
-          season: game.season,
-          isActive: true
+          name: game.league_name || 'Unknown League',
+          abbreviation: game.league_abbreviation || game.league_id,
+          logoURL: game.league_logo_url,
+          sport: game.league_sport || 'unknown',
+          level: game.league_level || 'professional',
+          isActive: Boolean(game.league_is_active)
         },
-        conference: game.away_team_conference,
-        division: game.away_team_division,
+        conference: game.home_team_conference,
+        division: game.home_team_division,
         colors: null
       },
       awayTeam: {
@@ -153,13 +149,12 @@ router.get('/:id', async (req, res) => {
         logoURL: game.away_team_logo,
         league: {
           id: game.league_id,
-          name: game.league_id === 'NBA' ? 'National Basketball Association' : 'Unknown League',
-          abbreviation: game.league_id,
-          logoURL: null,
-          sport: game.league_id === 'NBA' ? 'basketball' : 'unknown',
-          level: 'professional',
-          season: game.season,
-          isActive: true
+          name: game.league_name || 'Unknown League',
+          abbreviation: game.league_abbreviation || game.league_id,
+          logoURL: game.league_logo_url,
+          sport: game.league_sport || 'unknown',
+          level: game.league_level || 'professional',
+          isActive: Boolean(game.league_is_active)
         },
         conference: game.away_team_conference,
         division: game.away_team_division,
@@ -167,13 +162,12 @@ router.get('/:id', async (req, res) => {
       },
       league: {
         id: game.league_id,
-        name: game.league_id === 'NBA' ? 'National Basketball Association' : 'Unknown League',
-        abbreviation: game.league_id,
-        logoURL: null,
-        sport: game.league_id === 'NBA' ? 'basketball' : 'unknown',
-        level: 'professional',
-        season: game.season,
-        isActive: true
+        name: game.league_name || 'Unknown League',
+        abbreviation: game.league_abbreviation || game.league_id,
+        logoURL: game.league_logo_url,
+        sport: game.league_sport || 'unknown',
+        level: game.league_level || 'professional',
+        isActive: Boolean(game.league_is_active)
       },
       season: game.season,
       week: game.week,

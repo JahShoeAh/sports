@@ -117,9 +117,9 @@ struct GamePosterCard: View {
     VStack {
         GamePosterCard(game: Game(
             id: "1",
-            homeTeam: Team(id: "1", name: "Chiefs", city: "Kansas City", abbreviation: "KC", logoURL: nil, league: League(id: "1", name: "NFL", abbreviation: "NFL", logoURL: nil, sport: .football, level: .professional, season: "2025", isActive: true), conference: "AFC", division: "West", colors: nil),
-            awayTeam: Team(id: "2", name: "Bills", city: "Buffalo", abbreviation: "BUF", logoURL: nil, league: League(id: "1", name: "NFL", abbreviation: "NFL", logoURL: nil, sport: .football, level: .professional, season: "2025", isActive: true), conference: "AFC", division: "East", colors: nil),
-            league: League(id: "1", name: "NFL", abbreviation: "NFL", logoURL: nil, sport: .football, level: .professional, season: "2025", isActive: true),
+            homeTeam: Team(id: "1", name: "Chiefs", city: "Kansas City", abbreviation: "KC", logoURL: nil, league: League(id: "1", name: "NFL", abbreviation: "NFL", logoURL: nil, sport: .football, level: .professional, isActive: true), conference: "AFC", division: "West", colors: nil),
+            awayTeam: Team(id: "2", name: "Bills", city: "Buffalo", abbreviation: "BUF", logoURL: nil, league: League(id: "1", name: "NFL", abbreviation: "NFL", logoURL: nil, sport: .football, level: .professional, isActive: true), conference: "AFC", division: "East", colors: nil),
+            league: League(id: "1", name: "NFL", abbreviation: "NFL", logoURL: nil, sport: .football, level: .professional, isActive: true),
             season: "2025",
             week: 1,
             gameDate: Date(),
@@ -141,9 +141,9 @@ struct GamePosterCard: View {
         
         GamePosterCard(game: Game(
             id: "2",
-            homeTeam: Team(id: "3", name: "Cowboys", city: "Dallas", abbreviation: "DAL", logoURL: nil, league: League(id: "1", name: "NFL", abbreviation: "NFL", logoURL: nil, sport: .football, level: .professional, season: "2025", isActive: true), conference: "NFC", division: "East", colors: nil),
-            awayTeam: Team(id: "4", name: "Eagles", city: "Philadelphia", abbreviation: "PHI", logoURL: nil, league: League(id: "1", name: "NFL", abbreviation: "NFL", logoURL: nil, sport: .football, level: .professional, season: "2025", isActive: true), conference: "NFC", division: "East", colors: nil),
-            league: League(id: "1", name: "NFL", abbreviation: "NFL", logoURL: nil, sport: .football, level: .professional, season: "2025", isActive: true),
+            homeTeam: Team(id: "3", name: "Cowboys", city: "Dallas", abbreviation: "DAL", logoURL: nil, league: League(id: "1", name: "NFL", abbreviation: "NFL", logoURL: nil, sport: .football, level: .professional, isActive: true), conference: "NFC", division: "East", colors: nil),
+            awayTeam: Team(id: "4", name: "Eagles", city: "Philadelphia", abbreviation: "PHI", logoURL: nil, league: League(id: "1", name: "NFL", abbreviation: "NFL", logoURL: nil, sport: .football, level: .professional, isActive: true), conference: "NFC", division: "East", colors: nil),
+            league: League(id: "1", name: "NFL", abbreviation: "NFL", logoURL: nil, sport: .football, level: .professional, isActive: true),
             season: "2025",
             week: 1,
             gameDate: Date(),

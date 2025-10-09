@@ -246,7 +246,7 @@ struct PlayerStatsView: View {
             age: 28,
             birthDate: nil,
             birthPlace: "Tyler, TX",
-            currentTeam: Team(id: "1", name: "Chiefs", city: "Kansas City", abbreviation: "KC", logoURL: nil, league: League(id: "1", name: "NFL", abbreviation: "NFL", logoURL: nil, sport: .football, level: .professional, season: "2025", isActive: true), conference: "AFC", division: "West", colors: nil),
+            currentTeam: Team(id: "1", name: "Chiefs", city: "Kansas City", abbreviation: "KC", logoURL: nil, league: League(id: "1", name: "NFL", abbreviation: "NFL", logoURL: nil, sport: .football, level: .professional, isActive: true), conference: "AFC", division: "West", colors: nil),
             headshotURL: nil,
             isActive: true,
             careerStats: [:]
