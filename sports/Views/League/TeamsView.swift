@@ -13,27 +13,40 @@ struct TeamsView: View {
     let errorMessage: String?
     let onTeamTap: (Team) -> Void
     
-    private var teamsByConference: [String: [Team]] {
-        var grouped: [String: [Team]] = [:]
+    private var teamsByConferenceAndDivision: [String: [String: [Team]]] {
+        var grouped: [String: [String: [Team]]] = [:]
         
         for team in teams {
             let conference = team.conference ?? "Other"
+            let division = team.division ?? "Other"
+            
             if grouped[conference] == nil {
-                grouped[conference] = []
+                grouped[conference] = [:]
             }
-            grouped[conference]?.append(team)
+            if grouped[conference]?[division] == nil {
+                grouped[conference]?[division] = []
+            }
+            grouped[conference]?[division]?.append(team)
         }
         
-        // Sort teams within each conference alphabetically
+        // Sort teams within each division alphabetically
         for conference in grouped.keys {
-            grouped[conference]?.sort { $0.name < $1.name }
+            if let conferenceDivisions = grouped[conference] {
+                for division in conferenceDivisions.keys {
+                    grouped[conference]?[division]?.sort { $0.name < $1.name }
+                }
+            }
         }
         
         return grouped
     }
     
     private var sortedConferences: [String] {
-        return teamsByConference.keys.sorted()
+        return teamsByConferenceAndDivision.keys.sorted()
+    }
+    
+    private func sortedDivisions(for conference: String) -> [String] {
+        return teamsByConferenceAndDivision[conference]?.keys.sorted() ?? []
     }
     
     var body: some View {
@@ -90,38 +103,60 @@ struct TeamsView: View {
                 ScrollView {
                     LazyVStack(spacing: 24) {
                         ForEach(sortedConferences, id: \.self) { conference in
-                            VStack(alignment: .leading, spacing: 12) {
+                            VStack(alignment: .leading, spacing: 16) {
                                 // Conference Header
                                 HStack {
                                     Text(conference)
-                                        .font(.headline)
-                                        .fontWeight(.semibold)
+                                        .font(.title2)
+                                        .fontWeight(.bold)
                                     
                                     Spacer()
                                     
-                                    Text("\(teamsByConference[conference]?.count ?? 0) teams")
+                                    let totalTeams = teamsByConferenceAndDivision[conference]?.values.flatMap { $0 }.count ?? 0
+                                    Text("\(totalTeams) teams")
                                         .font(.subheadline)
                                         .foregroundColor(.secondary)
                                 }
                                 .padding(.horizontal)
                                 
-                                // Teams for this conference
-                                LazyVGrid(columns: [
-                                    GridItem(.flexible()),
-                                    GridItem(.flexible())
-                                ], spacing: 12) {
-                                    if let teamsForConference = teamsByConference[conference] {
-                                        ForEach(teamsForConference) { team in
-                                            Button(action: {
-                                                onTeamTap(team)
-                                            }) {
-                                                TeamCard(team: team)
-                                            }
-                                            .buttonStyle(PlainButtonStyle())
+                                // Divisions for this conference
+                                ForEach(sortedDivisions(for: conference), id: \.self) { division in
+                                    VStack(alignment: .leading, spacing: 12) {
+                                        // Division Header
+                                        HStack {
+                                            Text(division)
+                                                .font(.headline)
+                                                .fontWeight(.semibold)
+                                                .foregroundColor(.primary)
+                                            
+                                            Spacer()
+                                            
+                                            let divisionTeamCount = teamsByConferenceAndDivision[conference]?[division]?.count ?? 0
+                                            Text("\(divisionTeamCount) teams")
+                                                .font(.subheadline)
+                                                .foregroundColor(.secondary)
                                         }
+                                        .padding(.horizontal)
+                                        
+                                        // Teams for this division
+                                        LazyVGrid(columns: [
+                                            GridItem(.flexible()),
+                                            GridItem(.flexible())
+                                        ], spacing: 12) {
+                                            if let teamsForDivision = teamsByConferenceAndDivision[conference]?[division] {
+                                                ForEach(teamsForDivision) { team in
+                                                    Button(action: {
+                                                        onTeamTap(team)
+                                                    }) {
+                                                        TeamCard(team: team)
+                                                    }
+                                                    .buttonStyle(PlainButtonStyle())
+                                                }
+                                            }
+                                        }
+                                        .padding(.horizontal)
                                     }
                                 }
-                                .padding(.horizontal)
                             }
                         }
                     }
@@ -185,19 +220,9 @@ struct TeamCard: View {
 #Preview {
     TeamsView(
         teams: [
+            // AFC East
             Team(
                 id: "1",
-                name: "Chiefs",
-                city: "Kansas City",
-                abbreviation: "KC",
-                logoURL: nil,
-                league: League(id: "1", name: "NFL", abbreviation: "NFL", logoURL: nil, sport: .football, level: .professional, season: "2025", isActive: true),
-                conference: "AFC",
-                division: "West",
-                colors: nil
-            ),
-            Team(
-                id: "2",
                 name: "Bills",
                 city: "Buffalo",
                 abbreviation: "BUF",
@@ -208,10 +233,45 @@ struct TeamCard: View {
                 colors: nil
             ),
             Team(
+                id: "2",
+                name: "Dolphins",
+                city: "Miami",
+                abbreviation: "MIA",
+                logoURL: nil,
+                league: League(id: "1", name: "NFL", abbreviation: "NFL", logoURL: nil, sport: .football, level: .professional, season: "2025", isActive: true),
+                conference: "AFC",
+                division: "East",
+                colors: nil
+            ),
+            // AFC West
+            Team(
                 id: "3",
+                name: "Chiefs",
+                city: "Kansas City",
+                abbreviation: "KC",
+                logoURL: nil,
+                league: League(id: "1", name: "NFL", abbreviation: "NFL", logoURL: nil, sport: .football, level: .professional, season: "2025", isActive: true),
+                conference: "AFC",
+                division: "West",
+                colors: nil
+            ),
+            // NFC East
+            Team(
+                id: "4",
                 name: "Cowboys",
                 city: "Dallas",
                 abbreviation: "DAL",
+                logoURL: nil,
+                league: League(id: "1", name: "NFL", abbreviation: "NFL", logoURL: nil, sport: .football, level: .professional, season: "2025", isActive: true),
+                conference: "NFC",
+                division: "East",
+                colors: nil
+            ),
+            Team(
+                id: "5",
+                name: "Eagles",
+                city: "Philadelphia",
+                abbreviation: "PHI",
                 logoURL: nil,
                 league: League(id: "1", name: "NFL", abbreviation: "NFL", logoURL: nil, sport: .football, level: .professional, season: "2025", isActive: true),
                 conference: "NFC",

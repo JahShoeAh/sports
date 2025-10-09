@@ -41,7 +41,7 @@ class YourServerAPI: ObservableObject {
     private init() {}
     
     // MARK: - Games
-    func fetchGames(leagueId: String = "1", season: String? = nil) async throws -> [Game] {
+    func fetchGames(leagueId: String = "NFL", season: String? = nil) async throws -> [Game] {
         var urlComponents = URLComponents(string: "\(baseURL)/games")!
         var queryItems: [URLQueryItem] = [
             URLQueryItem(name: "leagueId", value: leagueId)
@@ -70,7 +70,7 @@ class YourServerAPI: ObservableObject {
     }
     
     // MARK: - Teams
-    func fetchTeams(leagueId: String = "1") async throws -> [Team] {
+    func fetchTeams(leagueId: String = "NFL") async throws -> [Team] {
         var urlComponents = URLComponents(string: "\(baseURL)/teams")!
         urlComponents.queryItems = [
             URLQueryItem(name: "leagueId", value: leagueId)
@@ -111,7 +111,7 @@ class YourServerAPI: ObservableObject {
     }
     
     // MARK: - Data Refresh
-    func refreshData(leagueId: String = "1", season: String = "2025") async throws -> RefreshResponse {
+    func refreshData(leagueId: String = "NFL", season: String = "2025") async throws -> RefreshResponse {
         guard let url = URL(string: "\(baseURL)/refresh") else {
             throw APIError.invalidURL
         }

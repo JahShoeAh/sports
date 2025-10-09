@@ -68,8 +68,8 @@ struct SearchView: View {
                         
                         VStack(spacing: 12) {
                             BrowseRow(title: "Professional", items: [
-                                BrowseItem(name: "NFL", isActive: true, league: League(id: "1", name: "NFL", abbreviation: "NFL", logoURL: nil, sport: .football, level: .professional, season: "2025", isActive: true)),
-                                BrowseItem(name: "NBA", isActive: false, league: League(id: "2", name: "NBA", abbreviation: "NBA", logoURL: nil, sport: .basketball, level: .professional, season: "2025", isActive: true)),
+                                BrowseItem(name: "NFL", isActive: true, league: League(id: "NFL", name: "National Football League", abbreviation: "NFL", logoURL: nil, sport: .football, level: .professional, season: "2024-25", isActive: true)),
+                                BrowseItem(name: "NBA", isActive: false, league: League(id: "NBA", name: "National Basketball Association", abbreviation: "NBA", logoURL: nil, sport: .basketball, level: .professional, season: "2024-25", isActive: true)),
                                 BrowseItem(name: "WNBA", isActive: false, league: League(id: "3", name: "WNBA", abbreviation: "WNBA", logoURL: nil, sport: .basketball, level: .professional, season: "2025", isActive: true)),
                                 BrowseItem(name: "MLB", isActive: false, league: League(id: "4", name: "MLB", abbreviation: "MLB", logoURL: nil, sport: .baseball, level: .professional, season: "2025", isActive: true)),
                                 BrowseItem(name: "NHL", isActive: false, league: League(id: "5", name: "NHL", abbreviation: "NHL", logoURL: nil, sport: .hockey, level: .professional, season: "2025", isActive: true)),

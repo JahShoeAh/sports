@@ -32,10 +32,10 @@ class CacheService: ObservableObject {
         print("Refreshing all cached data")
         
         // Refresh NFL data
-        await refreshLeagueData(leagueId: "1")
+        await refreshLeagueData(leagueId: "NFL")
         
         // Add other leagues as needed
-        // await refreshLeagueData(leagueId: "2") // NBA
+        await refreshLeagueData(leagueId: "NBA") // NBA
         // await refreshLeagueData(leagueId: "3") // MLB
     }
     

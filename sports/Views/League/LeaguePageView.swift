@@ -215,13 +215,13 @@ struct LeaguePageView: View {
 #Preview {
     NavigationView {
         LeaguePageView(league: League(
-            id: "1",
-            name: "NFL",
+            id: "NFL",
+            name: "National Football League",
             abbreviation: "NFL",
             logoURL: nil,
             sport: .football,
             level: .professional,
-            season: "2025",
+            season: "2024-25",
             isActive: true
         ))
     }
