@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct FeedView: View {
-    @StateObject private var apiService = APIService.shared
+    @StateObject private var serverAPI = YourServerAPI.shared
     @StateObject private var firebaseService = FirebaseService.shared
     @State private var games: [Game] = []
     @State private var isLoading = false
@@ -57,7 +57,7 @@ struct FeedView: View {
         errorMessage = nil
         
         do {
-            let fetchedGames = try await apiService.fetchNFLGames()
+            let fetchedGames = try await serverAPI.fetchGames()
             await MainActor.run {
                 self.games = fetchedGames
                 self.isLoading = false

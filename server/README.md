@@ -1,6 +1,6 @@
 # Sports API Server
 
-A Node.js backend server that fetches sports data from API-Sports.io and serves it to your iOS app. This implements the hybrid caching approach where the server fetches data once daily and serves it to all users.
+A Node.js backend server that serves sports data to your iOS app. The server provides a local API for accessing sports data stored in the database.
 
 ## 🚀 Quick Start
 
@@ -70,25 +70,15 @@ The server will start on `http://localhost:3000`
 ## 🔄 How It Works
 
 ### Data Flow
-1. **Server fetches data** from API-Sports.io:
-   - **On startup** (development mode only)
-   - **Daily at 3 AM EST** (scheduled refresh)
-   - **On demand** (manual refresh endpoints)
-2. **Data is stored** in SQLite database
-3. **iOS app calls** your server instead of API-Sports directly
-4. **Users get instant responses** from your server
-5. **Data is cached locally** on iOS devices for offline use
-
-### Startup Behavior
-- **Development mode**: Automatically fetches data on startup if database is empty
-- **Production mode**: Only fetches data on scheduled times (3 AM EST)
-- **Force fetch**: Use `npm run dev:fetch` or `npm run start:fetch` to always fetch on startup
+1. **Data is stored** in SQLite database
+2. **iOS app calls** your server for data
+3. **Users get instant responses** from your server
+4. **Data is cached locally** on iOS devices for offline use
 
 ### Benefits
-- ✅ **1 API call per day** instead of 1000+ calls
 - ✅ **Faster responses** for users
-- ✅ **Cost efficient** - minimal API usage
-- ✅ **Reliable** - works even if API-Sports is down
+- ✅ **No external dependencies** - works offline
+- ✅ **Reliable** - no external API failures
 - ✅ **Scalable** - handles unlimited users
 
 ## 🗄️ Database Schema
@@ -103,9 +93,7 @@ The server uses SQLite with the following tables:
 ## ⚙️ Configuration
 
 Edit `config.js` to customize:
-- API keys and endpoints
 - Database settings
-- Cron schedule (default: 3 AM EST)
 - Rate limiting
 - CORS origins
 
@@ -125,12 +113,9 @@ Edit `config.js` to customize:
 
 ## 📱 iOS App Integration
 
-Update your iOS app to call your server:
+Your iOS app calls your server:
 
 ```swift
-// Instead of calling API-Sports directly:
-// let games = try await APIService.shared.fetchNFLGames()
-
 // Call your server:
 let games = try await YourServerAPI.shared.fetchGames()
 ```
@@ -146,7 +131,6 @@ server/
 ├── database/
 │   └── setup.js          # Database initialization
 ├── services/
-│   ├── apiSports.js      # API-Sports integration
 │   ├── database.js       # Database operations
 │   └── dataRefresh.js    # Data refresh logic
 └── routes/

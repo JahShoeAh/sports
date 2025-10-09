@@ -1,8 +1,6 @@
 // Configuration file for the Sports API Server
 module.exports = {
-  // API Configuration
-  apiSportsKey: '9316aa1d2d0c2d55eb84b0dc566fc21a',
-  apiSportsBaseUrl: 'https://v1.american-football.api-sports.io',
+  // API Configuration - Removed external API dependencies
   
   // Server Configuration
   port: process.env.PORT || 3000,
