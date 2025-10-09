@@ -252,7 +252,6 @@ struct LeaguePageView: View {
             logoURL: nil,
             sport: .football,
             level: .professional,
-            season: "2024-25",
             isActive: true
         ))
     }

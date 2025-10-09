@@ -58,11 +58,11 @@ const insertNBAData = () => {
       
       // Insert NBA League
       const leagueStmt = db.prepare(`
-        INSERT OR REPLACE INTO leagues (id, name, abbreviation, sport, level, season, is_active)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
+        INSERT OR REPLACE INTO leagues (id, name, abbreviation, sport, level, is_active)
+        VALUES (?, ?, ?, ?, ?, ?)
       `);
       
-      leagueStmt.run('NBA', 'National Basketball Association', 'NBA', 'Basketball', 'Professional', '2024-25', 1);
+      leagueStmt.run('NBA', 'National Basketball Association', 'NBA', 'basketball', 'professional', 1);
       leagueStmt.finalize();
       
       console.log('✅ NBA League inserted');

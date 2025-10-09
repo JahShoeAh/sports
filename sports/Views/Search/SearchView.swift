@@ -68,30 +68,30 @@ struct SearchView: View {
                         
                         VStack(spacing: 12) {
                             BrowseRow(title: "Professional", items: [
-                                BrowseItem(name: "NFL", isActive: true, league: League(id: "NFL", name: "National Football League", abbreviation: "NFL", logoURL: nil, sport: .football, level: .professional, season: "2024-25", isActive: true)),
-                                BrowseItem(name: "NBA", isActive: false, league: League(id: "NBA", name: "National Basketball Association", abbreviation: "NBA", logoURL: nil, sport: .basketball, level: .professional, season: "2024-25", isActive: true)),
-                                BrowseItem(name: "WNBA", isActive: false, league: League(id: "3", name: "WNBA", abbreviation: "WNBA", logoURL: nil, sport: .basketball, level: .professional, season: "2025", isActive: true)),
-                                BrowseItem(name: "MLB", isActive: false, league: League(id: "4", name: "MLB", abbreviation: "MLB", logoURL: nil, sport: .baseball, level: .professional, season: "2025", isActive: true)),
-                                BrowseItem(name: "NHL", isActive: false, league: League(id: "5", name: "NHL", abbreviation: "NHL", logoURL: nil, sport: .hockey, level: .professional, season: "2025", isActive: true)),
-                                BrowseItem(name: "MLS", isActive: false, league: League(id: "6", name: "MLS", abbreviation: "MLS", logoURL: nil, sport: .soccer, level: .professional, season: "2025", isActive: true)),
-                                BrowseItem(name: "EPL", isActive: false, league: League(id: "7", name: "EPL", abbreviation: "EPL", logoURL: nil, sport: .soccer, level: .professional, season: "2025", isActive: true))
+                                BrowseItem(name: "NFL", isActive: true, league: League(id: "NFL", name: "National Football League", abbreviation: "NFL", logoURL: nil, sport: .football, level: .professional, isActive: true)),
+                                BrowseItem(name: "NBA", isActive: false, league: League(id: "NBA", name: "National Basketball Association", abbreviation: "NBA", logoURL: nil, sport: .basketball, level: .professional, isActive: true)),
+                                BrowseItem(name: "WNBA", isActive: false, league: League(id: "3", name: "WNBA", abbreviation: "WNBA", logoURL: nil, sport: .basketball, level: .professional, isActive: true)),
+                                BrowseItem(name: "MLB", isActive: false, league: League(id: "4", name: "MLB", abbreviation: "MLB", logoURL: nil, sport: .baseball, level: .professional, isActive: true)),
+                                BrowseItem(name: "NHL", isActive: false, league: League(id: "5", name: "NHL", abbreviation: "NHL", logoURL: nil, sport: .hockey, level: .professional, isActive: true)),
+                                BrowseItem(name: "MLS", isActive: false, league: League(id: "6", name: "MLS", abbreviation: "MLS", logoURL: nil, sport: .soccer, level: .professional, isActive: true)),
+                                BrowseItem(name: "EPL", isActive: false, league: League(id: "7", name: "EPL", abbreviation: "EPL", logoURL: nil, sport: .soccer, level: .professional, isActive: true))
                             ], selectedLeague: $selectedLeague)
                             
                             BrowseRow(title: "College", items: [
-                                BrowseItem(name: "Football", isActive: false, league: League(id: "8", name: "NCAA Football", abbreviation: "CFB", logoURL: nil, sport: .football, level: .college, season: "2025", isActive: true)),
-                                BrowseItem(name: "Men's Basketball", isActive: false, league: League(id: "9", name: "NCAA Men's Basketball", abbreviation: "NCAAM", logoURL: nil, sport: .basketball, level: .college, season: "2025", isActive: true)),
-                                BrowseItem(name: "Women's Basketball", isActive: false, league: League(id: "10", name: "NCAA Women's Basketball", abbreviation: "NCAAW", logoURL: nil, sport: .basketball, level: .college, season: "2025", isActive: true)),
-                                BrowseItem(name: "Men's Volleyball", isActive: false, league: League(id: "11", name: "NCAA Men's Volleyball", abbreviation: "NCAAVM", logoURL: nil, sport: .volleyball, level: .college, season: "2025", isActive: true)),
-                                BrowseItem(name: "Women's Volleyball", isActive: false, league: League(id: "12", name: "NCAA Women's Volleyball", abbreviation: "NCAAVW", logoURL: nil, sport: .volleyball, level: .college, season: "2025", isActive: true)),
-                                BrowseItem(name: "Baseball", isActive: false, league: League(id: "13", name: "NCAA Baseball", abbreviation: "NCAA", logoURL: nil, sport: .baseball, level: .college, season: "2025", isActive: true))
+                                BrowseItem(name: "Football", isActive: false, league: League(id: "8", name: "NCAA Football", abbreviation: "CFB", logoURL: nil, sport: .football, level: .college, isActive: true)),
+                                BrowseItem(name: "Men's Basketball", isActive: false, league: League(id: "9", name: "NCAA Men's Basketball", abbreviation: "NCAAM", logoURL: nil, sport: .basketball, level: .college, isActive: true)),
+                                BrowseItem(name: "Women's Basketball", isActive: false, league: League(id: "10", name: "NCAA Women's Basketball", abbreviation: "NCAAW", logoURL: nil, sport: .basketball, level: .college, isActive: true)),
+                                BrowseItem(name: "Men's Volleyball", isActive: false, league: League(id: "11", name: "NCAA Men's Volleyball", abbreviation: "NCAAVM", logoURL: nil, sport: .volleyball, level: .college, isActive: true)),
+                                BrowseItem(name: "Women's Volleyball", isActive: false, league: League(id: "12", name: "NCAA Women's Volleyball", abbreviation: "NCAAVW", logoURL: nil, sport: .volleyball, level: .college, isActive: true)),
+                                BrowseItem(name: "Baseball", isActive: false, league: League(id: "13", name: "NCAA Baseball", abbreviation: "NCAA", logoURL: nil, sport: .baseball, level: .college, isActive: true))
                             ], selectedLeague: $selectedLeague)
                             
                             BrowseRow(title: "Olympics", items: [
-                                BrowseItem(name: "Olympic Football", isActive: false, league: League(id: "14", name: "Olympic Football", abbreviation: "OLY", logoURL: nil, sport: .football, level: .olympic, season: "2024", isActive: true)),
-                                BrowseItem(name: "Olympic Basketball", isActive: false, league: League(id: "15", name: "Olympic Basketball", abbreviation: "OLY", logoURL: nil, sport: .basketball, level: .olympic, season: "2024", isActive: true)),
-                                BrowseItem(name: "Olympic Volleyball", isActive: false, league: League(id: "16", name: "Olympic Volleyball", abbreviation: "OLY", logoURL: nil, sport: .volleyball, level: .olympic, season: "2024", isActive: true)),
-                                BrowseItem(name: "Olympic Swimming", isActive: false, league: League(id: "17", name: "Olympic Swimming", abbreviation: "OLY", logoURL: nil, sport: .olympic, level: .olympic, season: "2024", isActive: true)),
-                                BrowseItem(name: "Olympic Track & Field", isActive: false, league: League(id: "18", name: "Olympic Track & Field", abbreviation: "OLY", logoURL: nil, sport: .olympic, level: .olympic, season: "2024", isActive: true))
+                                BrowseItem(name: "Olympic Football", isActive: false, league: League(id: "14", name: "Olympic Football", abbreviation: "OLY", logoURL: nil, sport: .football, level: .olympic, isActive: true)),
+                                BrowseItem(name: "Olympic Basketball", isActive: false, league: League(id: "15", name: "Olympic Basketball", abbreviation: "OLY", logoURL: nil, sport: .basketball, level: .olympic, isActive: true)),
+                                BrowseItem(name: "Olympic Volleyball", isActive: false, league: League(id: "16", name: "Olympic Volleyball", abbreviation: "OLY", logoURL: nil, sport: .volleyball, level: .olympic, isActive: true)),
+                                BrowseItem(name: "Olympic Swimming", isActive: false, league: League(id: "17", name: "Olympic Swimming", abbreviation: "OLY", logoURL: nil, sport: .olympic, level: .olympic, isActive: true)),
+                                BrowseItem(name: "Olympic Track & Field", isActive: false, league: League(id: "18", name: "Olympic Track & Field", abbreviation: "OLY", logoURL: nil, sport: .olympic, level: .olympic, isActive: true))
                             ], selectedLeague: $selectedLeague)
                         }
                     }

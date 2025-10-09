@@ -227,7 +227,7 @@ struct TeamCard: View {
                 city: "Buffalo",
                 abbreviation: "BUF",
                 logoURL: nil,
-                league: League(id: "1", name: "NFL", abbreviation: "NFL", logoURL: nil, sport: .football, level: .professional, season: "2025", isActive: true),
+                league: League(id: "1", name: "NFL", abbreviation: "NFL", logoURL: nil, sport: .football, level: .professional, isActive: true),
                 conference: "AFC",
                 division: "East",
                 colors: nil
@@ -238,7 +238,7 @@ struct TeamCard: View {
                 city: "Miami",
                 abbreviation: "MIA",
                 logoURL: nil,
-                league: League(id: "1", name: "NFL", abbreviation: "NFL", logoURL: nil, sport: .football, level: .professional, season: "2025", isActive: true),
+                league: League(id: "1", name: "NFL", abbreviation: "NFL", logoURL: nil, sport: .football, level: .professional, isActive: true),
                 conference: "AFC",
                 division: "East",
                 colors: nil
@@ -250,7 +250,7 @@ struct TeamCard: View {
                 city: "Kansas City",
                 abbreviation: "KC",
                 logoURL: nil,
-                league: League(id: "1", name: "NFL", abbreviation: "NFL", logoURL: nil, sport: .football, level: .professional, season: "2025", isActive: true),
+                league: League(id: "1", name: "NFL", abbreviation: "NFL", logoURL: nil, sport: .football, level: .professional, isActive: true),
                 conference: "AFC",
                 division: "West",
                 colors: nil
@@ -262,7 +262,7 @@ struct TeamCard: View {
                 city: "Dallas",
                 abbreviation: "DAL",
                 logoURL: nil,
-                league: League(id: "1", name: "NFL", abbreviation: "NFL", logoURL: nil, sport: .football, level: .professional, season: "2025", isActive: true),
+                league: League(id: "1", name: "NFL", abbreviation: "NFL", logoURL: nil, sport: .football, level: .professional, isActive: true),
                 conference: "NFC",
                 division: "East",
                 colors: nil
@@ -273,7 +273,7 @@ struct TeamCard: View {
                 city: "Philadelphia",
                 abbreviation: "PHI",
                 logoURL: nil,
-                league: League(id: "1", name: "NFL", abbreviation: "NFL", logoURL: nil, sport: .football, level: .professional, season: "2025", isActive: true),
+                league: League(id: "1", name: "NFL", abbreviation: "NFL", logoURL: nil, sport: .football, level: .professional, isActive: true),
                 conference: "NFC",
                 division: "East",
                 colors: nil

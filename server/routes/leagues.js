@@ -16,7 +16,6 @@ router.get('/', async (req, res) => {
       logoURL: league.logo_url,
       sport: league.sport,
       level: league.level,
-      season: league.season,
       isActive: league.is_active === 1
     }));
 
@@ -58,7 +57,6 @@ router.get('/:id', async (req, res) => {
       logoURL: league.logo_url,
       sport: league.sport,
       level: league.level,
-      season: league.season,
       isActive: league.is_active === 1
     };
 

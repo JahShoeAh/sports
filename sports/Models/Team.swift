@@ -36,17 +36,15 @@ struct League: Identifiable, Codable {
     let logoURL: String?
     let sport: Sport
     let level: LeagueLevel
-    let season: String
     let isActive: Bool
     
-    init(id: String, name: String, abbreviation: String, logoURL: String?, sport: Sport, level: LeagueLevel, season: String, isActive: Bool) {
+    init(id: String, name: String, abbreviation: String, logoURL: String?, sport: Sport, level: LeagueLevel, isActive: Bool) {
         self.id = id
         self.name = name
         self.abbreviation = abbreviation
         self.logoURL = logoURL
         self.sport = sport
         self.level = level
-        self.season = season
         self.isActive = isActive
     }
     
@@ -59,7 +57,6 @@ struct League: Identifiable, Codable {
         logoURL = try container.decodeIfPresent(String.self, forKey: .logoURL)
         sport = try container.decode(Sport.self, forKey: .sport)
         level = try container.decode(LeagueLevel.self, forKey: .level)
-        season = try container.decode(String.self, forKey: .season)
         
         // Handle isActive as either Bool or Int from server
         if let boolValue = try? container.decode(Bool.self, forKey: .isActive) {
@@ -75,7 +72,7 @@ struct League: Identifiable, Codable {
     }
     
     private enum CodingKeys: String, CodingKey {
-        case id, name, abbreviation, logoURL, sport, level, season, isActive
+        case id, name, abbreviation, logoURL, sport, level, isActive
     }
 }
 

@@ -15,10 +15,7 @@ router.get('/', async (req, res) => {
       });
     }
 
-    const teams = await database.getTeams(leagueId);
-    
-    // Get league info for proper transformation
-    const leagueInfo = await database.getLeague(leagueId);
+    const teams = await database.getTeamsWithLeague(leagueId);
     
     // Transform data to match iOS app expectations
     const transformedTeams = teams.map(team => ({
@@ -29,13 +26,12 @@ router.get('/', async (req, res) => {
       logoURL: team.logo_url,
       league: {
         id: team.league_id,
-        name: leagueInfo ? leagueInfo.name : team.league_id,
-        abbreviation: leagueInfo ? leagueInfo.abbreviation : team.league_id,
-        logoURL: null,
-        sport: leagueInfo ? leagueInfo.sport.toLowerCase() : 'unknown',
-        level: leagueInfo ? leagueInfo.level.toLowerCase() : 'professional',
-        season: leagueInfo ? leagueInfo.season : '2024-25',
-        isActive: leagueInfo ? Boolean(leagueInfo.is_active) : true
+        name: team.league_name || 'Unknown League',
+        abbreviation: team.league_abbreviation || team.league_id,
+        logoURL: team.league_logo_url,
+        sport: team.league_sport || 'unknown',
+        level: team.league_level || 'professional',
+        isActive: Boolean(team.league_is_active)
       },
       conference: team.conference,
       division: team.division,
@@ -83,7 +79,7 @@ router.get('/:id', async (req, res) => {
       });
     }
 
-    const teams = await database.getTeams(leagueId);
+    const teams = await database.getTeamsWithLeague(leagueId);
     const team = teams.find(t => t.id === id);
     
     if (!team) {
@@ -93,9 +89,6 @@ router.get('/:id', async (req, res) => {
       });
     }
 
-    // Get league info for proper transformation
-    const leagueInfo = await database.getLeague(leagueId);
-    
     // Transform single team
     const transformedTeam = {
       id: team.id,
@@ -105,13 +98,12 @@ router.get('/:id', async (req, res) => {
       logoURL: team.logo_url,
       league: {
         id: team.league_id,
-        name: leagueInfo ? leagueInfo.name : team.league_id,
-        abbreviation: leagueInfo ? leagueInfo.abbreviation : team.league_id,
-        logoURL: null,
-        sport: leagueInfo ? leagueInfo.sport.toLowerCase() : 'unknown',
-        level: leagueInfo ? leagueInfo.level.toLowerCase() : 'professional',
-        season: leagueInfo ? leagueInfo.season : '2024-25',
-        isActive: leagueInfo ? Boolean(leagueInfo.is_active) : true
+        name: team.league_name || 'Unknown League',
+        abbreviation: team.league_abbreviation || team.league_id,
+        logoURL: team.league_logo_url,
+        sport: team.league_sport || 'unknown',
+        level: team.league_level || 'professional',
+        isActive: Boolean(team.league_is_active)
       },
       conference: team.conference,
       division: team.division,

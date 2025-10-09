@@ -64,11 +64,11 @@ const insertNFLData = () => {
       
       // Insert NFL League
       const leagueStmt = db.prepare(`
-        INSERT OR REPLACE INTO leagues (id, name, abbreviation, sport, level, season, is_active)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
+        INSERT OR REPLACE INTO leagues (id, name, abbreviation, sport, level, is_active)
+        VALUES (?, ?, ?, ?, ?, ?)
       `);
       
-      leagueStmt.run('NFL', 'National Football League', 'NFL', 'Football', 'Professional', '2024-25', 1);
+      leagueStmt.run('NFL', 'National Football League', 'NFL', 'football', 'professional', 1);
       leagueStmt.finalize();
       
       console.log('✅ NFL League inserted');
