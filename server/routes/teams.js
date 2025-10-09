@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const database = require('../services/database');
-const dataRefresh = require('../services/dataRefresh');
+// Removed dataRefresh - no longer using external APIs
 
 // GET /api/teams - Get all teams for a league
 router.get('/', async (req, res) => {
@@ -17,6 +17,9 @@ router.get('/', async (req, res) => {
 
     const teams = await database.getTeams(leagueId);
     
+    // Get league info for proper transformation
+    const leagueInfo = await database.getLeague(leagueId);
+    
     // Transform data to match iOS app expectations
     const transformedTeams = teams.map(team => ({
       id: team.id,
@@ -26,13 +29,13 @@ router.get('/', async (req, res) => {
       logoURL: team.logo_url,
       league: {
         id: team.league_id,
-        name: 'NFL',
-        abbreviation: 'NFL',
+        name: leagueInfo ? leagueInfo.name : team.league_id,
+        abbreviation: leagueInfo ? leagueInfo.abbreviation : team.league_id,
         logoURL: null,
-        sport: 'football',
-        level: 'professional',
-        season: '2025',
-        isActive: true
+        sport: leagueInfo ? leagueInfo.sport : 'unknown',
+        level: leagueInfo ? leagueInfo.level : 'professional',
+        season: leagueInfo ? leagueInfo.season : '2024-25',
+        isActive: leagueInfo ? leagueInfo.is_active : true
       },
       conference: team.conference,
       division: team.division,
@@ -90,6 +93,9 @@ router.get('/:id', async (req, res) => {
       });
     }
 
+    // Get league info for proper transformation
+    const leagueInfo = await database.getLeague(leagueId);
+    
     // Transform single team
     const transformedTeam = {
       id: team.id,
@@ -99,13 +105,13 @@ router.get('/:id', async (req, res) => {
       logoURL: team.logo_url,
       league: {
         id: team.league_id,
-        name: 'NFL',
-        abbreviation: 'NFL',
+        name: leagueInfo ? leagueInfo.name : team.league_id,
+        abbreviation: leagueInfo ? leagueInfo.abbreviation : team.league_id,
         logoURL: null,
-        sport: 'football',
-        level: 'professional',
-        season: '2025',
-        isActive: true
+        sport: leagueInfo ? leagueInfo.sport : 'unknown',
+        level: leagueInfo ? leagueInfo.level : 'professional',
+        season: leagueInfo ? leagueInfo.season : '2024-25',
+        isActive: leagueInfo ? leagueInfo.is_active : true
       },
       conference: team.conference,
       division: team.division,
@@ -127,23 +133,6 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// POST /api/teams/refresh - Force refresh teams data
-router.post('/refresh', async (req, res) => {
-  try {
-    const { leagueId = '1', season = '2025' } = req.body;
-    
-    const result = await dataRefresh.forceRefreshLeagueData(leagueId, season);
-    
-    res.json(result);
-
-  } catch (error) {
-    console.error('Error refreshing teams:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Internal server error',
-      error: error.message
-    });
-  }
-});
+// POST /api/teams/refresh - Data refresh removed (using static data)
 
 module.exports = router;

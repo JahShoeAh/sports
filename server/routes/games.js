@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const database = require('../services/database');
-const dataRefresh = require('../services/dataRefresh');
+// Removed dataRefresh - no longer using external APIs
 
 // GET /api/games - Get all games for a league
 router.get('/', async (req, res) => {
@@ -210,23 +210,6 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// POST /api/games/refresh - Force refresh games data
-router.post('/refresh', async (req, res) => {
-  try {
-    const { leagueId = '1', season = '2025' } = req.body;
-    
-    const result = await dataRefresh.forceRefreshLeagueData(leagueId, season);
-    
-    res.json(result);
-
-  } catch (error) {
-    console.error('Error refreshing games:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Internal server error',
-      error: error.message
-    });
-  }
-});
+// POST /api/games/refresh - Data refresh removed (using static data)
 
 module.exports = router;

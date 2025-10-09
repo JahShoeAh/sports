@@ -48,6 +48,18 @@ class DatabaseService {
     });
   }
 
+  async getLeague(leagueId) {
+    return new Promise((resolve, reject) => {
+      this.db.get('SELECT * FROM leagues WHERE id = ?', [leagueId], (err, row) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(row);
+        }
+      });
+    });
+  }
+
   // Team operations
   async saveTeam(team) {
     return new Promise((resolve, reject) => {

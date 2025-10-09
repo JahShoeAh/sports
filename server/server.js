@@ -3,11 +3,11 @@ const cors = require('cors');
 const helmet = require('helmet');
 const compression = require('compression');
 const rateLimit = require('express-rate-limit');
-const cron = require('node-cron');
+// Removed cron - no longer using scheduled data refresh
 
 const config = require('./config');
 const { initializeDatabase } = require('./database/setup');
-const dataRefresh = require('./services/dataRefresh');
+// Removed dataRefresh - no longer using external APIs
 
 // Import routes
 const gamesRoutes = require('./routes/games');
@@ -56,9 +56,6 @@ app.get('/health', (req, res) => {
 // API status endpoint
 app.get('/api/status', async (req, res) => {
   try {
-    const stats = await dataRefresh.getRefreshStatus();
-    const apiTest = await dataRefresh.testApiConnection();
-    
     res.json({
       success: true,
       data: {
@@ -68,12 +65,7 @@ app.get('/api/status', async (req, res) => {
           environment: config.nodeEnv,
           timestamp: new Date().toISOString()
         },
-        database: stats.stats,
-        apiConnection: apiTest,
-        refreshStatus: {
-          isRefreshing: stats.isRefreshing,
-          lastRefresh: stats.lastRefresh
-        }
+        message: 'Server running with static data - no external APIs'
       }
     });
   } catch (error) {
@@ -90,24 +82,7 @@ app.use('/api/games', gamesRoutes);
 app.use('/api/teams', teamsRoutes);
 app.use('/api/leagues', leaguesRoutes);
 
-// Global refresh endpoint
-app.post('/api/refresh', async (req, res) => {
-  try {
-    const { leagueId = '1', season = '2025' } = req.body;
-    
-    const result = await dataRefresh.forceRefreshLeagueData(leagueId, season);
-    
-    res.json(result);
-
-  } catch (error) {
-    console.error('Error in global refresh:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Internal server error',
-      error: error.message
-    });
-  }
-});
+// Data refresh endpoint removed - using static data only
 
 // 404 handler
 app.use('*', (req, res) => {
@@ -142,8 +117,8 @@ const startServer = async () => {
       console.log(`📊 Environment: ${config.nodeEnv}`);
       console.log(`🔗 Health check: http://localhost:${config.port}/health`);
       console.log(`📈 API status: http://localhost:${config.port}/api/status`);
-      console.log(`🏈 NFL Games: http://localhost:${config.port}/api/games?leagueId=1`);
-      console.log(`👥 NFL Teams: http://localhost:${config.port}/api/teams?leagueId=1`);
+      console.log(`🏀 NBA Teams: http://localhost:${config.port}/api/teams?leagueId=NBA`);
+      console.log(`🏈 NFL Teams: http://localhost:${config.port}/api/teams?leagueId=NFL`);
     });
 
     // Graceful shutdown
@@ -169,64 +144,11 @@ const startServer = async () => {
   }
 };
 
-// Schedule automatic data refresh
-const scheduleDataRefresh = () => {
-  console.log(`Scheduling data refresh with cron: ${config.cronSchedule}`);
-  
-  cron.schedule(config.cronSchedule, async () => {
-    console.log('🔄 Starting scheduled data refresh...');
-    
-    try {
-      const results = await dataRefresh.refreshAllData();
-      console.log('✅ Scheduled data refresh completed:', results);
-    } catch (error) {
-      console.error('❌ Scheduled data refresh failed:', error);
-    }
-  }, {
-    timezone: 'UTC'
-  });
-  
-  console.log('✅ Data refresh scheduled successfully');
-};
-
-// Initial data fetch on startup
-const initialDataFetch = async () => {
-  // Only fetch on startup in development mode
-  if (!config.dataRefresh.fetchOnStartup) {
-    console.log('⏭️  Skipping initial data fetch (production mode)');
-    return;
-  }
-  
-  console.log('🔄 Starting initial data fetch...');
-  
-  try {
-    // Check if we have any data first
-    const stats = await dataRefresh.getRefreshStatus();
-    
-    if (!stats.stats.gamesCount || stats.stats.gamesCount === 0) {
-      console.log('📊 No data found, fetching initial data...');
-      const results = await dataRefresh.refreshAllData();
-      console.log('✅ Initial data fetch completed:', results);
-    } else {
-      console.log('📊 Data already exists, skipping initial fetch');
-      console.log(`   - Games: ${stats.stats.gamesCount}`);
-      console.log(`   - Teams: ${stats.stats.teamsCount}`);
-      console.log(`   - Leagues: ${stats.stats.leaguesCount}`);
-    }
-  } catch (error) {
-    console.error('❌ Initial data fetch failed:', error);
-  }
-};
+// Data refresh functionality removed - using static data only
 
 // Start the application
 if (require.main === module) {
-  startServer().then(async () => {
-    // Fetch initial data on startup
-    await initialDataFetch();
-    
-    // Schedule regular data refresh
-    scheduleDataRefresh();
-  });
+  startServer();
 }
 
 module.exports = app;
