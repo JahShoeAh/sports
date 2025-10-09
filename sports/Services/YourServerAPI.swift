@@ -7,6 +7,30 @@
 
 import Foundation
 
+// MARK: - API Error Types
+enum APIError: Error, LocalizedError {
+    case invalidURL
+    case invalidResponse
+    case noData
+    case decodingError
+    case networkError(String)
+    
+    var errorDescription: String? {
+        switch self {
+        case .invalidURL:
+            return "Invalid URL"
+        case .invalidResponse:
+            return "Invalid response from server"
+        case .noData:
+            return "No data received"
+        case .decodingError:
+            return "Failed to decode response"
+        case .networkError(let message):
+            return "Network error: \(message)"
+        }
+    }
+}
+
 class YourServerAPI: ObservableObject {
     static let shared = YourServerAPI()
     

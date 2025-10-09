@@ -75,7 +75,7 @@ struct SearchView: View {
                                 BrowseItem(name: "NHL", isActive: false, league: League(id: "5", name: "NHL", abbreviation: "NHL", logoURL: nil, sport: .hockey, level: .professional, season: "2025", isActive: true)),
                                 BrowseItem(name: "MLS", isActive: false, league: League(id: "6", name: "MLS", abbreviation: "MLS", logoURL: nil, sport: .soccer, level: .professional, season: "2025", isActive: true)),
                                 BrowseItem(name: "EPL", isActive: false, league: League(id: "7", name: "EPL", abbreviation: "EPL", logoURL: nil, sport: .soccer, level: .professional, season: "2025", isActive: true))
-                            ])
+                            ], selectedLeague: $selectedLeague)
                             
                             BrowseRow(title: "College", items: [
                                 BrowseItem(name: "Football", isActive: false, league: League(id: "8", name: "NCAA Football", abbreviation: "CFB", logoURL: nil, sport: .football, level: .college, season: "2025", isActive: true)),
@@ -84,7 +84,7 @@ struct SearchView: View {
                                 BrowseItem(name: "Men's Volleyball", isActive: false, league: League(id: "11", name: "NCAA Men's Volleyball", abbreviation: "NCAAVM", logoURL: nil, sport: .volleyball, level: .college, season: "2025", isActive: true)),
                                 BrowseItem(name: "Women's Volleyball", isActive: false, league: League(id: "12", name: "NCAA Women's Volleyball", abbreviation: "NCAAVW", logoURL: nil, sport: .volleyball, level: .college, season: "2025", isActive: true)),
                                 BrowseItem(name: "Baseball", isActive: false, league: League(id: "13", name: "NCAA Baseball", abbreviation: "NCAA", logoURL: nil, sport: .baseball, level: .college, season: "2025", isActive: true))
-                            ])
+                            ], selectedLeague: $selectedLeague)
                             
                             BrowseRow(title: "Olympics", items: [
                                 BrowseItem(name: "Olympic Football", isActive: false, league: League(id: "14", name: "Olympic Football", abbreviation: "OLY", logoURL: nil, sport: .football, level: .olympic, season: "2024", isActive: true)),
@@ -92,7 +92,7 @@ struct SearchView: View {
                                 BrowseItem(name: "Olympic Volleyball", isActive: false, league: League(id: "16", name: "Olympic Volleyball", abbreviation: "OLY", logoURL: nil, sport: .volleyball, level: .olympic, season: "2024", isActive: true)),
                                 BrowseItem(name: "Olympic Swimming", isActive: false, league: League(id: "17", name: "Olympic Swimming", abbreviation: "OLY", logoURL: nil, sport: .olympic, level: .olympic, season: "2024", isActive: true)),
                                 BrowseItem(name: "Olympic Track & Field", isActive: false, league: League(id: "18", name: "Olympic Track & Field", abbreviation: "OLY", logoURL: nil, sport: .olympic, level: .olympic, season: "2024", isActive: true))
-                            ])
+                            ], selectedLeague: $selectedLeague)
                         }
                     }
                     
@@ -155,6 +155,7 @@ struct BrowseItem {
 struct BrowseRow: View {
     let title: String
     let items: [BrowseItem]
+    @Binding var selectedLeague: League?
     
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
