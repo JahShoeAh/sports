@@ -112,9 +112,9 @@ class DatabaseService {
       const stmt = this.db.prepare(`
         INSERT OR REPLACE INTO games 
         (id, home_team_id, away_team_id, league_id, season, week, game_date, game_time,
-         venue_id, venue, city, state, country, status, home_score, away_score,
+         venue_id, venue, city, state, country, home_score, away_score,
          quarter, time_remaining, is_live, is_completed, updated_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
       `);
       
       stmt.run([
@@ -131,7 +131,6 @@ class DatabaseService {
         game.city,
         game.state,
         game.country,
-        game.status,
         game.homeScore,
         game.awayScore,
         game.quarter,
@@ -153,9 +152,11 @@ class DatabaseService {
   async getGames(leagueId, season = null) {
     return new Promise((resolve, reject) => {
       let query = `
-        SELECT g.*, 
-               ht.name as home_team_name, ht.city as home_team_city, ht.abbreviation as home_team_abbr, ht.logo_url as home_team_logo,
-               at.name as away_team_name, at.city as away_team_city, at.abbreviation as away_team_abbr, at.logo_url as away_team_logo
+        SELECT g.id, g.home_team_id, g.away_team_id, g.league_id, g.season, g.week, g.game_date, g.game_time,
+               g.venue_id, g.venue, g.city, g.state, g.country, g.home_score, g.away_score,
+               g.quarter, g.time_remaining, g.is_live, g.is_completed, g.created_at, g.updated_at,
+               ht.name as home_team_name, ht.city as home_team_city, ht.abbreviation as home_team_abbr, ht.logo_url as home_team_logo, ht.conference as home_team_conference, ht.division as home_team_division,
+               at.name as away_team_name, at.city as away_team_city, at.abbreviation as away_team_abbr, at.logo_url as away_team_logo, at.conference as away_team_conference, at.division as away_team_division
         FROM games g
         LEFT JOIN teams ht ON g.home_team_id = ht.id
         LEFT JOIN teams at ON g.away_team_id = at.id

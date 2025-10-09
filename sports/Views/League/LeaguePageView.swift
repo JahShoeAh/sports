@@ -10,7 +10,7 @@ import SwiftUI
 struct LeaguePageView: View {
     let league: League
     @State private var selectedTab: LeagueTab = .schedule
-    @State private var selectedSeason: String = "2025"
+    @State private var selectedSeason: String = "2024-25 Regular"
     @State private var games: [Game] = []
     @State private var teams: [Team] = []
     @State private var isLoading = false
@@ -20,6 +20,7 @@ struct LeaguePageView: View {
     
     private let dataManager = SimpleDataManager.shared
     private let cacheService = CacheService.shared
+    private let yourServerAPI = YourServerAPI.shared
     
     enum LeagueTab: String, CaseIterable {
         case schedule = "Schedule"
@@ -64,9 +65,9 @@ struct LeaguePageView: View {
                             .foregroundColor(.secondary)
                         
                         Picker("Season", selection: $selectedSeason) {
-                            Text("2025-2026").tag("2025")
-                            Text("2024-2025").tag("2024")
-                            Text("2023-2024").tag("2023")
+                            Text("2025 Playoffs").tag("2025 Playoffs")
+                            Text("2024-25 Regular").tag("2024-25 Regular")
+                            Text("2023-24 Regular").tag("2023-24 Regular")
                         }
                         .pickerStyle(MenuPickerStyle())
                         .onChange(of: selectedSeason) { _, newSeason in
@@ -187,20 +188,50 @@ struct LeaguePageView: View {
     private func loadGames(season: String) {
         // Load games from cache for the selected season
         games = dataManager.fetchGames(for: league.id, season: season)
+        
+        // If no games found in cache for this season, try to fetch from server
+        if games.isEmpty {
+            Task {
+                await fetchGamesFromServer(season: season)
+            }
+        }
+    }
+    
+    private func fetchGamesFromServer(season: String) async {
+        do {
+            let fetchedGames = try await yourServerAPI.fetchGames(leagueId: league.id, season: season)
+            dataManager.saveGames(fetchedGames, for: league.id)
+            
+            await MainActor.run {
+                games = dataManager.fetchGames(for: league.id, season: season)
+            }
+        } catch {
+            await MainActor.run {
+                errorMessage = "Failed to load games: \(error.localizedDescription)"
+            }
+        }
     }
     
     private func refreshData() async {
         isRefreshing = true
         errorMessage = nil
         
-        let success = await cacheService.manualRefresh(for: league.id)
+        // Clear cache and force refresh
+        dataManager.clearData(for: league.id)
+        
+        // Fetch fresh data from server
+        await fetchGamesFromServer(season: selectedSeason)
+        
+        // Also fetch teams
+        do {
+            let teams = try await yourServerAPI.fetchTeams(leagueId: league.id)
+            dataManager.saveTeams(teams, for: league.id)
+        } catch {
+            print("Error fetching teams: \(error)")
+        }
         
         await MainActor.run {
-            if success {
-                loadCachedData()
-            } else {
-                errorMessage = "Failed to refresh data. Please try again."
-            }
+            loadCachedData()
             isRefreshing = false
         }
     }

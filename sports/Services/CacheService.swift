@@ -52,7 +52,7 @@ class CacheService: ObservableObject {
             dataManager.saveTeams(teams, for: leagueId)
             
             // Fetch and save games for current season from your server
-            let currentSeason = "2025"
+            let currentSeason = leagueId == "NBA" ? "2024-25 Regular" : "2025"
             let games = try await yourServerAPI.fetchGames(leagueId: leagueId, season: currentSeason)
             dataManager.saveGames(games, for: leagueId)
             

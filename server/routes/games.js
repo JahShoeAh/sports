@@ -28,16 +28,16 @@ router.get('/', async (req, res) => {
         logoURL: game.home_team_logo,
         league: {
           id: game.league_id,
-          name: 'NFL',
-          abbreviation: 'NFL',
+          name: game.league_id === 'NBA' ? 'National Basketball Association' : 'Unknown League',
+          abbreviation: game.league_id,
           logoURL: null,
-          sport: 'football',
+          sport: game.league_id === 'NBA' ? 'basketball' : 'unknown',
           level: 'professional',
           season: game.season,
           isActive: true
         },
-        conference: null, // Will be populated from teams endpoint
-        division: null,
+        conference: game.home_team_conference,
+        division: game.home_team_division,
         colors: null
       },
       awayTeam: {
@@ -48,37 +48,36 @@ router.get('/', async (req, res) => {
         logoURL: game.away_team_logo,
         league: {
           id: game.league_id,
-          name: 'NFL',
-          abbreviation: 'NFL',
+          name: game.league_id === 'NBA' ? 'National Basketball Association' : 'Unknown League',
+          abbreviation: game.league_id,
           logoURL: null,
-          sport: 'football',
+          sport: game.league_id === 'NBA' ? 'basketball' : 'unknown',
           level: 'professional',
           season: game.season,
           isActive: true
         },
-        conference: null,
-        division: null,
+        conference: game.away_team_conference,
+        division: game.away_team_division,
         colors: null
       },
       league: {
         id: game.league_id,
-        name: 'NFL',
-        abbreviation: 'NFL',
+        name: game.league_id === 'NBA' ? 'National Basketball Association' : 'Unknown League',
+        abbreviation: game.league_id,
         logoURL: null,
-        sport: 'football',
+        sport: game.league_id === 'NBA' ? 'basketball' : 'unknown',
         level: 'professional',
         season: game.season,
         isActive: true
       },
       season: game.season,
       week: game.week,
-      gameDate: game.game_date,
-      gameTime: game.game_time,
+      gameDate: game.game_date, // Keep as date string for easier parsing
+      gameTime: new Date(`${game.game_date}T${game.game_time}`).toISOString(), // Full datetime
       venue: game.venue,
       city: game.city,
       state: game.state,
       country: game.country,
-      status: game.status,
       homeScore: game.home_score,
       awayScore: game.away_score,
       quarter: game.quarter,
@@ -112,7 +111,8 @@ router.get('/', async (req, res) => {
 router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const games = await database.getGames('1'); // NFL league ID
+    const { leagueId } = req.query;
+    const games = await database.getGames(leagueId || 'NBA'); // Use provided leagueId or default to NBA
     const game = games.find(g => g.id === id);
     
     if (!game) {
@@ -133,16 +133,16 @@ router.get('/:id', async (req, res) => {
         logoURL: game.home_team_logo,
         league: {
           id: game.league_id,
-          name: 'NFL',
-          abbreviation: 'NFL',
+          name: game.league_id === 'NBA' ? 'National Basketball Association' : 'Unknown League',
+          abbreviation: game.league_id,
           logoURL: null,
-          sport: 'football',
+          sport: game.league_id === 'NBA' ? 'basketball' : 'unknown',
           level: 'professional',
           season: game.season,
           isActive: true
         },
-        conference: null,
-        division: null,
+        conference: game.away_team_conference,
+        division: game.away_team_division,
         colors: null
       },
       awayTeam: {
@@ -153,37 +153,36 @@ router.get('/:id', async (req, res) => {
         logoURL: game.away_team_logo,
         league: {
           id: game.league_id,
-          name: 'NFL',
-          abbreviation: 'NFL',
+          name: game.league_id === 'NBA' ? 'National Basketball Association' : 'Unknown League',
+          abbreviation: game.league_id,
           logoURL: null,
-          sport: 'football',
+          sport: game.league_id === 'NBA' ? 'basketball' : 'unknown',
           level: 'professional',
           season: game.season,
           isActive: true
         },
-        conference: null,
-        division: null,
+        conference: game.away_team_conference,
+        division: game.away_team_division,
         colors: null
       },
       league: {
         id: game.league_id,
-        name: 'NFL',
-        abbreviation: 'NFL',
+        name: game.league_id === 'NBA' ? 'National Basketball Association' : 'Unknown League',
+        abbreviation: game.league_id,
         logoURL: null,
-        sport: 'football',
+        sport: game.league_id === 'NBA' ? 'basketball' : 'unknown',
         level: 'professional',
         season: game.season,
         isActive: true
       },
       season: game.season,
       week: game.week,
-      gameDate: game.game_date,
-      gameTime: game.game_time,
+      gameDate: game.game_date, // Keep as date string for easier parsing
+      gameTime: new Date(`${game.game_date}T${game.game_time}`).toISOString(), // Full datetime
       venue: game.venue,
       city: game.city,
       state: game.state,
       country: game.country,
-      status: game.status,
       homeScore: game.home_score,
       awayScore: game.away_score,
       quarter: game.quarter,

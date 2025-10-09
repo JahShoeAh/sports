@@ -45,7 +45,7 @@ class SimpleDataManager: ObservableObject {
     }
     
     // MARK: - Data Freshness
-    func isDataFresh(for leagueId: String, maxAge: TimeInterval = 24 * 60 * 60 * 1000) -> Bool {
+    func isDataFresh(for leagueId: String, maxAge: TimeInterval = 5 * 60) -> Bool { // 5 minutes for development
         guard let lastUpdate = lastUpdateTime[leagueId] else { return false }
         return Date().timeIntervalSince(lastUpdate) < maxAge
     }

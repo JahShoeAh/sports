@@ -120,18 +120,22 @@ struct GameScheduleView: View {
                                 }
                                 .padding(.horizontal)
                                 
-                                // Games for this date
-                                LazyVStack(spacing: 8) {
-                                    if let gamesForDate = gamesByDate[dateString] {
-                                        ForEach(gamesForDate) { game in
-                                            Button(action: {
-                                                onGameTap(game)
-                                            }) {
-                                                GamePosterCard(game: game)
+                                // Games for this date - Horizontal scrolling
+                                ScrollView(.horizontal, showsIndicators: false) {
+                                    HStack(spacing: 12) {
+                                        if let gamesForDate = gamesByDate[dateString] {
+                                            ForEach(gamesForDate) { game in
+                                                Button(action: {
+                                                    onGameTap(game)
+                                                }) {
+                                                    GamePosterCard(game: game)
+                                                }
+                                                .buttonStyle(PlainButtonStyle())
+                                                .frame(width: 200) // Fixed width for horizontal scrolling
                                             }
-                                            .buttonStyle(PlainButtonStyle())
                                         }
                                     }
+                                    .padding(.horizontal)
                                 }
                             }
                         }
@@ -179,7 +183,6 @@ struct GameScheduleView: View {
                 city: "Kansas City",
                 state: "MO",
                 country: "USA",
-                status: .scheduled,
                 homeScore: nil,
                 awayScore: nil,
                 quarter: nil,
