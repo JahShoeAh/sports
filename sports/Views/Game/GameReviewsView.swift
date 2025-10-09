@@ -316,7 +316,6 @@ struct ReviewCard: View {
         city: "Kansas City",
         state: "MO",
         country: "USA",
-        status: .completed,
         homeScore: 24,
         awayScore: 21,
         quarter: 4,

@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="22758" systemVersion="23F79" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
+    <entity name="CachedGame" representedClassName="CachedGame" syncable="YES" codeGenerationType="class">
+        <attribute name="awayScore" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="NO"/>
+        <attribute name="awayTeamId" attributeType="String"/>
+        <attribute name="city" attributeType="String"/>
+        <attribute name="country" attributeType="String"/>
+        <attribute name="gameDate" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="gameId" attributeType="String"/>
+        <attribute name="gameTime" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="homeScore" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="NO"/>
+        <attribute name="homeTeamId" attributeType="String"/>
+        <attribute name="isCompleted" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
+        <attribute name="isLive" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
+        <attribute name="leagueId" attributeType="String"/>
+        <attribute name="quarter" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="NO"/>
+        <attribute name="season" attributeType="String"/>
+        <attribute name="state" attributeType="String"/>
+        <attribute name="status" attributeType="String"/>
+        <attribute name="timeRemaining" optional="YES" attributeType="String"/>
+        <attribute name="venue" attributeType="String"/>
+        <attribute name="venueId" optional="YES" attributeType="String"/>
+        <attribute name="week" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="NO"/>
+        <relationship name="awayTeam" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="CachedTeam" inverseName="awayGames" inverseEntity="CachedTeam"/>
+        <relationship name="homeTeam" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="CachedTeam" inverseName="homeGames" inverseEntity="CachedTeam"/>
+        <relationship name="league" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="CachedLeague" inverseName="games" inverseEntity="CachedLeague"/>
+        <relationship name="venue" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="CachedVenue" inverseName="games" inverseEntity="CachedVenue"/>
+    </entity>
+    <entity name="CachedLeague" representedClassName="CachedLeague" syncable="YES" codeGenerationType="class">
+        <attribute name="abbreviation" attributeType="String"/>
+        <attribute name="isActive" attributeType="Boolean" defaultValueString="YES" usesScalarValueType="YES"/>
+        <attribute name="leagueId" attributeType="String"/>
+        <attribute name="level" attributeType="String"/>
+        <attribute name="logoURL" optional="YES" attributeType="String"/>
+        <attribute name="name" attributeType="String"/>
+        <attribute name="season" attributeType="String"/>
+        <attribute name="sport" attributeType="String"/>
+        <relationship name="games" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="CachedGame" inverseName="league" inverseEntity="CachedGame"/>
+        <relationship name="teams" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="CachedTeam" inverseName="league" inverseEntity="CachedTeam"/>
+    </entity>
+    <entity name="CachedTeam" representedClassName="CachedTeam" syncable="YES" codeGenerationType="class">
+        <attribute name="abbreviation" attributeType="String"/>
+        <attribute name="city" attributeType="String"/>
+        <attribute name="conference" optional="YES" attributeType="String"/>
+        <attribute name="division" optional="YES" attributeType="String"/>
+        <attribute name="leagueId" attributeType="String"/>
+        <attribute name="logoURL" optional="YES" attributeType="String"/>
+        <attribute name="name" attributeType="String"/>
+        <attribute name="teamId" attributeType="String"/>
+        <relationship name="awayGames" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="CachedGame" inverseName="awayTeam" inverseEntity="CachedGame"/>
+        <relationship name="homeGames" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="CachedGame" inverseName="homeTeam" inverseEntity="CachedGame"/>
+        <relationship name="league" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="CachedLeague" inverseName="teams" inverseEntity="CachedLeague"/>
+    </entity>
+    <entity name="CachedVenue" representedClassName="CachedVenue" syncable="YES" codeGenerationType="class">
+        <attribute name="capacity" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="NO"/>
+        <attribute name="city" attributeType="String"/>
+        <attribute name="country" attributeType="String"/>
+        <attribute name="name" attributeType="String"/>
+        <attribute name="state" attributeType="String"/>
+        <attribute name="venueId" attributeType="String"/>
+        <relationship name="games" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="CachedGame" inverseName="venue" inverseEntity="CachedGame"/>
+    </entity>
+</model>

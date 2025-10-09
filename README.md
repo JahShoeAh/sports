@@ -27,7 +27,7 @@ A Letterboxd-inspired iOS app for logging and reviewing sports games, built with
 ### Technologies
 - **SwiftUI**: Modern iOS UI framework
 - **Firebase**: Authentication and local storage
-- **API Integration**: api-sports.io for NFL data
+- **API Integration**: Local server API for sports data
 - **MVVM Pattern**: Clean architecture with separation of concerns
 
 ### Project Structure
@@ -54,7 +54,7 @@ sports/
 - Xcode 16.4+
 - iOS 18.5+
 - Firebase project
-- api-sports.io API key
+- Local server setup
 
 ### Installation
 1. Clone the repository
@@ -62,7 +62,7 @@ sports/
 3. Add your Firebase configuration:
    - Add `GoogleService-Info.plist` to the project
    - Configure Firebase in `sportsApp.swift`
-4. Add your api-sports.io API key in `APIService.swift`
+4. Start your local server
 5. Build and run the project
 
 ### Firebase Setup
@@ -90,7 +90,7 @@ sports/
 
 ### Pending Features
 - 🔄 Firebase project configuration
-- 🔄 API key setup
+- 🔄 Server setup
 - 🔄 Navigation between views
 - 🔄 Real data integration
 - 🔄 Poll functionality
@@ -99,7 +99,7 @@ sports/
 
 ## API Integration
 
-The app integrates with api-sports.io for NFL data:
+The app integrates with a local server for sports data:
 - Games and schedules
 - Team information
 - Player rosters and statistics
