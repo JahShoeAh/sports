@@ -25,7 +25,6 @@ const createTables = () => {
           logo_url TEXT,
           sport TEXT NOT NULL,
           level TEXT NOT NULL,
-          season TEXT NOT NULL,
           is_active BOOLEAN DEFAULT 1,
           created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
           updated_at DATETIME DEFAULT CURRENT_TIMESTAMP

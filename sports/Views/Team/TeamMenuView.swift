@@ -343,19 +343,3 @@ struct RecordView: View {
         .padding()
     }
 }
-
-#Preview {
-    NavigationView {
-        TeamMenuView(team: Team(
-            id: "1",
-            name: "Chiefs",
-            city: "Kansas City",
-            abbreviation: "KC",
-            logoURL: nil,
-            league: League(id: "1", name: "NFL", abbreviation: "NFL", logoURL: nil, sport: .football, level: .professional, isActive: true),
-            conference: "AFC",
-            division: "West",
-            colors: nil
-        ))
-    }
-}

@@ -231,25 +231,3 @@ struct PlayerStatsView: View {
         .padding()
     }
 }
-
-#Preview {
-    NavigationView {
-        AthleteMenuView(player: Player(
-            id: "1",
-            name: "Patrick Mahomes",
-            firstName: "Patrick",
-            lastName: "Mahomes",
-            jerseyNumber: 15,
-            position: "QB",
-            height: "6'3\"",
-            weight: 230,
-            age: 28,
-            birthDate: nil,
-            birthPlace: "Tyler, TX",
-            currentTeam: Team(id: "1", name: "Chiefs", city: "Kansas City", abbreviation: "KC", logoURL: nil, league: League(id: "1", name: "NFL", abbreviation: "NFL", logoURL: nil, sport: .football, level: .professional, isActive: true), conference: "AFC", division: "West", colors: nil),
-            headshotURL: nil,
-            isActive: true,
-            careerStats: [:]
-        ))
-    }
-}

@@ -230,29 +230,3 @@ struct LogGameView: View {
         }
     }
 }
-
-#Preview {
-    LogGameView(game: Game(
-        id: "1",
-        homeTeam: Team(id: "1", name: "Chiefs", city: "Kansas City", abbreviation: "KC", logoURL: nil, league: League(id: "1", name: "NFL", abbreviation: "NFL", logoURL: nil, sport: .football, level: .professional, isActive: true), conference: "AFC", division: "West", colors: nil),
-        awayTeam: Team(id: "2", name: "Bills", city: "Buffalo", abbreviation: "BUF", logoURL: nil, league: League(id: "1", name: "NFL", abbreviation: "NFL", logoURL: nil, sport: .football, level: .professional, isActive: true), conference: "AFC", division: "East", colors: nil),
-        league: League(id: "1", name: "NFL", abbreviation: "NFL", logoURL: nil, sport: .football, level: .professional, isActive: true),
-        season: "2025",
-        week: 1,
-        gameDate: Date(),
-        gameTime: Date(),
-        venue: "Arrowhead Stadium",
-        city: "Kansas City",
-        state: "MO",
-        country: "USA",
-        homeScore: 24,
-        awayScore: 21,
-        quarter: 4,
-        timeRemaining: "0:00",
-        isLive: false,
-        isCompleted: true,
-        startingLineups: nil,
-        boxScore: nil,
-        gameStats: nil
-    ))
-}
