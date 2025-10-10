@@ -32,6 +32,15 @@ const createTables = () => {
         )
       `);
 
+      // Rosters table (must be created before teams due to foreign key)
+      db.run(`
+        CREATE TABLE IF NOT EXISTS rosters (
+          id TEXT PRIMARY KEY,
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+      `);
+
       // Teams table
       db.run(`
         CREATE TABLE IF NOT EXISTS teams (
@@ -43,9 +52,11 @@ const createTables = () => {
           league_id TEXT NOT NULL,
           conference TEXT,
           division TEXT,
+          roster_id TEXT,
           created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
           updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-          FOREIGN KEY (league_id) REFERENCES leagues (id)
+          FOREIGN KEY (league_id) REFERENCES leagues (id),
+          FOREIGN KEY (roster_id) REFERENCES rosters (id)
         )
       `);
 
@@ -54,12 +65,13 @@ const createTables = () => {
         CREATE TABLE IF NOT EXISTS venues (
           id TEXT PRIMARY KEY,
           name TEXT NOT NULL,
-          city TEXT NOT NULL,
-          state TEXT NOT NULL,
-          country TEXT NOT NULL,
-          capacity INTEGER,
+          city TEXT,
+          state TEXT,
+          country TEXT,
+          home_team_id TEXT,
           created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-          updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+          updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY (home_team_id) REFERENCES teams (id)
         )
       `);
 
@@ -75,15 +87,9 @@ const createTables = () => {
           game_date DATETIME NOT NULL,
           game_time DATETIME NOT NULL,
           venue_id TEXT,
-          venue TEXT NOT NULL,
-          city TEXT NOT NULL,
-          state TEXT NOT NULL,
-          country TEXT NOT NULL,
-          status TEXT NOT NULL,
           home_score INTEGER,
           away_score INTEGER,
           quarter INTEGER,
-          time_remaining TEXT,
           is_live BOOLEAN DEFAULT 0,
           is_completed BOOLEAN DEFAULT 0,
           created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -110,8 +116,13 @@ const createTables = () => {
       // Create indexes for better performance
       db.run(`CREATE INDEX IF NOT EXISTS idx_games_league_season ON games (league_id, season)`);
       db.run(`CREATE INDEX IF NOT EXISTS idx_games_date ON games (game_date)`);
+      db.run(`CREATE INDEX IF NOT EXISTS idx_games_home_team ON games (home_team_id)`);
+      db.run(`CREATE INDEX IF NOT EXISTS idx_games_away_team ON games (away_team_id)`);
+      db.run(`CREATE INDEX IF NOT EXISTS idx_games_venue ON games (venue_id)`);
       db.run(`CREATE INDEX IF NOT EXISTS idx_teams_league ON teams (league_id)`);
       db.run(`CREATE INDEX IF NOT EXISTS idx_teams_conference ON teams (conference)`);
+      db.run(`CREATE INDEX IF NOT EXISTS idx_teams_roster ON teams (roster_id)`);
+      db.run(`CREATE INDEX IF NOT EXISTS idx_venues_home_team ON venues (home_team_id)`);
 
       db.run(`PRAGMA journal_mode = WAL`, (err) => {
         if (err) {

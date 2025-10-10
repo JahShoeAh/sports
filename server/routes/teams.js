@@ -35,7 +35,8 @@ router.get('/', async (req, res) => {
       },
       conference: team.conference,
       division: team.division,
-      colors: null
+      colors: null,
+      rosterId: team.roster_id
     }));
 
     // Group teams by conference
@@ -107,7 +108,8 @@ router.get('/:id', async (req, res) => {
       },
       conference: team.conference,
       division: team.division,
-      colors: null
+      colors: null,
+      rosterId: team.roster_id
     };
 
     res.json({

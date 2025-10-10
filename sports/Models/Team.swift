@@ -17,6 +17,7 @@ struct Team: Identifiable, Codable {
     let conference: String?
     let division: String?
     let colors: TeamColors?
+    let rosterId: String?
     
     var fullName: String {
         return "\(city) \(name)"

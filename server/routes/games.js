@@ -37,7 +37,8 @@ router.get('/', async (req, res) => {
         },
         conference: game.home_team_conference,
         division: game.home_team_division,
-        colors: null
+        colors: null,
+        rosterId: null
       },
       awayTeam: {
         id: game.away_team_id,
@@ -56,7 +57,8 @@ router.get('/', async (req, res) => {
         },
         conference: game.away_team_conference,
         division: game.away_team_division,
-        colors: null
+        colors: null,
+        rosterId: null
       },
       league: {
         id: game.league_id,
@@ -71,19 +73,21 @@ router.get('/', async (req, res) => {
       week: game.week,
       gameDate: game.game_date, // Keep as date string for easier parsing
       gameTime: new Date(`${game.game_date}T${game.game_time}`).toISOString(), // Full datetime
-      venue: game.venue,
-      city: game.city,
-      state: game.state,
-      country: game.country,
+      venue: game.venue_id ? {
+        id: game.venue_id,
+        name: game.venue_name,
+        city: game.venue_city,
+        state: game.venue_state,
+        country: game.venue_country,
+        homeTeamId: game.venue_home_team_id
+      } : null,
       homeScore: game.home_score,
       awayScore: game.away_score,
       quarter: game.quarter,
-      timeRemaining: game.time_remaining,
       isLive: game.is_live === 1,
       isCompleted: game.is_completed === 1,
       startingLineups: null,
-      boxScore: null,
-      gameStats: null
+      boxScore: null
     }));
 
     res.json({
@@ -139,7 +143,8 @@ router.get('/:id', async (req, res) => {
         },
         conference: game.home_team_conference,
         division: game.home_team_division,
-        colors: null
+        colors: null,
+        rosterId: null
       },
       awayTeam: {
         id: game.away_team_id,
@@ -158,7 +163,8 @@ router.get('/:id', async (req, res) => {
         },
         conference: game.away_team_conference,
         division: game.away_team_division,
-        colors: null
+        colors: null,
+        rosterId: null
       },
       league: {
         id: game.league_id,
@@ -173,19 +179,21 @@ router.get('/:id', async (req, res) => {
       week: game.week,
       gameDate: game.game_date, // Keep as date string for easier parsing
       gameTime: new Date(`${game.game_date}T${game.game_time}`).toISOString(), // Full datetime
-      venue: game.venue,
-      city: game.city,
-      state: game.state,
-      country: game.country,
+      venue: game.venue_id ? {
+        id: game.venue_id,
+        name: game.venue_name,
+        city: game.venue_city,
+        state: game.venue_state,
+        country: game.venue_country,
+        homeTeamId: game.venue_home_team_id
+      } : null,
       homeScore: game.home_score,
       awayScore: game.away_score,
       quarter: game.quarter,
-      timeRemaining: game.time_remaining,
       isLive: game.is_live === 1,
       isCompleted: game.is_completed === 1,
       startingLineups: null,
-      boxScore: null,
-      gameStats: null
+      boxScore: null
     };
 
     res.json({

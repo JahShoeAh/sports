@@ -64,8 +64,8 @@ class DatabaseService {
     return new Promise((resolve, reject) => {
       const stmt = this.db.prepare(`
         INSERT OR REPLACE INTO teams 
-        (id, name, city, abbreviation, logo_url, league_id, conference, division, updated_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+        (id, name, city, abbreviation, logo_url, league_id, conference, division, roster_id, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
       `);
       
       stmt.run([
@@ -76,7 +76,8 @@ class DatabaseService {
         team.logoURL,
         team.leagueId,
         team.conference,
-        team.division
+        team.division,
+        team.rosterId || null
       ], function(err) {
         if (err) {
           reject(err);
@@ -124,15 +125,111 @@ class DatabaseService {
     });
   }
 
+  // Roster operations
+  async saveRoster(roster) {
+    return new Promise((resolve, reject) => {
+      const stmt = this.db.prepare(`
+        INSERT OR REPLACE INTO rosters 
+        (id, updated_at)
+        VALUES (?, CURRENT_TIMESTAMP)
+      `);
+      
+      stmt.run([roster.id], function(err) {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(this.lastID);
+        }
+      });
+      
+      stmt.finalize();
+    });
+  }
+
+  async getRoster(rosterId) {
+    return new Promise((resolve, reject) => {
+      this.db.get('SELECT * FROM rosters WHERE id = ?', [rosterId], (err, row) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(row);
+        }
+      });
+    });
+  }
+
+  async getRosters() {
+    return new Promise((resolve, reject) => {
+      this.db.all('SELECT * FROM rosters ORDER BY id', (err, rows) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(rows);
+        }
+      });
+    });
+  }
+
+  // Venue operations
+  async saveVenue(venue) {
+    return new Promise((resolve, reject) => {
+      const stmt = this.db.prepare(`
+        INSERT OR REPLACE INTO venues 
+        (id, name, city, state, country, home_team_id, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+      `);
+      
+      stmt.run([
+        venue.id,
+        venue.name,
+        venue.city || null,
+        venue.state || null,
+        venue.country || null,
+        venue.homeTeamId || null
+      ], function(err) {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(this.lastID);
+        }
+      });
+      
+      stmt.finalize();
+    });
+  }
+
+  async getVenue(venueId) {
+    return new Promise((resolve, reject) => {
+      this.db.get('SELECT * FROM venues WHERE id = ?', [venueId], (err, row) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(row);
+        }
+      });
+    });
+  }
+
+  async getVenues() {
+    return new Promise((resolve, reject) => {
+      this.db.all('SELECT * FROM venues ORDER BY name', (err, rows) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(rows);
+        }
+      });
+    });
+  }
+
   // Game operations
   async saveGame(game) {
     return new Promise((resolve, reject) => {
       const stmt = this.db.prepare(`
         INSERT OR REPLACE INTO games 
         (id, home_team_id, away_team_id, league_id, season, week, game_date, game_time,
-         venue_id, venue, city, state, country, home_score, away_score,
-         quarter, time_remaining, is_live, is_completed, updated_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+         venue, home_score, away_score, quarter, is_live, is_completed, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
       `);
       
       stmt.run([
@@ -144,15 +241,10 @@ class DatabaseService {
         game.week,
         game.gameDate,
         game.gameTime,
-        game.venueId,
         game.venue,
-        game.city,
-        game.state,
-        game.country,
         game.homeScore,
         game.awayScore,
         game.quarter,
-        game.timeRemaining,
         game.isLive,
         game.isCompleted
       ], function(err) {
@@ -171,15 +263,21 @@ class DatabaseService {
     return new Promise((resolve, reject) => {
       let query = `
         SELECT g.id, g.home_team_id, g.away_team_id, g.league_id, g.season, g.week, g.game_date, g.game_time,
-               g.venue_id, g.venue, g.city, g.state, g.country, g.home_score, g.away_score,
-               g.quarter, g.time_remaining, g.is_live, g.is_completed, g.created_at, g.updated_at,
-               ht.name as home_team_name, ht.city as home_team_city, ht.abbreviation as home_team_abbr, ht.logo_url as home_team_logo, ht.conference as home_team_conference, ht.division as home_team_division,
-               at.name as away_team_name, at.city as away_team_city, at.abbreviation as away_team_abbr, at.logo_url as away_team_logo, at.conference as away_team_conference, at.division as away_team_division,
-               l.name as league_name, l.abbreviation as league_abbreviation, l.logo_url as league_logo_url, l.sport as league_sport, l.level as league_level, l.is_active as league_is_active
+               g.venue_id, g.home_score, g.away_score, g.quarter, g.is_live, g.is_completed, 
+               g.created_at, g.updated_at,
+               ht.name as home_team_name, ht.city as home_team_city, ht.abbreviation as home_team_abbr, 
+               ht.logo_url as home_team_logo, ht.conference as home_team_conference, ht.division as home_team_division,
+               at.name as away_team_name, at.city as away_team_city, at.abbreviation as away_team_abbr, 
+               at.logo_url as away_team_logo, at.conference as away_team_conference, at.division as away_team_division,
+               l.name as league_name, l.abbreviation as league_abbreviation, l.logo_url as league_logo_url, 
+               l.sport as league_sport, l.level as league_level, l.is_active as league_is_active,
+               v.id as venue_id, v.name as venue_name, v.city as venue_city, v.state as venue_state, 
+               v.country as venue_country, v.home_team_id as venue_home_team_id
         FROM games g
         LEFT JOIN teams ht ON g.home_team_id = ht.id
         LEFT JOIN teams at ON g.away_team_id = at.id
         LEFT JOIN leagues l ON g.league_id = l.id
+        LEFT JOIN venues v ON g.venue_id = v.id
         WHERE g.league_id = ?
       `;
       

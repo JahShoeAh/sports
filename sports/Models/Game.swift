@@ -16,24 +16,19 @@ struct Game: Identifiable, Codable {
     let week: Int?
     let gameDate: Date
     let gameTime: Date
-    let venue: String
-    let city: String
-    let state: String
-    let country: String
+    let venue: Venue?
     let homeScore: Int?
     let awayScore: Int?
     let quarter: Int?
-    let timeRemaining: String?
     let isLive: Bool
     let isCompleted: Bool
     
     // Game details
     let startingLineups: StartingLineups?
     let boxScore: BoxScore?
-    let gameStats: GameStats?
     
     // Default memberwise initializer
-    init(id: String, homeTeam: Team, awayTeam: Team, league: League, season: String, week: Int?, gameDate: Date, gameTime: Date, venue: String, city: String, state: String, country: String, homeScore: Int?, awayScore: Int?, quarter: Int?, timeRemaining: String?, isLive: Bool, isCompleted: Bool, startingLineups: StartingLineups?, boxScore: BoxScore?, gameStats: GameStats?) {
+    init(id: String, homeTeam: Team, awayTeam: Team, league: League, season: String, week: Int?, gameDate: Date, gameTime: Date, venue: Venue?, homeScore: Int?, awayScore: Int?, quarter: Int?, isLive: Bool, isCompleted: Bool, startingLineups: StartingLineups?, boxScore: BoxScore?) {
         self.id = id
         self.homeTeam = homeTeam
         self.awayTeam = awayTeam
@@ -43,18 +38,13 @@ struct Game: Identifiable, Codable {
         self.gameDate = gameDate
         self.gameTime = gameTime
         self.venue = venue
-        self.city = city
-        self.state = state
-        self.country = country
         self.homeScore = homeScore
         self.awayScore = awayScore
         self.quarter = quarter
-        self.timeRemaining = timeRemaining
         self.isLive = isLive
         self.isCompleted = isCompleted
         self.startingLineups = startingLineups
         self.boxScore = boxScore
-        self.gameStats = gameStats
     }
     
     // Custom date decoding
@@ -67,19 +57,14 @@ struct Game: Identifiable, Codable {
         league = try container.decode(League.self, forKey: .league)
         season = try container.decode(String.self, forKey: .season)
         week = try container.decodeIfPresent(Int.self, forKey: .week)
-        venue = try container.decode(String.self, forKey: .venue)
-        city = try container.decode(String.self, forKey: .city)
-        state = try container.decode(String.self, forKey: .state)
-        country = try container.decode(String.self, forKey: .country)
+        venue = try container.decodeIfPresent(Venue.self, forKey: .venue)
         homeScore = try container.decodeIfPresent(Int.self, forKey: .homeScore)
         awayScore = try container.decodeIfPresent(Int.self, forKey: .awayScore)
         quarter = try container.decodeIfPresent(Int.self, forKey: .quarter)
-        timeRemaining = try container.decodeIfPresent(String.self, forKey: .timeRemaining)
         isLive = try container.decode(Bool.self, forKey: .isLive)
         isCompleted = try container.decode(Bool.self, forKey: .isCompleted)
         startingLineups = try container.decodeIfPresent(StartingLineups.self, forKey: .startingLineups)
         boxScore = try container.decodeIfPresent(BoxScore.self, forKey: .boxScore)
-        gameStats = try container.decodeIfPresent(GameStats.self, forKey: .gameStats)
         
         // Custom date parsing
         let gameDateString = try container.decode(String.self, forKey: .gameDate)
@@ -107,9 +92,9 @@ struct Game: Identifiable, Codable {
     // CodingKeys for custom decoding
     private enum CodingKeys: String, CodingKey {
         case id, homeTeam, awayTeam, league, season, week, gameDate, gameTime
-        case venue, city, state, country, homeScore, awayScore
-        case quarter, timeRemaining, isLive, isCompleted
-        case startingLineups, boxScore, gameStats
+        case venue, homeScore, awayScore
+        case quarter, isLive, isCompleted
+        case startingLineups, boxScore
     }
 }
 
@@ -145,19 +130,4 @@ struct TeamBoxScore: Codable {
     }
 }
 
-struct GameStats: Codable {
-    let home: TeamGameStats
-    let away: TeamGameStats
-}
-
-struct TeamGameStats: Codable {
-    let team: Team
-    let statLeaders: [StatLeader]
-}
-
-struct StatLeader: Codable {
-    let category: String
-    let player: Player
-    let value: String
-}
 
