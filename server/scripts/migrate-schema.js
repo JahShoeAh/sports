@@ -17,31 +17,6 @@ const migrateSchema = () => {
     db.serialize(() => {
       console.log('Starting database migration...');
 
-      // Add roster_id column to teams table if it doesn't exist
-      db.run(`
-        ALTER TABLE teams ADD COLUMN roster_id TEXT
-      `, (err) => {
-        if (err && !err.message.includes('duplicate column name')) {
-          console.error('Error adding roster_id to teams:', err);
-        } else {
-          console.log('✓ Added roster_id column to teams table');
-        }
-      });
-
-      // Create rosters table if it doesn't exist (must be first due to foreign key)
-      db.run(`
-        CREATE TABLE IF NOT EXISTS rosters (
-          id TEXT PRIMARY KEY,
-          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-          updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-        )
-      `, (err) => {
-        if (err) {
-          console.error('Error creating rosters table:', err);
-        } else {
-          console.log('✓ Created rosters table');
-        }
-      });
 
       // Update venues table structure
       db.run(`
@@ -170,7 +145,6 @@ const migrateSchema = () => {
         { name: 'idx_games_away_team', query: 'CREATE INDEX IF NOT EXISTS idx_games_away_team ON games (away_team_id)' },
         { name: 'idx_teams_league', query: 'CREATE INDEX IF NOT EXISTS idx_teams_league ON teams (league_id)' },
         { name: 'idx_teams_conference', query: 'CREATE INDEX IF NOT EXISTS idx_teams_conference ON teams (conference)' },
-        { name: 'idx_teams_roster', query: 'CREATE INDEX IF NOT EXISTS idx_teams_roster ON teams (roster_id)' },
         { name: 'idx_venues_home_team', query: 'CREATE INDEX IF NOT EXISTS idx_venues_home_team ON venues (home_team_id)' }
       ];
 

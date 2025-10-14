@@ -6,13 +6,28 @@ This guide outlines the database schema changes made to implement better normali
 
 ### 1. New Tables
 
-#### Rosters Table
-- **Purpose**: Store roster information that can change frequently
+#### Players Table
+- **Purpose**: Store individual player information
 - **Columns**: 
   - `id` (TEXT PRIMARY KEY)
+  - `team_id` (TEXT NOT NULL, FK to teams)
+  - `display_name` (TEXT NOT NULL)
+  - `first_name` (TEXT NOT NULL)
+  - `last_name` (TEXT NOT NULL)
+  - `jersey_number` (INTEGER)
+  - `primary_position` (TEXT NOT NULL)
+  - `secondary_position` (TEXT)
+  - `birthdate` (TEXT NOT NULL)
+  - `height_inches` (INTEGER NOT NULL)
+  - `weight_lbs` (INTEGER NOT NULL)
+  - `nationality` (TEXT)
+  - `photo_url` (TEXT)
+  - `injury_status` (TEXT)
+  - `draft_year` (INTEGER)
+  - `draft_pick_overall` (INTEGER)
+  - `active` (INTEGER NOT NULL DEFAULT 1)
   - `created_at` (DATETIME)
   - `updated_at` (DATETIME)
-- **Future**: Can be extended with player lists, season info, etc.
 
 #### Venues Table (Updated)
 - **Purpose**: Store venue information separately from games
@@ -29,8 +44,8 @@ This guide outlines the database schema changes made to implement better normali
 ### 2. Updated Tables
 
 #### Teams Table
-- **Added**: `roster_id` (TEXT, nullable, FK to rosters)
-- **Purpose**: Link teams to their current roster
+- **Removed**: `roster_id` (no longer needed - players link directly to teams)
+- **Purpose**: Teams now have direct relationship with players via team_id
 
 #### Games Table
 - **Removed**: `time_remaining`, `city`, `state`, `country`
@@ -40,15 +55,15 @@ This guide outlines the database schema changes made to implement better normali
 ### 3. Swift Models Updated
 
 #### Team Model
-- **Added**: `rosterId: String?`
+- **Removed**: `rosterId: String?` (no longer needed)
 
 #### Game Model  
 - **Removed**: `timeRemaining`, `gameStats`, `city`, `state`, `country`
 - **Added**: `venueId: String?`
 
 #### New Models
+- **Player**: Complete player model with all attributes
 - **Venue**: `id`, `name`, `city?`, `state?`, `country?`, `homeTeamId?`
-- **Roster**: `id` (extensible for future features)
 
 ## Migration Steps
 
@@ -60,8 +75,8 @@ node scripts/migrate-schema.js
 
 ### 2. Populate Sample Data
 ```bash
-# Populate rosters
-node scripts/populate-rosters.js
+# Populate players
+node scripts/seed-nba-players.js
 
 # Populate venues  
 node scripts/populate-venues.js
@@ -70,21 +85,21 @@ node scripts/populate-venues.js
 ### 3. Update Existing Data
 After migration, you may need to:
 - Update existing games to link to proper venue IDs
-- Assign roster IDs to teams as they become available
 
 ## API Changes
 
 ### New Endpoints
-- `GET /api/rosters` - List all rosters
-- `GET /api/rosters/:id` - Get specific roster
-- `POST /api/rosters` - Create new roster
+- `GET /api/players` - List all players (with optional filtering)
+- `GET /api/players/:id` - Get specific player
+- `GET /api/players/team/:teamId` - Get team roster
 - `GET /api/venues` - List all venues
 - `GET /api/venues/:id` - Get specific venue
 - `POST /api/venues` - Create new venue
 
 ### Updated Responses
-- Team objects now include `rosterId` field
+- Team objects no longer include `rosterId` field
 - Game objects now include `venueId` field and remove location fields
+- Player information is available via separate API calls
 - Venue information is available via separate API calls
 
 ## Benefits of Changes
@@ -95,9 +110,9 @@ After migration, you may need to:
 - **Update Efficiency**: Change venue info in one place
 
 ### 2. Flexibility
-- **Roster Management**: Teams can easily update rosters without affecting games
+- **Player Management**: Players can be managed independently with full details
 - **Venue Management**: Venues can be managed independently
-- **Future Extensions**: Easy to add more roster/venue properties
+- **Future Extensions**: Easy to add more player/venue properties
 
 ### 3. Performance
 - **Smaller Game Records**: Removed redundant location data
@@ -120,7 +135,7 @@ After migration, you may need to:
 - **Solution**: Proper indexing and query optimization
 
 ### 4. Null Values
-- **Roster IDs**: Initially null for all teams
+- **Player Data**: Some optional fields may be null initially
 - **Venue Data**: Some fields may be null initially
 - **Solution**: Handle gracefully in UI, populate as data becomes available
 
@@ -130,25 +145,26 @@ After migration, you may need to:
 ```sql
 -- Check for orphaned references
 SELECT * FROM games WHERE venue_id NOT IN (SELECT id FROM venues);
-SELECT * FROM teams WHERE roster_id NOT IN (SELECT id FROM rosters);
+SELECT * FROM players WHERE team_id NOT IN (SELECT id FROM teams);
 
 -- Verify data counts
-SELECT COUNT(*) FROM rosters;
+SELECT COUNT(*) FROM players;
 SELECT COUNT(*) FROM venues;
-SELECT COUNT(*) FROM teams WHERE roster_id IS NOT NULL;
+SELECT COUNT(*) FROM teams;
 ```
 
 ### 2. API Testing
 ```bash
 # Test new endpoints
-curl http://localhost:3000/api/rosters
+curl http://localhost:3000/api/players
+curl http://localhost:3000/api/players/team/NBA_LAL
 curl http://localhost:3000/api/venues
 curl http://localhost:3000/api/games?leagueId=NBA
 ```
 
 ### 3. iOS App Testing
 - Verify app handles missing fields gracefully
-- Test new venue/roster functionality
+- Test new player/roster functionality
 - Ensure game display still works correctly
 
 ## Rollback Plan
@@ -160,10 +176,10 @@ If issues arise, you can rollback by:
 
 ## Future Enhancements
 
-### Roster Table Extensions
-- Add player lists
+### Player Table Extensions
+- Add player statistics
 - Add season information
-- Add roster statistics
+- Add contract information
 
 ### Venue Table Extensions  
 - Add capacity information

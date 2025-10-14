@@ -110,6 +110,73 @@ class YourServerAPI: ObservableObject {
         return apiResponse.data
     }
     
+    // MARK: - Players
+    func fetchPlayers(teamId: String? = nil, leagueId: String? = nil, position: String? = nil) async throws -> [Player] {
+        var urlComponents = URLComponents(string: "\(baseURL)/players")!
+        var queryItems: [URLQueryItem] = []
+        
+        if let teamId = teamId {
+            queryItems.append(URLQueryItem(name: "teamId", value: teamId))
+        }
+        if let leagueId = leagueId {
+            queryItems.append(URLQueryItem(name: "leagueId", value: leagueId))
+        }
+        if let position = position {
+            queryItems.append(URLQueryItem(name: "position", value: position))
+        }
+        
+        urlComponents.queryItems = queryItems.isEmpty ? nil : queryItems
+        
+        guard let url = urlComponents.url else {
+            throw APIError.invalidURL
+        }
+        
+        let request = createRequest(url: url)
+        let (data, response) = try await session.data(for: request)
+        
+        guard let httpResponse = response as? HTTPURLResponse,
+              httpResponse.statusCode == 200 else {
+            throw APIError.invalidResponse
+        }
+        
+        let apiResponse = try JSONDecoder().decode(YourServerPlayersResponse.self, from: data)
+        return apiResponse.data
+    }
+    
+    func fetchPlayer(playerId: String) async throws -> Player {
+        guard let url = URL(string: "\(baseURL)/players/\(playerId)") else {
+            throw APIError.invalidURL
+        }
+        
+        let request = createRequest(url: url)
+        let (data, response) = try await session.data(for: request)
+        
+        guard let httpResponse = response as? HTTPURLResponse,
+              httpResponse.statusCode == 200 else {
+            throw APIError.invalidResponse
+        }
+        
+        let apiResponse = try JSONDecoder().decode(YourServerPlayerResponse.self, from: data)
+        return apiResponse.data
+    }
+    
+    func fetchTeamRoster(teamId: String) async throws -> [Player] {
+        guard let url = URL(string: "\(baseURL)/players/team/\(teamId)") else {
+            throw APIError.invalidURL
+        }
+        
+        let request = createRequest(url: url)
+        let (data, response) = try await session.data(for: request)
+        
+        guard let httpResponse = response as? HTTPURLResponse,
+              httpResponse.statusCode == 200 else {
+            throw APIError.invalidResponse
+        }
+        
+        let apiResponse = try JSONDecoder().decode(YourServerTeamRosterResponse.self, from: data)
+        return apiResponse.data
+    }
+    
     // MARK: - Data Refresh
     func refreshData(leagueId: String = "NBA", season: String = "2024-25 Regular") async throws -> RefreshResponse {
         guard let url = URL(string: "\(baseURL)/refresh") else {
@@ -182,6 +249,32 @@ struct YourServerLeaguesResponse: Codable {
     let success: Bool
     let data: [League]
     let count: Int
+}
+
+struct YourServerPlayersResponse: Codable {
+    let success: Bool
+    let data: [Player]
+    let count: Int
+    let filters: PlayerFilters
+}
+
+struct YourServerPlayerResponse: Codable {
+    let success: Bool
+    let data: Player
+}
+
+struct YourServerTeamRosterResponse: Codable {
+    let success: Bool
+    let data: [Player]
+    let dataByPosition: [String: [Player]]
+    let count: Int
+    let teamId: String
+}
+
+struct PlayerFilters: Codable {
+    let teamId: String?
+    let leagueId: String?
+    let position: String?
 }
 
 struct YourServerStatusResponse: Codable {

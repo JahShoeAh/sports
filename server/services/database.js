@@ -64,8 +64,8 @@ class DatabaseService {
     return new Promise((resolve, reject) => {
       const stmt = this.db.prepare(`
         INSERT OR REPLACE INTO teams 
-        (id, name, city, abbreviation, logo_url, league_id, conference, division, roster_id, updated_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+        (id, name, city, abbreviation, logo_url, league_id, conference, division, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
       `);
       
       stmt.run([
@@ -76,8 +76,7 @@ class DatabaseService {
         team.logoURL,
         team.leagueId,
         team.conference,
-        team.division,
-        team.rosterId || null
+        team.division
       ], function(err) {
         if (err) {
           reject(err);
@@ -125,50 +124,6 @@ class DatabaseService {
     });
   }
 
-  // Roster operations
-  async saveRoster(roster) {
-    return new Promise((resolve, reject) => {
-      const stmt = this.db.prepare(`
-        INSERT OR REPLACE INTO rosters 
-        (id, updated_at)
-        VALUES (?, CURRENT_TIMESTAMP)
-      `);
-      
-      stmt.run([roster.id], function(err) {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(this.lastID);
-        }
-      });
-      
-      stmt.finalize();
-    });
-  }
-
-  async getRoster(rosterId) {
-    return new Promise((resolve, reject) => {
-      this.db.get('SELECT * FROM rosters WHERE id = ?', [rosterId], (err, row) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(row);
-        }
-      });
-    });
-  }
-
-  async getRosters() {
-    return new Promise((resolve, reject) => {
-      this.db.all('SELECT * FROM rosters ORDER BY id', (err, rows) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(rows);
-        }
-      });
-    });
-  }
 
   // Venue operations
   async saveVenue(venue) {
@@ -352,6 +307,147 @@ class DatabaseService {
     const lastUpdate = new Date(freshness.last_successful_fetch);
     const now = new Date();
     return (now - lastUpdate) < maxAge;
+  }
+
+  // Player operations
+  async savePlayer(player) {
+    return new Promise((resolve, reject) => {
+      const stmt = this.db.prepare(`
+        INSERT OR REPLACE INTO players 
+        (id, team_id, display_name, first_name, last_name, jersey_number, primary_position, 
+         secondary_position, birthdate, height_inches, weight_lbs, nationality, photo_url, 
+         injury_status, draft_year, draft_pick_overall, active, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+      `);
+      
+      stmt.run([
+        player.id,
+        player.teamId,
+        player.displayName,
+        player.firstName,
+        player.lastName,
+        player.jerseyNumber,
+        player.primaryPosition,
+        player.secondaryPosition || null,
+        player.birthdate,
+        player.heightInches,
+        player.weightLbs,
+        player.nationality || null,
+        player.photoUrl || null,
+        player.injuryStatus || null,
+        player.draftYear || null,
+        player.draftPickOverall || null,
+        player.active ? 1 : 0
+      ], function(err) {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(this.lastID);
+        }
+      });
+      
+      stmt.finalize();
+    });
+  }
+
+  async getPlayer(playerId) {
+    return new Promise((resolve, reject) => {
+      this.db.get(`
+        SELECT p.*, t.name as team_name, t.city as team_city, t.abbreviation as team_abbreviation,
+               t.logo_url as team_logo_url, t.conference as team_conference, t.division as team_division
+        FROM players p
+        LEFT JOIN teams t ON p.team_id = t.id
+        WHERE p.id = ?
+      `, [playerId], (err, row) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(row);
+        }
+      });
+    });
+  }
+
+  async getPlayers(teamId = null, leagueId = null) {
+    return new Promise((resolve, reject) => {
+      let query = `
+        SELECT p.*, t.name as team_name, t.city as team_city, t.abbreviation as team_abbreviation,
+               t.logo_url as team_logo_url, t.conference as team_conference, t.division as team_division
+        FROM players p
+        LEFT JOIN teams t ON p.team_id = t.id
+        WHERE 1=1
+      `;
+      
+      const params = [];
+      
+      if (teamId) {
+        query += ' AND p.team_id = ?';
+        params.push(teamId);
+      }
+      
+      if (leagueId) {
+        query += ' AND t.league_id = ?';
+        params.push(leagueId);
+      }
+      
+      query += ' ORDER BY t.name, p.jersey_number, p.last_name';
+      
+      this.db.all(query, params, (err, rows) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(rows);
+        }
+      });
+    });
+  }
+
+  async getTeamRoster(teamId) {
+    return new Promise((resolve, reject) => {
+      this.db.all(`
+        SELECT p.*, t.name as team_name, t.city as team_city, t.abbreviation as team_abbreviation,
+               t.logo_url as team_logo_url, t.conference as team_conference, t.division as team_division
+        FROM players p
+        LEFT JOIN teams t ON p.team_id = t.id
+        WHERE p.team_id = ? AND p.active = 1
+        ORDER BY p.jersey_number, p.last_name
+      `, [teamId], (err, rows) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(rows);
+        }
+      });
+    });
+  }
+
+  async getPlayersByPosition(position, leagueId = null) {
+    return new Promise((resolve, reject) => {
+      let query = `
+        SELECT p.*, t.name as team_name, t.city as team_city, t.abbreviation as team_abbreviation,
+               t.logo_url as team_logo_url, t.conference as team_conference, t.division as team_division
+        FROM players p
+        LEFT JOIN teams t ON p.team_id = t.id
+        WHERE p.primary_position = ? OR p.secondary_position = ?
+      `;
+      
+      const params = [position, position];
+      
+      if (leagueId) {
+        query += ' AND t.league_id = ?';
+        params.push(leagueId);
+      }
+      
+      query += ' ORDER BY t.name, p.jersey_number';
+      
+      this.db.all(query, params, (err, rows) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(rows);
+        }
+      });
+    });
   }
 
   // Utility methods

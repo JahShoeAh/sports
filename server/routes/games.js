@@ -38,7 +38,6 @@ router.get('/', async (req, res) => {
         conference: game.home_team_conference,
         division: game.home_team_division,
         colors: null,
-        rosterId: null
       },
       awayTeam: {
         id: game.away_team_id,
@@ -58,7 +57,6 @@ router.get('/', async (req, res) => {
         conference: game.away_team_conference,
         division: game.away_team_division,
         colors: null,
-        rosterId: null
       },
       league: {
         id: game.league_id,
@@ -144,7 +142,6 @@ router.get('/:id', async (req, res) => {
         conference: game.home_team_conference,
         division: game.home_team_division,
         colors: null,
-        rosterId: null
       },
       awayTeam: {
         id: game.away_team_id,
@@ -164,7 +161,6 @@ router.get('/:id', async (req, res) => {
         conference: game.away_team_conference,
         division: game.away_team_division,
         colors: null,
-        rosterId: null
       },
       league: {
         id: game.league_id,

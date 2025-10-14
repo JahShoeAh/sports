@@ -63,9 +63,19 @@ struct TeamMenuView: View {
     private func loadTeamData() async {
         isLoading = true
         
-        // TODO: Load roster, past games, future games from API
-        await MainActor.run {
-            self.isLoading = false
+        do {
+            // Load roster from API
+            let fetchedRoster = try await YourServerAPI.shared.fetchTeamRoster(teamId: team.id)
+            
+            await MainActor.run {
+                self.roster = fetchedRoster
+                self.isLoading = false
+            }
+        } catch {
+            print("Error loading team data: \(error)")
+            await MainActor.run {
+                self.isLoading = false
+            }
         }
     }
 }
@@ -166,23 +176,36 @@ struct PlayerRow: View {
     var body: some View {
         HStack {
             // Player Headshot
-            Circle()
-                .fill(Color(.systemGray4))
-                .frame(width: 40, height: 40)
-                .overlay(
-                    Image(systemName: "person.fill")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                )
+            AsyncImage(url: URL(string: player.photoUrl ?? "")) { image in
+                image
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+            } placeholder: {
+                Circle()
+                    .fill(Color(.systemGray4))
+                    .overlay(
+                        Image(systemName: "person.fill")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    )
+            }
+            .frame(width: 40, height: 40)
+            .clipShape(Circle())
             
             VStack(alignment: .leading, spacing: 2) {
-                Text(player.name)
+                Text(player.displayName)
                     .font(.subheadline)
                     .fontWeight(.medium)
                 
-                Text(player.position)
+                Text(player.positionString)
                     .font(.caption)
                     .foregroundColor(.secondary)
+                
+                if let nationality = player.nationality {
+                    Text(player.nationalityWithFlag)
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+                }
             }
             
             Spacer()
@@ -194,16 +217,22 @@ struct PlayerRow: View {
                         .fontWeight(.bold)
                 }
                 
-                if let height = player.height {
-                    Text(height)
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
+                Text(player.heightFormatted)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
                 
-                if let age = player.age {
-                    Text("Age: \(age)")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
+                Text("Age: \(player.age)")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                
+                if player.isInjured {
+                    Text(player.injuryStatus ?? "Injured")
+                        .font(.caption2)
+                        .foregroundColor(.red)
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 2)
+                        .background(Color.red.opacity(0.1))
+                        .cornerRadius(4)
                 }
             }
         }
