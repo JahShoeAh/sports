@@ -65,13 +65,17 @@ struct LeaguePageView: View {
                             .foregroundColor(.secondary)
                         
                         Picker("Season", selection: $selectedSeason) {
-                            Text("2025 Playoffs").tag("2025 Playoffs")
                             Text("2024-25 Regular").tag("2024-25 Regular")
-                            Text("2023-24 Regular").tag("2023-24 Regular")
+                            Text("2023 Playoffs").tag("2023 Playoffs")
+                            Text("2022-23 Regular").tag("2022-23 Regular")
+                            Text("2022-23 Pre").tag("2022-23 Pre")
                         }
                         .pickerStyle(MenuPickerStyle())
-                        .onChange(of: selectedSeason) { _, newSeason in
-                            loadGames(season: newSeason)
+                        .onChange(of: selectedSeason) { oldValue, newValue in
+                            print("Season changed from \(oldValue) to \(newValue)")
+                            if oldValue != newValue {
+                                loadGames(season: newValue)
+                            }
                         }
                         
                         Spacer()
@@ -186,26 +190,31 @@ struct LeaguePageView: View {
     }
     
     private func loadGames(season: String) {
+        print("Loading games for season: \(season)")
+        
         // Load games from cache for the selected season
         games = dataManager.fetchGames(for: league.id, season: season)
+        print("Found \(games.count) games in cache for season \(season)")
         
-        // If no games found in cache for this season, try to fetch from server
-        if games.isEmpty {
-            Task {
-                await fetchGamesFromServer(season: season)
-            }
+        // Always try to fetch from server to ensure we have the latest data for this season
+        Task {
+            await fetchGamesFromServer(season: season)
         }
     }
     
     private func fetchGamesFromServer(season: String) async {
+        print("Fetching games from server for season: \(season)")
         do {
             let fetchedGames = try await yourServerAPI.fetchGames(leagueId: league.id, season: season)
+            print("Successfully fetched \(fetchedGames.count) games from server for season \(season)")
             dataManager.saveGames(fetchedGames, for: league.id)
             
             await MainActor.run {
                 games = dataManager.fetchGames(for: league.id, season: season)
+                print("Updated games array with \(games.count) games for season \(season)")
             }
         } catch {
+            print("Error fetching games from server: \(error)")
             await MainActor.run {
                 errorMessage = "Failed to load games: \(error.localizedDescription)"
             }

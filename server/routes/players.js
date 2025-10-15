@@ -36,8 +36,7 @@ const transformPlayer = (player) => ({
   firstName: player.firstName,
   lastName: player.lastName,
   jerseyNumber: player.jerseyNumber,
-  primaryPosition: player.primaryPosition,
-  secondaryPosition: player.secondaryPosition,
+  position: player.position,
   birthdate: player.birthdate,
   age: calculateAge(player.birthdate),
   heightInches: player.heightInches,
@@ -45,11 +44,13 @@ const transformPlayer = (player) => ({
   weightLbs: player.weightLbs,
   weightFormatted: formatWeight(player.weightLbs),
   nationality: player.nationality,
+  college: player.college,
   photoUrl: player.photoUrl,
   injuryStatus: player.injuryStatus,
   draftYear: player.draftYear,
   draftPickOverall: player.draftPickOverall,
   active: Boolean(player.active),
+  apiPlayerId: player.apiPlayerId,
   team: {
     id: player.teamId,
     name: player.teamName,
@@ -143,7 +144,7 @@ router.get('/team/:teamId', async (req, res) => {
     
     // Group by position for better organization
     const playersByPosition = transformedPlayers.reduce((acc, player) => {
-      const position = player.primaryPosition;
+      const position = player.position;
       if (!acc[position]) {
         acc[position] = [];
       }
@@ -175,7 +176,7 @@ router.post('/', async (req, res) => {
     const playerData = req.body;
     
     // Validate required fields
-    const requiredFields = ['id', 'teamId', 'displayName', 'firstName', 'lastName', 'primaryPosition', 'birthdate', 'heightInches', 'weightLbs'];
+    const requiredFields = ['id', 'teamId', 'displayName', 'firstName', 'lastName'];
     const missingFields = requiredFields.filter(field => !playerData[field]);
     
     if (missingFields.length > 0) {

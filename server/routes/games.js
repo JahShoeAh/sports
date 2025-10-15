@@ -17,8 +17,13 @@ router.get('/', async (req, res) => {
 
     const games = await database.getGames(leagueId, season);
     
+    // Filter out games with missing team data (exhibition games)
+    const validGames = games.filter(game => {
+      return game.homeTeamName && game.awayTeamName;
+    });
+    
     // Transform data to match iOS app expectations
-    const transformedGames = games.map(game => ({
+    const transformedGames = validGames.map(game => ({
       id: game.id,
       homeTeam: {
         id: game.homeTeamId,
@@ -81,11 +86,14 @@ router.get('/', async (req, res) => {
       } : null,
       homeScore: game.homeScore,
       awayScore: game.awayScore,
+      homeLineScore: game.homeLineScore ? JSON.parse(game.homeLineScore) : null,
+      awayLineScore: game.awayLineScore ? JSON.parse(game.awayLineScore) : null,
+      leadChanges: game.leadChanges ?? null,
       quarter: game.quarter,
       isLive: game.isLive === 1,
       isCompleted: game.isCompleted === 1,
       startingLineups: null,
-      boxScore: game.boxScore ? JSON.parse(game.boxScore) : null
+      apiGameId: game.apiGameId || null
     }));
 
     res.json({
@@ -185,11 +193,14 @@ router.get('/:id', async (req, res) => {
       } : null,
       homeScore: game.homeScore,
       awayScore: game.awayScore,
+      homeLineScore: game.homeLineScore ? JSON.parse(game.homeLineScore) : null,
+      awayLineScore: game.awayLineScore ? JSON.parse(game.awayLineScore) : null,
+      leadChanges: game.leadChanges ?? null,
       quarter: game.quarter,
       isLive: game.isLive === 1,
       isCompleted: game.isCompleted === 1,
       startingLineups: null,
-      boxScore: game.boxScore ? JSON.parse(game.boxScore) : null
+      apiGameId: game.apiGameId || null
     };
 
     res.json({

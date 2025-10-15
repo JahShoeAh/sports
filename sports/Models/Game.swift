@@ -19,16 +19,19 @@ struct Game: Identifiable, Codable {
     let venue: Venue?
     let homeScore: Int?
     let awayScore: Int?
+    let homeLineScore: [Int]?
+    let awayLineScore: [Int]?
+    let leadChanges: Int?
     let quarter: Int?
     let isLive: Bool
     let isCompleted: Bool
+    let apiGameId: Int?
     
     // Game details
     let startingLineups: StartingLineups?
-    let boxScore: BoxScore?
     
     // Default memberwise initializer
-    init(id: String, homeTeam: Team, awayTeam: Team, league: League, season: String, week: Int?, gameDate: Date, gameTime: Date, venue: Venue?, homeScore: Int?, awayScore: Int?, quarter: Int?, isLive: Bool, isCompleted: Bool, startingLineups: StartingLineups?, boxScore: BoxScore?) {
+    init(id: String, homeTeam: Team, awayTeam: Team, league: League, season: String, week: Int?, gameDate: Date, gameTime: Date, venue: Venue?, homeScore: Int?, awayScore: Int?, homeLineScore: [Int]?, awayLineScore: [Int]?, leadChanges: Int?, quarter: Int?, isLive: Bool, isCompleted: Bool, apiGameId: Int?, startingLineups: StartingLineups?) {
         self.id = id
         self.homeTeam = homeTeam
         self.awayTeam = awayTeam
@@ -40,11 +43,14 @@ struct Game: Identifiable, Codable {
         self.venue = venue
         self.homeScore = homeScore
         self.awayScore = awayScore
+        self.homeLineScore = homeLineScore
+        self.awayLineScore = awayLineScore
+        self.leadChanges = leadChanges
         self.quarter = quarter
         self.isLive = isLive
         self.isCompleted = isCompleted
+        self.apiGameId = apiGameId
         self.startingLineups = startingLineups
-        self.boxScore = boxScore
     }
     
     // Custom date decoding
@@ -60,11 +66,14 @@ struct Game: Identifiable, Codable {
         venue = try container.decodeIfPresent(Venue.self, forKey: .venue)
         homeScore = try container.decodeIfPresent(Int.self, forKey: .homeScore)
         awayScore = try container.decodeIfPresent(Int.self, forKey: .awayScore)
+        homeLineScore = try container.decodeIfPresent([Int].self, forKey: .homeLineScore)
+        awayLineScore = try container.decodeIfPresent([Int].self, forKey: .awayLineScore)
+        leadChanges = try container.decodeIfPresent(Int.self, forKey: .leadChanges)
         quarter = try container.decodeIfPresent(Int.self, forKey: .quarter)
         isLive = try container.decode(Bool.self, forKey: .isLive)
         isCompleted = try container.decode(Bool.self, forKey: .isCompleted)
+        apiGameId = try container.decodeIfPresent(Int.self, forKey: .apiGameId)
         startingLineups = try container.decodeIfPresent(StartingLineups.self, forKey: .startingLineups)
-        boxScore = try container.decodeIfPresent(BoxScore.self, forKey: .boxScore)
         
         // Custom date parsing
         let gameDateString = try container.decode(String.self, forKey: .gameDate)
@@ -92,9 +101,10 @@ struct Game: Identifiable, Codable {
     // CodingKeys for custom decoding
     private enum CodingKeys: String, CodingKey {
         case id, homeTeam, awayTeam, league, season, week, gameDate, gameTime
-        case venue, homeScore, awayScore
+        case venue, homeScore, awayScore, homeLineScore, awayLineScore, leadChanges
         case quarter, isLive, isCompleted
-        case startingLineups, boxScore
+        case apiGameId
+        case startingLineups
     }
 }
 
@@ -103,31 +113,6 @@ struct StartingLineups: Codable {
     let away: [Player]
 }
 
-struct BoxScore: Codable {
-    let home: TeamBoxScore
-    let away: TeamBoxScore
-}
-
-struct TeamBoxScore: Codable {
-    let team: Team
-    let stats: [String: Any] // TODO:QUESTION - Define specific stat structure per sport
-    
-    enum CodingKeys: String, CodingKey {
-        case team
-        case stats
-    }
-    
-    init(from decoder: Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        team = try container.decode(Team.self, forKey: .team)
-        stats = [:] // TODO: Implement proper stat decoding
-    }
-    
-    func encode(to encoder: Encoder) throws {
-        var container = encoder.container(keyedBy: CodingKeys.self)
-        try container.encode(team, forKey: .team)
-        // TODO: Implement proper stat encoding
-    }
-}
+// Removed BoxScore storage from model per backend change
 
 

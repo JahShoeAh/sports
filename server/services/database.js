@@ -183,8 +183,9 @@ class DatabaseService {
       const stmt = this.db.prepare(`
         INSERT OR REPLACE INTO games 
         (id, homeTeamId, awayTeamId, leagueId, season, week, gameDate, gameTime,
-         venueId, homeScore, awayScore, quarter, isLive, isCompleted, boxScore, updatedAt)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+         venueId, homeScore, awayScore, homeLineScore, awayLineScore, leadChanges,
+         quarter, isLive, isCompleted, apiGameId, updatedAt)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
       `);
       
       stmt.run([
@@ -199,10 +200,13 @@ class DatabaseService {
         game.venueId || null,
         game.homeScore,
         game.awayScore,
+        Array.isArray(game.homeLineScore) ? JSON.stringify(game.homeLineScore) : null,
+        Array.isArray(game.awayLineScore) ? JSON.stringify(game.awayLineScore) : null,
+        typeof game.leadChanges === 'number' ? game.leadChanges : null,
         game.quarter,
         game.isLive,
         game.isCompleted,
-        game.boxScore ? JSON.stringify(game.boxScore) : null
+        game.apiGameId ?? null
       ], function(err) {
         if (err) {
           reject(err);
@@ -219,7 +223,8 @@ class DatabaseService {
     return new Promise((resolve, reject) => {
       let query = `
         SELECT g.id, g.homeTeamId, g.awayTeamId, g.leagueId, g.season, g.week, g.gameDate, g.gameTime,
-               g.venueId, g.homeScore, g.awayScore, g.quarter, g.isLive, g.isCompleted, g.boxScore,
+               g.venueId, g.homeScore, g.awayScore, g.homeLineScore, g.awayLineScore, g.leadChanges,
+               g.quarter, g.isLive, g.isCompleted, g.apiGameId,
                g.createdAt, g.updatedAt,
                ht.name as homeTeamName, ht.city as homeTeamCity, ht.abbreviation as homeTeamAbbr, 
                ht.logoUrl as homeTeamLogo, ht.conference as homeTeamConference, ht.division as homeTeamDivision,
@@ -315,10 +320,10 @@ class DatabaseService {
     return new Promise((resolve, reject) => {
       const stmt = this.db.prepare(`
         INSERT OR REPLACE INTO players 
-        (id, teamId, displayName, firstName, lastName, jerseyNumber, primaryPosition, 
-         secondaryPosition, birthdate, heightInches, weightLbs, nationality, photoUrl, 
-         injuryStatus, draftYear, draftPickOverall, active, updatedAt)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+        (id, teamId, displayName, firstName, lastName, jerseyNumber, position,
+         birthdate, heightInches, weightLbs, nationality, college, photoUrl,
+         injuryStatus, draftYear, draftPickOverall, active, apiPlayerId, updatedAt)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
       `);
       
       stmt.run([
@@ -328,17 +333,18 @@ class DatabaseService {
         player.firstName,
         player.lastName,
         player.jerseyNumber,
-        player.primaryPosition,
-        player.secondaryPosition || null,
+        player.position || null,
         player.birthdate,
         player.heightInches,
         player.weightLbs,
         player.nationality || null,
+        player.college || null,
         player.photoUrl || null,
         player.injuryStatus || null,
         player.draftYear || null,
         player.draftPickOverall || null,
-        player.active ? 1 : 0
+        player.active ? 1 : 0,
+        player.apiPlayerId ?? null
       ], function(err) {
         if (err) {
           reject(err);
@@ -429,10 +435,10 @@ class DatabaseService {
                t.logoUrl as teamLogoUrl, t.conference as teamConference, t.division as teamDivision
         FROM players p
         LEFT JOIN teams t ON p.teamId = t.id
-        WHERE p.primaryPosition = ? OR p.secondaryPosition = ?
+        WHERE p.position = ?
       `;
       
-      const params = [position, position];
+      const params = [position];
       
       if (leagueId) {
         query += ' AND t.leagueId = ?';
@@ -480,6 +486,168 @@ class DatabaseService {
     });
   }
 
+  // PlayerStats operations
+  async savePlayerStats(stats) {
+    return new Promise((resolve, reject) => {
+      const stmt = this.db.prepare(`
+        INSERT OR REPLACE INTO playerStats 
+        (gameId, playerId, teamId, points, pos, min, fgm, fga, fgp, ftm, fta, ftp,
+         tpm, tpa, tpp, offReb, defReb, totReb, assists, pFouls, steals, turnovers,
+         blocks, plusMinus, comment, updatedAt)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+      `);
+      
+      stmt.run([
+        stats.gameId,
+        stats.playerId,
+        stats.teamId,
+        stats.points || 0,
+        stats.pos || null,
+        stats.min || null,
+        stats.fgm || 0,
+        stats.fga || 0,
+        stats.fgp || null,
+        stats.ftm || 0,
+        stats.fta || 0,
+        stats.ftp || null,
+        stats.tpm || 0,
+        stats.tpa || 0,
+        stats.tpp || null,
+        stats.offReb || 0,
+        stats.defReb || 0,
+        stats.totReb || 0,
+        stats.assists || 0,
+        stats.pFouls || 0,
+        stats.steals || 0,
+        stats.turnovers || 0,
+        stats.blocks || 0,
+        stats.plusMinus || null,
+        stats.comment || null
+      ], function(err) {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(this.lastID);
+        }
+      });
+      
+      stmt.finalize();
+    });
+  }
+
+  async getPlayerStats(gameId, playerId) {
+    return new Promise((resolve, reject) => {
+      this.db.get(`
+        SELECT ps.*, p.displayName, p.firstName, p.lastName, p.jerseyNumber, p.position,
+               t.name as teamName, t.city as teamCity, t.abbreviation as teamAbbreviation,
+               g.gameDate, g.homeTeamId, g.awayTeamId
+        FROM playerStats ps
+        LEFT JOIN players p ON ps.playerId = p.id
+        LEFT JOIN teams t ON ps.teamId = t.id
+        LEFT JOIN games g ON ps.gameId = g.id
+        WHERE ps.gameId = ? AND ps.playerId = ?
+      `, [gameId, playerId], (err, row) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(row);
+        }
+      });
+    });
+  }
+
+  async getPlayerStatsByGame(gameId) {
+    return new Promise((resolve, reject) => {
+      this.db.all(`
+        SELECT ps.*, p.displayName, p.firstName, p.lastName, p.jerseyNumber, p.position,
+               t.name as teamName, t.city as teamCity, t.abbreviation as teamAbbreviation,
+               g.gameDate, g.homeTeamId, g.awayTeamId
+        FROM playerStats ps
+        LEFT JOIN players p ON ps.playerId = p.id
+        LEFT JOIN teams t ON ps.teamId = t.id
+        LEFT JOIN games g ON ps.gameId = g.id
+        WHERE ps.gameId = ?
+        ORDER BY t.name, p.jerseyNumber
+      `, [gameId], (err, rows) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(rows);
+        }
+      });
+    });
+  }
+
+  async getPlayerStatsByPlayer(playerId) {
+    return new Promise((resolve, reject) => {
+      this.db.all(`
+        SELECT ps.*, p.displayName, p.firstName, p.lastName, p.jerseyNumber, p.position,
+               t.name as teamName, t.city as teamCity, t.abbreviation as teamAbbreviation,
+               g.gameDate, g.homeTeamId, g.awayTeamId
+        FROM playerStats ps
+        LEFT JOIN players p ON ps.playerId = p.id
+        LEFT JOIN teams t ON ps.teamId = t.id
+        LEFT JOIN games g ON ps.gameId = g.id
+        WHERE ps.playerId = ?
+        ORDER BY g.gameDate DESC
+      `, [playerId], (err, rows) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(rows);
+        }
+      });
+    });
+  }
+
+  async getPlayerStatsByTeam(teamId, gameId = null) {
+    return new Promise((resolve, reject) => {
+      let query = `
+        SELECT ps.*, p.displayName, p.firstName, p.lastName, p.jerseyNumber, p.position,
+               t.name as teamName, t.city as teamCity, t.abbreviation as teamAbbreviation,
+               g.gameDate, g.homeTeamId, g.awayTeamId
+        FROM playerStats ps
+        LEFT JOIN players p ON ps.playerId = p.id
+        LEFT JOIN teams t ON ps.teamId = t.id
+        LEFT JOIN games g ON ps.gameId = g.id
+        WHERE ps.teamId = ?
+      `;
+      
+      const params = [teamId];
+      
+      if (gameId) {
+        query += ' AND ps.gameId = ?';
+        params.push(gameId);
+      }
+      
+      query += ' ORDER BY g.gameDate DESC, p.jerseyNumber';
+      
+      this.db.all(query, params, (err, rows) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(rows);
+        }
+      });
+    });
+  }
+
+  async deletePlayerStats(gameId, playerId) {
+    return new Promise((resolve, reject) => {
+      this.db.run(
+        'DELETE FROM playerStats WHERE gameId = ? AND playerId = ?',
+        [gameId, playerId],
+        function(err) {
+          if (err) {
+            reject(err);
+          } else {
+            resolve(this.changes);
+          }
+        }
+      );
+    });
+  }
+
   async getStats() {
     return new Promise((resolve, reject) => {
       this.db.all(`
@@ -487,6 +655,7 @@ class DatabaseService {
           (SELECT COUNT(*) FROM leagues) as leaguesCount,
           (SELECT COUNT(*) FROM teams) as teamsCount,
           (SELECT COUNT(*) FROM games) as gamesCount,
+          (SELECT COUNT(*) FROM playerStats) as playerStatsCount,
           (SELECT COUNT(*) FROM dataFreshness) as freshnessCount
       `, (err, rows) => {
         if (err) {

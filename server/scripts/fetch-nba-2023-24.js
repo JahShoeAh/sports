@@ -54,34 +54,34 @@ async function fetchTeamsMap() {
   const apiToDbMapping = {
     1: 'NBA_ATL',    // Atlanta Hawks
     2: 'NBA_BOS',    // Boston Celtics  
-    3: 'NBA_BKN',    // Brooklyn Nets
-    4: 'NBA_CHA',    // Charlotte Hornets
-    5: 'NBA_CHI',    // Chicago Bulls
-    6: 'NBA_CLE',    // Cleveland Cavaliers
-    7: 'NBA_DAL',    // Dallas Mavericks
-    8: 'NBA_DEN',    // Denver Nuggets
-    9: 'NBA_DET',    // Detroit Pistons
-    10: 'NBA_GSW',   // Golden State Warriors
-    11: 'NBA_HOU',   // Houston Rockets
-    12: 'NBA_IND',   // Indiana Pacers
-    13: 'NBA_LAC',   // Los Angeles Clippers
-    14: 'NBA_LAL',   // Los Angeles Lakers
-    15: 'NBA_MEM',   // Memphis Grizzlies
-    16: 'NBA_MIA',   // Miami Heat
-    17: 'NBA_MIL',   // Milwaukee Bucks
-    18: 'NBA_MIN',   // Minnesota Timberwolves
-    19: 'NBA_NOP',   // New Orleans Pelicans
-    20: 'NBA_NYK',   // New York Knicks
-    21: 'NBA_OKC',   // Oklahoma City Thunder
-    22: 'NBA_ORL',    // Orlando Magic
-    23: 'NBA_PHI',   // Philadelphia 76ers
-    24: 'NBA_PHX',   // Phoenix Suns
-    25: 'NBA_POR',   // Portland Trail Blazers
-    26: 'NBA_SAC',   // Sacramento Kings
-    27: 'NBA_SAS',   // San Antonio Spurs
-    28: 'NBA_TOR',   // Toronto Raptors
-    29: 'NBA_UTA',   // Utah Jazz
-    30: 'NBA_WAS'    // Washington Wizards
+    4: 'NBA_BKN',    // Brooklyn Nets
+    5: 'NBA_CHA',    // Charlotte Hornets
+    6: 'NBA_CHI',    // Chicago Bulls
+    7: 'NBA_CLE',    // Cleveland Cavaliers
+    8: 'NBA_DAL',    // Dallas Mavericks
+    9: 'NBA_DEN',    // Denver Nuggets
+    10: 'NBA_DET',    // Detroit Pistons
+    11: 'NBA_GSW',   // Golden State Warriors
+    14: 'NBA_HOU',   // Houston Rockets
+    15: 'NBA_IND',   // Indiana Pacers
+    16: 'NBA_LAC',   // Los Angeles Clippers
+    17: 'NBA_LAL',   // Los Angeles Lakers
+    19: 'NBA_MEM',   // Memphis Grizzlies
+    20: 'NBA_MIA',   // Miami Heat
+    21: 'NBA_MIL',   // Milwaukee Bucks
+    22: 'NBA_MIN',   // Minnesota Timberwolves
+    23: 'NBA_NOP',   // New Orleans Pelicans
+    24: 'NBA_NYK',   // New York Knicks
+    25: 'NBA_OKC',   // Oklahoma City Thunder
+    26: 'NBA_ORL',    // Orlando Magic
+    27: 'NBA_PHI',   // Philadelphia 76ers
+    28: 'NBA_PHX',   // Phoenix Suns
+    29: 'NBA_POR',   // Portland Trail Blazers
+    30: 'NBA_SAC',   // Sacramento Kings
+    31: 'NBA_SAS',   // San Antonio Spurs
+    38: 'NBA_TOR',   // Toronto Raptors
+    40: 'NBA_UTA',   // Utah Jazz
+    41: 'NBA_WAS'    // Washington Wizards
   };
   
   return { apiToDbMapping, dbTeams };

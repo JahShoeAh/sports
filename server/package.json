@@ -7,6 +7,9 @@
     "start": "node server.js",
     "dev": "nodemon server.js",
     "setup": "node database/setup.js",
+    "db:migrate:players": "node scripts/migrate-players-schema.js",
+    "import:nba:players": "node scripts/import-nba-players-from-raw.js",
+    "fetch:nba:players:2022": "node scripts/fetch-nba-players-2022-by-team.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [

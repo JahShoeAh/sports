@@ -14,8 +14,7 @@ struct Player: Identifiable, Codable {
     let firstName: String
     let lastName: String
     let jerseyNumber: Int?
-    let primaryPosition: String
-    let secondaryPosition: String?
+    let position: String?
     let birthdate: String
     let age: Int
     let heightInches: Int
@@ -23,32 +22,33 @@ struct Player: Identifiable, Codable {
     let weightLbs: Int
     let weightFormatted: String
     let nationality: String?
+    let college: String?
     let photoUrl: String?
     let injuryStatus: String?
     let draftYear: Int?
     let draftPickOverall: Int?
     let active: Bool
+    let apiPlayerId: Int?
     let team: Team?
     let createdAt: String?
     let updatedAt: String?
     
     enum CodingKeys: String, CodingKey {
         case id, teamId, displayName, firstName, lastName, jerseyNumber
-        case primaryPosition, secondaryPosition, birthdate, age
+        case position, birthdate, age
         case heightInches, heightFormatted, weightLbs, weightFormatted
-        case nationality, photoUrl, injuryStatus, draftYear, draftPickOverall
-        case active, team, createdAt, updatedAt
+        case nationality, college, photoUrl, injuryStatus, draftYear, draftPickOverall
+        case active, apiPlayerId, team, createdAt, updatedAt
     }
     
-    init(id: String, teamId: String, displayName: String, firstName: String, lastName: String, jerseyNumber: Int? = nil, primaryPosition: String, secondaryPosition: String? = nil, birthdate: String, age: Int, heightInches: Int, heightFormatted: String, weightLbs: Int, weightFormatted: String, nationality: String? = nil, photoUrl: String? = nil, injuryStatus: String? = nil, draftYear: Int? = nil, draftPickOverall: Int? = nil, active: Bool = true, team: Team? = nil, createdAt: String? = nil, updatedAt: String? = nil) {
+    init(id: String, teamId: String, displayName: String, firstName: String, lastName: String, jerseyNumber: Int? = nil, position: String? = nil, birthdate: String, age: Int, heightInches: Int, heightFormatted: String, weightLbs: Int, weightFormatted: String, nationality: String? = nil, college: String? = nil, photoUrl: String? = nil, injuryStatus: String? = nil, draftYear: Int? = nil, draftPickOverall: Int? = nil, active: Bool = true, apiPlayerId: Int? = nil, team: Team? = nil, createdAt: String? = nil, updatedAt: String? = nil) {
         self.id = id
         self.teamId = teamId
         self.displayName = displayName
         self.firstName = firstName
         self.lastName = lastName
         self.jerseyNumber = jerseyNumber
-        self.primaryPosition = primaryPosition
-        self.secondaryPosition = secondaryPosition
+        self.position = position
         self.birthdate = birthdate
         self.age = age
         self.heightInches = heightInches
@@ -56,11 +56,13 @@ struct Player: Identifiable, Codable {
         self.weightLbs = weightLbs
         self.weightFormatted = weightFormatted
         self.nationality = nationality
+        self.college = college
         self.photoUrl = photoUrl
         self.injuryStatus = injuryStatus
         self.draftYear = draftYear
         self.draftPickOverall = draftPickOverall
         self.active = active
+        self.apiPlayerId = apiPlayerId
         self.team = team
         self.createdAt = createdAt
         self.updatedAt = updatedAt
@@ -74,8 +76,7 @@ struct Player: Identifiable, Codable {
         firstName = try container.decode(String.self, forKey: .firstName)
         lastName = try container.decode(String.self, forKey: .lastName)
         jerseyNumber = try container.decodeIfPresent(Int.self, forKey: .jerseyNumber)
-        primaryPosition = try container.decode(String.self, forKey: .primaryPosition)
-        secondaryPosition = try container.decodeIfPresent(String.self, forKey: .secondaryPosition)
+        position = try container.decodeIfPresent(String.self, forKey: .position)
         birthdate = try container.decode(String.self, forKey: .birthdate)
         age = try container.decode(Int.self, forKey: .age)
         heightInches = try container.decode(Int.self, forKey: .heightInches)
@@ -83,11 +84,13 @@ struct Player: Identifiable, Codable {
         weightLbs = try container.decode(Int.self, forKey: .weightLbs)
         weightFormatted = try container.decode(String.self, forKey: .weightFormatted)
         nationality = try container.decodeIfPresent(String.self, forKey: .nationality)
+        college = try container.decodeIfPresent(String.self, forKey: .college)
         photoUrl = try container.decodeIfPresent(String.self, forKey: .photoUrl)
         injuryStatus = try container.decodeIfPresent(String.self, forKey: .injuryStatus)
         draftYear = try container.decodeIfPresent(Int.self, forKey: .draftYear)
         draftPickOverall = try container.decodeIfPresent(Int.self, forKey: .draftPickOverall)
         active = try container.decode(Bool.self, forKey: .active)
+        apiPlayerId = try container.decodeIfPresent(Int.self, forKey: .apiPlayerId)
         team = try container.decodeIfPresent(Team.self, forKey: .team)
         createdAt = try container.decodeIfPresent(String.self, forKey: .createdAt)
         updatedAt = try container.decodeIfPresent(String.self, forKey: .updatedAt)
@@ -101,8 +104,7 @@ struct Player: Identifiable, Codable {
         try container.encode(firstName, forKey: .firstName)
         try container.encode(lastName, forKey: .lastName)
         try container.encodeIfPresent(jerseyNumber, forKey: .jerseyNumber)
-        try container.encode(primaryPosition, forKey: .primaryPosition)
-        try container.encodeIfPresent(secondaryPosition, forKey: .secondaryPosition)
+        try container.encodeIfPresent(position, forKey: .position)
         try container.encode(birthdate, forKey: .birthdate)
         try container.encode(age, forKey: .age)
         try container.encode(heightInches, forKey: .heightInches)
@@ -110,11 +112,13 @@ struct Player: Identifiable, Codable {
         try container.encode(weightLbs, forKey: .weightLbs)
         try container.encode(weightFormatted, forKey: .weightFormatted)
         try container.encodeIfPresent(nationality, forKey: .nationality)
+        try container.encodeIfPresent(college, forKey: .college)
         try container.encodeIfPresent(photoUrl, forKey: .photoUrl)
         try container.encodeIfPresent(injuryStatus, forKey: .injuryStatus)
         try container.encodeIfPresent(draftYear, forKey: .draftYear)
         try container.encodeIfPresent(draftPickOverall, forKey: .draftPickOverall)
         try container.encode(active, forKey: .active)
+        try container.encodeIfPresent(apiPlayerId, forKey: .apiPlayerId)
         try container.encodeIfPresent(team, forKey: .team)
         try container.encodeIfPresent(createdAt, forKey: .createdAt)
         try container.encodeIfPresent(updatedAt, forKey: .updatedAt)
@@ -129,10 +133,7 @@ struct Player: Identifiable, Codable {
     
     /// Returns the position string with secondary position if available
     var positionString: String {
-        if let secondary = secondaryPosition {
-            return "\(primaryPosition)/\(secondary)"
-        }
-        return primaryPosition
+        return position ?? ""
     }
     
     /// Returns true if the player is injured

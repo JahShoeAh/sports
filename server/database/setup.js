@@ -77,9 +77,13 @@ const createTables = () => {
           venueId TEXT,
           homeScore INTEGER,
           awayScore INTEGER,
+          homeLineScore TEXT,
+          awayLineScore TEXT,
+          leadChanges INTEGER,
           quarter INTEGER,
           isLive BOOLEAN DEFAULT 0,
           isCompleted BOOLEAN DEFAULT 0,
+          apiGameId INTEGER,
           createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
           updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
           FOREIGN KEY (homeTeamId) REFERENCES teams (id),
@@ -98,17 +102,18 @@ const createTables = () => {
           firstName TEXT NOT NULL,
           lastName TEXT NOT NULL,
           jerseyNumber INTEGER,
-          primaryPosition TEXT NOT NULL,
-          secondaryPosition TEXT,
-          birthdate TEXT NOT NULL,
-          heightInches INTEGER NOT NULL,
-          weightLbs INTEGER NOT NULL,
+          position TEXT,
+          birthdate TEXT,
+          heightInches INTEGER,
+          weightLbs INTEGER,
           nationality TEXT,
+          college TEXT,
           photoUrl TEXT,
           injuryStatus TEXT,
           draftYear INTEGER,
           draftPickOverall INTEGER,
           active INTEGER NOT NULL DEFAULT 1,
+          apiPlayerId INTEGER,
           createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
           updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
           FOREIGN KEY (teamId) REFERENCES teams (id) ON DELETE SET NULL
@@ -121,6 +126,43 @@ const createTables = () => {
           id TEXT PRIMARY KEY,
           createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
           updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+      `);
+
+      // PlayerStats table
+      db.run(`
+        CREATE TABLE IF NOT EXISTS playerStats (
+          gameId TEXT NOT NULL,
+          playerId TEXT NOT NULL,
+          teamId TEXT NOT NULL,
+          points INTEGER DEFAULT 0,
+          pos TEXT,
+          min TEXT,
+          fgm INTEGER DEFAULT 0,
+          fga INTEGER DEFAULT 0,
+          fgp TEXT,
+          ftm INTEGER DEFAULT 0,
+          fta INTEGER DEFAULT 0,
+          ftp TEXT,
+          tpm INTEGER DEFAULT 0,
+          tpa INTEGER DEFAULT 0,
+          tpp TEXT,
+          offReb INTEGER DEFAULT 0,
+          defReb INTEGER DEFAULT 0,
+          totReb INTEGER DEFAULT 0,
+          assists INTEGER DEFAULT 0,
+          pFouls INTEGER DEFAULT 0,
+          steals INTEGER DEFAULT 0,
+          turnovers INTEGER DEFAULT 0,
+          blocks INTEGER DEFAULT 0,
+          plusMinus TEXT,
+          comment TEXT,
+          createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+          updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+          PRIMARY KEY (gameId, playerId),
+          FOREIGN KEY (gameId) REFERENCES games (id),
+          FOREIGN KEY (playerId) REFERENCES players (id),
+          FOREIGN KEY (teamId) REFERENCES teams (id)
         )
       `);
 
@@ -147,8 +189,12 @@ const createTables = () => {
       db.run(`CREATE INDEX IF NOT EXISTS idxVenuesHomeTeam ON venues (homeTeamId)`);
       db.run(`CREATE INDEX IF NOT EXISTS idxPlayersTeam ON players (teamId)`);
       db.run(`CREATE INDEX IF NOT EXISTS idxPlayersDisplayName ON players (displayName)`);
-      db.run(`CREATE INDEX IF NOT EXISTS idxPlayersPosition ON players (primaryPosition)`);
+      db.run(`CREATE INDEX IF NOT EXISTS idxPlayersPosition ON players (position)`);
       db.run(`CREATE INDEX IF NOT EXISTS idxPlayersActive ON players (active)`);
+      db.run(`CREATE INDEX IF NOT EXISTS idxPlayersApiId ON players (apiPlayerId)`);
+      db.run(`CREATE INDEX IF NOT EXISTS idxPlayerStatsGame ON playerStats (gameId)`);
+      db.run(`CREATE INDEX IF NOT EXISTS idxPlayerStatsPlayer ON playerStats (playerId)`);
+      db.run(`CREATE INDEX IF NOT EXISTS idxPlayerStatsTeam ON playerStats (teamId)`);
 
       db.run(`PRAGMA journal_mode = WAL`, (err) => {
         if (err) {
