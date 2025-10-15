@@ -21,71 +21,71 @@ router.get('/', async (req, res) => {
     const transformedGames = games.map(game => ({
       id: game.id,
       homeTeam: {
-        id: game.home_team_id,
-        name: game.home_team_name,
-        city: game.home_team_city,
-        abbreviation: game.home_team_abbr,
-        logoURL: game.home_team_logo,
+        id: game.homeTeamId,
+        name: game.homeTeamName,
+        city: game.homeTeamCity,
+        abbreviation: game.homeTeamAbbr,
+        logoURL: game.homeTeamLogo,
         league: {
-          id: game.league_id,
-          name: game.league_name || 'Unknown League',
-          abbreviation: game.league_abbreviation || game.league_id,
-          logoURL: game.league_logo_url,
-          sport: game.league_sport || 'unknown',
-          level: game.league_level || 'professional',
-          isActive: Boolean(game.league_is_active)
+          id: game.leagueId,
+          name: game.leagueName || 'Unknown League',
+          abbreviation: game.leagueAbbreviation || game.leagueId,
+          logoURL: game.leagueLogoUrl,
+          sport: game.leagueSport || 'unknown',
+          level: game.leagueLevel || 'professional',
+          isActive: Boolean(game.leagueIsActive)
         },
-        conference: game.home_team_conference,
-        division: game.home_team_division,
+        conference: game.homeTeamConference,
+        division: game.homeTeamDivision,
         colors: null,
       },
       awayTeam: {
-        id: game.away_team_id,
-        name: game.away_team_name,
-        city: game.away_team_city,
-        abbreviation: game.away_team_abbr,
-        logoURL: game.away_team_logo,
+        id: game.awayTeamId,
+        name: game.awayTeamName,
+        city: game.awayTeamCity,
+        abbreviation: game.awayTeamAbbr,
+        logoURL: game.awayTeamLogo,
         league: {
-          id: game.league_id,
-          name: game.league_name || 'Unknown League',
-          abbreviation: game.league_abbreviation || game.league_id,
-          logoURL: game.league_logo_url,
-          sport: game.league_sport || 'unknown',
-          level: game.league_level || 'professional',
-          isActive: Boolean(game.league_is_active)
+          id: game.leagueId,
+          name: game.leagueName || 'Unknown League',
+          abbreviation: game.leagueAbbreviation || game.leagueId,
+          logoURL: game.leagueLogoUrl,
+          sport: game.leagueSport || 'unknown',
+          level: game.leagueLevel || 'professional',
+          isActive: Boolean(game.leagueIsActive)
         },
-        conference: game.away_team_conference,
-        division: game.away_team_division,
+        conference: game.awayTeamConference,
+        division: game.awayTeamDivision,
         colors: null,
       },
       league: {
-        id: game.league_id,
-        name: game.league_name || 'Unknown League',
-        abbreviation: game.league_abbreviation || game.league_id,
-        logoURL: game.league_logo_url,
-        sport: game.league_sport || 'unknown',
-        level: game.league_level || 'professional',
-        isActive: Boolean(game.league_is_active)
+        id: game.leagueId,
+        name: game.leagueName || 'Unknown League',
+        abbreviation: game.leagueAbbreviation || game.leagueId,
+        logoURL: game.leagueLogoUrl,
+        sport: game.leagueSport || 'unknown',
+        level: game.leagueLevel || 'professional',
+        isActive: Boolean(game.leagueIsActive)
       },
       season: game.season,
       week: game.week,
-      gameDate: game.game_date, // Keep as date string for easier parsing
-      gameTime: new Date(`${game.game_date}T${game.game_time}`).toISOString(), // Full datetime
-      venue: game.venue_id ? {
-        id: game.venue_id,
-        name: game.venue_name,
-        city: game.venue_city,
-        state: game.venue_state,
-        country: game.venue_country,
-        homeTeamId: game.venue_home_team_id
+      gameDate: game.gameDate, // Keep as date string for easier parsing
+      gameTime: new Date(`${game.gameDate}T${game.gameTime}`).toISOString(), // Full datetime
+      venue: game.venueId ? {
+        id: game.venueId,
+        name: game.venueName,
+        city: game.venueCity,
+        state: game.venueState,
+        country: game.venueCountry,
+        homeTeamId: game.venueHomeTeamId
       } : null,
-      homeScore: game.home_score,
-      awayScore: game.away_score,
+      homeScore: game.homeScore,
+      awayScore: game.awayScore,
       quarter: game.quarter,
-      isLive: game.is_live === 1,
-      isCompleted: game.is_completed === 1,
+      isLive: game.isLive === 1,
+      isCompleted: game.isCompleted === 1,
       startingLineups: null,
-      boxScore: null
+      boxScore: game.boxScore ? JSON.parse(game.boxScore) : null
     }));
 
     res.json({
@@ -125,71 +125,71 @@ router.get('/:id', async (req, res) => {
     const transformedGame = {
       id: game.id,
       homeTeam: {
-        id: game.home_team_id,
-        name: game.home_team_name,
-        city: game.home_team_city,
-        abbreviation: game.home_team_abbr,
-        logoURL: game.home_team_logo,
+        id: game.homeTeamId,
+        name: game.homeTeamName,
+        city: game.homeTeamCity,
+        abbreviation: game.homeTeamAbbr,
+        logoURL: game.homeTeamLogo,
         league: {
-          id: game.league_id,
-          name: game.league_name || 'Unknown League',
-          abbreviation: game.league_abbreviation || game.league_id,
-          logoURL: game.league_logo_url,
-          sport: game.league_sport || 'unknown',
-          level: game.league_level || 'professional',
-          isActive: Boolean(game.league_is_active)
+          id: game.leagueId,
+          name: game.leagueName || 'Unknown League',
+          abbreviation: game.leagueAbbreviation || game.leagueId,
+          logoURL: game.leagueLogoUrl,
+          sport: game.leagueSport || 'unknown',
+          level: game.leagueLevel || 'professional',
+          isActive: Boolean(game.leagueIsActive)
         },
-        conference: game.home_team_conference,
-        division: game.home_team_division,
+        conference: game.homeTeamConference,
+        division: game.homeTeamDivision,
         colors: null,
       },
       awayTeam: {
-        id: game.away_team_id,
-        name: game.away_team_name,
-        city: game.away_team_city,
-        abbreviation: game.away_team_abbr,
-        logoURL: game.away_team_logo,
+        id: game.awayTeamId,
+        name: game.awayTeamName,
+        city: game.awayTeamCity,
+        abbreviation: game.awayTeamAbbr,
+        logoURL: game.awayTeamLogo,
         league: {
-          id: game.league_id,
-          name: game.league_name || 'Unknown League',
-          abbreviation: game.league_abbreviation || game.league_id,
-          logoURL: game.league_logo_url,
-          sport: game.league_sport || 'unknown',
-          level: game.league_level || 'professional',
-          isActive: Boolean(game.league_is_active)
+          id: game.leagueId,
+          name: game.leagueName || 'Unknown League',
+          abbreviation: game.leagueAbbreviation || game.leagueId,
+          logoURL: game.leagueLogoUrl,
+          sport: game.leagueSport || 'unknown',
+          level: game.leagueLevel || 'professional',
+          isActive: Boolean(game.leagueIsActive)
         },
-        conference: game.away_team_conference,
-        division: game.away_team_division,
+        conference: game.awayTeamConference,
+        division: game.awayTeamDivision,
         colors: null,
       },
       league: {
-        id: game.league_id,
-        name: game.league_name || 'Unknown League',
-        abbreviation: game.league_abbreviation || game.league_id,
-        logoURL: game.league_logo_url,
-        sport: game.league_sport || 'unknown',
-        level: game.league_level || 'professional',
-        isActive: Boolean(game.league_is_active)
+        id: game.leagueId,
+        name: game.leagueName || 'Unknown League',
+        abbreviation: game.leagueAbbreviation || game.leagueId,
+        logoURL: game.leagueLogoUrl,
+        sport: game.leagueSport || 'unknown',
+        level: game.leagueLevel || 'professional',
+        isActive: Boolean(game.leagueIsActive)
       },
       season: game.season,
       week: game.week,
-      gameDate: game.game_date, // Keep as date string for easier parsing
-      gameTime: new Date(`${game.game_date}T${game.game_time}`).toISOString(), // Full datetime
-      venue: game.venue_id ? {
-        id: game.venue_id,
-        name: game.venue_name,
-        city: game.venue_city,
-        state: game.venue_state,
-        country: game.venue_country,
-        homeTeamId: game.venue_home_team_id
+      gameDate: game.gameDate, // Keep as date string for easier parsing
+      gameTime: new Date(`${game.gameDate}T${game.gameTime}`).toISOString(), // Full datetime
+      venue: game.venueId ? {
+        id: game.venueId,
+        name: game.venueName,
+        city: game.venueCity,
+        state: game.venueState,
+        country: game.venueCountry,
+        homeTeamId: game.venueHomeTeamId
       } : null,
-      homeScore: game.home_score,
-      awayScore: game.away_score,
+      homeScore: game.homeScore,
+      awayScore: game.awayScore,
       quarter: game.quarter,
-      isLive: game.is_live === 1,
-      isCompleted: game.is_completed === 1,
+      isLive: game.isLive === 1,
+      isCompleted: game.isCompleted === 1,
       startingLineups: null,
-      boxScore: null
+      boxScore: game.boxScore ? JSON.parse(game.boxScore) : null
     };
 
     res.json({

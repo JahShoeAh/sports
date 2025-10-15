@@ -45,7 +45,7 @@ struct AthleteMenuView: View {
             }
             .padding()
         }
-        .navigationTitle(player.name)
+        .navigationTitle(player.displayName)
         .navigationBarTitleDisplayMode(.large)
         .task {
             await loadPlayerData()
@@ -79,38 +79,32 @@ struct PlayerHeaderView: View {
                     )
                 
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(player.name)
+                    Text(player.displayName)
                         .font(.title2)
                         .fontWeight(.bold)
                     
-                    Text(player.position)
+                    Text(player.positionString)
                         .font(.subheadline)
                         .foregroundColor(.secondary)
                     
-                    if let currentTeam = player.currentTeam {
-                        Text(currentTeam.name)
+                    if let team = player.team {
+                        Text(team.name)
                             .font(.subheadline)
                             .foregroundColor(.secondary)
                     }
                     
                     HStack(spacing: 16) {
-                        if let age = player.age {
-                            Text("Age: \(age)")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                        }
+                        Text("Age: \(player.age)")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
                         
-                        if let height = player.height {
-                            Text("Height: \(height)")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                        }
+                        Text("Height: \(player.heightFormatted)")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
                         
-                        if let weight = player.weight {
-                            Text("Weight: \(weight) lbs")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                        }
+                        Text("Weight: \(player.weightLbs) lbs")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
                     }
                 }
                 

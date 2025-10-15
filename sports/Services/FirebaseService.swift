@@ -360,12 +360,12 @@ class FirebaseService: ObservableObject {
             "createdAt": Date()
         ]
         
-        try await db.collection("pending_users").document(email).setData(pendingData)
+        try await db.collection("pendingUsers").document(email).setData(pendingData)
         print("🔥 Stored pending user data for \(email)")
     }
     
     private func getStoredPendingUserData(email: String) async throws -> (username: String, displayName: String)? {
-        let document = try await db.collection("pending_users").document(email).getDocument()
+        let document = try await db.collection("pendingUsers").document(email).getDocument()
         
         guard document.exists,
               let data = document.data(),
@@ -378,12 +378,12 @@ class FirebaseService: ObservableObject {
     }
     
     private func checkForPendingUserData(email: String) async throws -> Bool {
-        let document = try await db.collection("pending_users").document(email).getDocument()
+        let document = try await db.collection("pendingUsers").document(email).getDocument()
         return document.exists
     }
     
     private func cleanupPendingUserData(email: String) async throws {
-        try await db.collection("pending_users").document(email).delete()
+        try await db.collection("pendingUsers").document(email).delete()
         print("🔥 Cleaned up pending user data for \(email)")
     }
     

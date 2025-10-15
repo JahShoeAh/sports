@@ -11,7 +11,7 @@ class DatabaseService {
     return new Promise((resolve, reject) => {
       const stmt = this.db.prepare(`
         INSERT OR REPLACE INTO leagues 
-        (id, name, abbreviation, logo_url, sport, level, is_active, updated_at)
+        (id, name, abbreviation, logoUrl, sport, level, isActive, updatedAt)
         VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
       `);
       
@@ -64,7 +64,7 @@ class DatabaseService {
     return new Promise((resolve, reject) => {
       const stmt = this.db.prepare(`
         INSERT OR REPLACE INTO teams 
-        (id, name, city, abbreviation, logo_url, league_id, conference, division, updated_at)
+        (id, name, city, abbreviation, logoUrl, leagueId, conference, division, updatedAt)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
       `);
       
@@ -92,7 +92,7 @@ class DatabaseService {
   async getTeams(leagueId) {
     return new Promise((resolve, reject) => {
       this.db.all(
-        'SELECT * FROM teams WHERE league_id = ? ORDER BY conference, division, name',
+        'SELECT * FROM teams WHERE leagueId = ? ORDER BY conference, division, name',
         [leagueId],
         (err, rows) => {
           if (err) {
@@ -108,11 +108,11 @@ class DatabaseService {
   async getTeamsWithLeague(leagueId) {
     return new Promise((resolve, reject) => {
       this.db.all(`
-        SELECT t.*, l.name as league_name, l.abbreviation as league_abbreviation, 
-               l.logo_url as league_logo_url, l.sport as league_sport, l.level as league_level, l.is_active as league_is_active
+        SELECT t.*, l.name as leagueName, l.abbreviation as leagueAbbreviation, 
+               l.logoUrl as leagueLogoUrl, l.sport as leagueSport, l.level as leagueLevel, l.isActive as leagueIsActive
         FROM teams t
-        LEFT JOIN leagues l ON t.league_id = l.id
-        WHERE t.league_id = ?
+        LEFT JOIN leagues l ON t.leagueId = l.id
+        WHERE t.leagueId = ?
         ORDER BY t.conference, t.division, t.name
       `, [leagueId], (err, rows) => {
         if (err) {
@@ -130,7 +130,7 @@ class DatabaseService {
     return new Promise((resolve, reject) => {
       const stmt = this.db.prepare(`
         INSERT OR REPLACE INTO venues 
-        (id, name, city, state, country, home_team_id, updated_at)
+        (id, name, city, state, country, homeTeamId, updatedAt)
         VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
       `);
       
@@ -182,9 +182,9 @@ class DatabaseService {
     return new Promise((resolve, reject) => {
       const stmt = this.db.prepare(`
         INSERT OR REPLACE INTO games 
-        (id, home_team_id, away_team_id, league_id, season, week, game_date, game_time,
-         venue, home_score, away_score, quarter, is_live, is_completed, updated_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+        (id, homeTeamId, awayTeamId, leagueId, season, week, gameDate, gameTime,
+         venueId, homeScore, awayScore, quarter, isLive, isCompleted, boxScore, updatedAt)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
       `);
       
       stmt.run([
@@ -196,12 +196,13 @@ class DatabaseService {
         game.week,
         game.gameDate,
         game.gameTime,
-        game.venue,
+        game.venueId || null,
         game.homeScore,
         game.awayScore,
         game.quarter,
         game.isLive,
-        game.isCompleted
+        game.isCompleted,
+        game.boxScore ? JSON.stringify(game.boxScore) : null
       ], function(err) {
         if (err) {
           reject(err);
@@ -217,23 +218,23 @@ class DatabaseService {
   async getGames(leagueId, season = null) {
     return new Promise((resolve, reject) => {
       let query = `
-        SELECT g.id, g.home_team_id, g.away_team_id, g.league_id, g.season, g.week, g.game_date, g.game_time,
-               g.venue_id, g.home_score, g.away_score, g.quarter, g.is_live, g.is_completed, 
-               g.created_at, g.updated_at,
-               ht.name as home_team_name, ht.city as home_team_city, ht.abbreviation as home_team_abbr, 
-               ht.logo_url as home_team_logo, ht.conference as home_team_conference, ht.division as home_team_division,
-               at.name as away_team_name, at.city as away_team_city, at.abbreviation as away_team_abbr, 
-               at.logo_url as away_team_logo, at.conference as away_team_conference, at.division as away_team_division,
-               l.name as league_name, l.abbreviation as league_abbreviation, l.logo_url as league_logo_url, 
-               l.sport as league_sport, l.level as league_level, l.is_active as league_is_active,
-               v.id as venue_id, v.name as venue_name, v.city as venue_city, v.state as venue_state, 
-               v.country as venue_country, v.home_team_id as venue_home_team_id
+        SELECT g.id, g.homeTeamId, g.awayTeamId, g.leagueId, g.season, g.week, g.gameDate, g.gameTime,
+               g.venueId, g.homeScore, g.awayScore, g.quarter, g.isLive, g.isCompleted, g.boxScore,
+               g.createdAt, g.updatedAt,
+               ht.name as homeTeamName, ht.city as homeTeamCity, ht.abbreviation as homeTeamAbbr, 
+               ht.logoUrl as homeTeamLogo, ht.conference as homeTeamConference, ht.division as homeTeamDivision,
+               at.name as awayTeamName, at.city as awayTeamCity, at.abbreviation as awayTeamAbbr, 
+               at.logoUrl as awayTeamLogo, at.conference as awayTeamConference, at.division as awayTeamDivision,
+               l.name as leagueName, l.abbreviation as leagueAbbreviation, l.logoUrl as leagueLogoUrl, 
+               l.sport as leagueSport, l.level as leagueLevel, l.isActive as leagueIsActive,
+               v.id as venueId, v.name as venueName, v.city as venueCity, v.state as venueState, 
+               v.country as venueCountry, v.homeTeamId as venueHomeTeamId
         FROM games g
-        LEFT JOIN teams ht ON g.home_team_id = ht.id
-        LEFT JOIN teams at ON g.away_team_id = at.id
-        LEFT JOIN leagues l ON g.league_id = l.id
-        LEFT JOIN venues v ON g.venue_id = v.id
-        WHERE g.league_id = ?
+        LEFT JOIN teams ht ON g.homeTeamId = ht.id
+        LEFT JOIN teams at ON g.awayTeamId = at.id
+        LEFT JOIN leagues l ON g.leagueId = l.id
+        LEFT JOIN venues v ON g.venueId = v.id
+        WHERE g.leagueId = ?
       `;
       
       const params = [leagueId];
@@ -243,7 +244,7 @@ class DatabaseService {
         params.push(season);
       }
       
-      query += ' ORDER BY g.game_date DESC, g.game_time DESC';
+      query += ' ORDER BY g.gameDate DESC, g.gameTime DESC';
       
       this.db.all(query, params, (err, rows) => {
         if (err) {
@@ -259,10 +260,10 @@ class DatabaseService {
   async updateDataFreshness(leagueId, success = true, error = null) {
     return new Promise((resolve, reject) => {
       const stmt = this.db.prepare(`
-        INSERT OR REPLACE INTO data_freshness 
-        (league_id, last_updated, last_successful_fetch, fetch_attempts, last_error)
+        INSERT OR REPLACE INTO dataFreshness 
+        (leagueId, lastUpdated, lastSuccessfulFetch, fetchAttempts, lastError)
         VALUES (?, CURRENT_TIMESTAMP, ?, 
-                COALESCE((SELECT fetch_attempts FROM data_freshness WHERE league_id = ?), 0) + 1, ?)
+                COALESCE((SELECT fetchAttempts FROM dataFreshness WHERE leagueId = ?), 0) + 1, ?)
       `);
       
       stmt.run([
@@ -285,7 +286,7 @@ class DatabaseService {
   async getDataFreshness(leagueId) {
     return new Promise((resolve, reject) => {
       this.db.get(
-        'SELECT * FROM data_freshness WHERE league_id = ?',
+        'SELECT * FROM dataFreshness WHERE leagueId = ?',
         [leagueId],
         (err, row) => {
           if (err) {
@@ -300,11 +301,11 @@ class DatabaseService {
 
   async isDataFresh(leagueId, maxAge = 24 * 60 * 60 * 1000) {
     const freshness = await this.getDataFreshness(leagueId);
-    if (!freshness || !freshness.last_successful_fetch) {
+    if (!freshness || !freshness.lastSuccessfulFetch) {
       return false;
     }
     
-    const lastUpdate = new Date(freshness.last_successful_fetch);
+    const lastUpdate = new Date(freshness.lastSuccessfulFetch);
     const now = new Date();
     return (now - lastUpdate) < maxAge;
   }
@@ -314,9 +315,9 @@ class DatabaseService {
     return new Promise((resolve, reject) => {
       const stmt = this.db.prepare(`
         INSERT OR REPLACE INTO players 
-        (id, team_id, display_name, first_name, last_name, jersey_number, primary_position, 
-         secondary_position, birthdate, height_inches, weight_lbs, nationality, photo_url, 
-         injury_status, draft_year, draft_pick_overall, active, updated_at)
+        (id, teamId, displayName, firstName, lastName, jerseyNumber, primaryPosition, 
+         secondaryPosition, birthdate, heightInches, weightLbs, nationality, photoUrl, 
+         injuryStatus, draftYear, draftPickOverall, active, updatedAt)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
       `);
       
@@ -353,10 +354,10 @@ class DatabaseService {
   async getPlayer(playerId) {
     return new Promise((resolve, reject) => {
       this.db.get(`
-        SELECT p.*, t.name as team_name, t.city as team_city, t.abbreviation as team_abbreviation,
-               t.logo_url as team_logo_url, t.conference as team_conference, t.division as team_division
+        SELECT p.*, t.name as teamName, t.city as teamCity, t.abbreviation as teamAbbreviation,
+               t.logoUrl as teamLogoUrl, t.conference as teamConference, t.division as teamDivision
         FROM players p
-        LEFT JOIN teams t ON p.team_id = t.id
+        LEFT JOIN teams t ON p.teamId = t.id
         WHERE p.id = ?
       `, [playerId], (err, row) => {
         if (err) {
@@ -371,26 +372,26 @@ class DatabaseService {
   async getPlayers(teamId = null, leagueId = null) {
     return new Promise((resolve, reject) => {
       let query = `
-        SELECT p.*, t.name as team_name, t.city as team_city, t.abbreviation as team_abbreviation,
-               t.logo_url as team_logo_url, t.conference as team_conference, t.division as team_division
+        SELECT p.*, t.name as teamName, t.city as teamCity, t.abbreviation as teamAbbreviation,
+               t.logoUrl as teamLogoUrl, t.conference as teamConference, t.division as teamDivision
         FROM players p
-        LEFT JOIN teams t ON p.team_id = t.id
+        LEFT JOIN teams t ON p.teamId = t.id
         WHERE 1=1
       `;
       
       const params = [];
       
       if (teamId) {
-        query += ' AND p.team_id = ?';
+        query += ' AND p.teamId = ?';
         params.push(teamId);
       }
       
       if (leagueId) {
-        query += ' AND t.league_id = ?';
+        query += ' AND t.leagueId = ?';
         params.push(leagueId);
       }
       
-      query += ' ORDER BY t.name, p.jersey_number, p.last_name';
+      query += ' ORDER BY t.name, p.jerseyNumber, p.lastName';
       
       this.db.all(query, params, (err, rows) => {
         if (err) {
@@ -405,12 +406,12 @@ class DatabaseService {
   async getTeamRoster(teamId) {
     return new Promise((resolve, reject) => {
       this.db.all(`
-        SELECT p.*, t.name as team_name, t.city as team_city, t.abbreviation as team_abbreviation,
-               t.logo_url as team_logo_url, t.conference as team_conference, t.division as team_division
+        SELECT p.*, t.name as teamName, t.city as teamCity, t.abbreviation as teamAbbreviation,
+               t.logoUrl as teamLogoUrl, t.conference as teamConference, t.division as teamDivision
         FROM players p
-        LEFT JOIN teams t ON p.team_id = t.id
-        WHERE p.team_id = ? AND p.active = 1
-        ORDER BY p.jersey_number, p.last_name
+        LEFT JOIN teams t ON p.teamId = t.id
+        WHERE p.teamId = ? AND p.active = 1
+        ORDER BY p.jerseyNumber, p.lastName
       `, [teamId], (err, rows) => {
         if (err) {
           reject(err);
@@ -424,21 +425,21 @@ class DatabaseService {
   async getPlayersByPosition(position, leagueId = null) {
     return new Promise((resolve, reject) => {
       let query = `
-        SELECT p.*, t.name as team_name, t.city as team_city, t.abbreviation as team_abbreviation,
-               t.logo_url as team_logo_url, t.conference as team_conference, t.division as team_division
+        SELECT p.*, t.name as teamName, t.city as teamCity, t.abbreviation as teamAbbreviation,
+               t.logoUrl as teamLogoUrl, t.conference as teamConference, t.division as teamDivision
         FROM players p
-        LEFT JOIN teams t ON p.team_id = t.id
-        WHERE p.primary_position = ? OR p.secondary_position = ?
+        LEFT JOIN teams t ON p.teamId = t.id
+        WHERE p.primaryPosition = ? OR p.secondaryPosition = ?
       `;
       
       const params = [position, position];
       
       if (leagueId) {
-        query += ' AND t.league_id = ?';
+        query += ' AND t.leagueId = ?';
         params.push(leagueId);
       }
       
-      query += ' ORDER BY t.name, p.jersey_number';
+      query += ' ORDER BY t.name, p.jerseyNumber';
       
       this.db.all(query, params, (err, rows) => {
         if (err) {
@@ -451,13 +452,24 @@ class DatabaseService {
   }
 
   // Utility methods
+  async clearPlayers() {
+    return new Promise((resolve, reject) => {
+      this.db.run('DELETE FROM players', (err) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve();
+        }
+      });
+    });
+  }
   async clearLeagueData(leagueId) {
     return new Promise((resolve, reject) => {
       this.db.serialize(() => {
-        this.db.run('DELETE FROM games WHERE league_id = ?', [leagueId]);
-        this.db.run('DELETE FROM teams WHERE league_id = ?', [leagueId]);
+        this.db.run('DELETE FROM games WHERE leagueId = ?', [leagueId]);
+        this.db.run('DELETE FROM teams WHERE leagueId = ?', [leagueId]);
         this.db.run('DELETE FROM leagues WHERE id = ?', [leagueId]);
-        this.db.run('DELETE FROM data_freshness WHERE league_id = ?', [leagueId], (err) => {
+        this.db.run('DELETE FROM dataFreshness WHERE leagueId = ?', [leagueId], (err) => {
           if (err) {
             reject(err);
           } else {
@@ -472,10 +484,10 @@ class DatabaseService {
     return new Promise((resolve, reject) => {
       this.db.all(`
         SELECT 
-          (SELECT COUNT(*) FROM leagues) as leagues_count,
-          (SELECT COUNT(*) FROM teams) as teams_count,
-          (SELECT COUNT(*) FROM games) as games_count,
-          (SELECT COUNT(*) FROM data_freshness) as freshness_count
+          (SELECT COUNT(*) FROM leagues) as leaguesCount,
+          (SELECT COUNT(*) FROM teams) as teamsCount,
+          (SELECT COUNT(*) FROM games) as gamesCount,
+          (SELECT COUNT(*) FROM dataFreshness) as freshnessCount
       `, (err, rows) => {
         if (err) {
           reject(err);

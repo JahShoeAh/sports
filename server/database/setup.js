@@ -22,12 +22,12 @@ const createTables = () => {
           id TEXT PRIMARY KEY,
           name TEXT NOT NULL,
           abbreviation TEXT NOT NULL,
-          logo_url TEXT,
+          logoUrl TEXT,
           sport TEXT NOT NULL,
           level TEXT NOT NULL,
-          is_active BOOLEAN DEFAULT 1,
-          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-          updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+          isActive BOOLEAN DEFAULT 1,
+          createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+          updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP
         )
       `);
 
@@ -38,13 +38,13 @@ const createTables = () => {
           name TEXT NOT NULL,
           city TEXT NOT NULL,
           abbreviation TEXT NOT NULL,
-          logo_url TEXT,
-          league_id TEXT NOT NULL,
+          logoUrl TEXT,
+          leagueId TEXT NOT NULL,
           conference TEXT,
           division TEXT,
-          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-          updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-          FOREIGN KEY (league_id) REFERENCES leagues (id)
+          createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+          updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY (leagueId) REFERENCES leagues (id)
         )
       `);
 
@@ -56,10 +56,10 @@ const createTables = () => {
           city TEXT,
           state TEXT,
           country TEXT,
-          home_team_id TEXT,
-          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-          updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-          FOREIGN KEY (home_team_id) REFERENCES teams (id)
+          homeTeamId TEXT,
+          createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+          updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY (homeTeamId) REFERENCES teams (id)
         )
       `);
 
@@ -67,25 +67,25 @@ const createTables = () => {
       db.run(`
         CREATE TABLE IF NOT EXISTS games (
           id TEXT PRIMARY KEY,
-          home_team_id TEXT NOT NULL,
-          away_team_id TEXT NOT NULL,
-          league_id TEXT NOT NULL,
+          homeTeamId TEXT NOT NULL,
+          awayTeamId TEXT NOT NULL,
+          leagueId TEXT NOT NULL,
           season TEXT NOT NULL,
           week INTEGER,
-          game_date DATETIME NOT NULL,
-          game_time DATETIME NOT NULL,
-          venue_id TEXT,
-          home_score INTEGER,
-          away_score INTEGER,
+          gameDate DATETIME NOT NULL,
+          gameTime DATETIME NOT NULL,
+          venueId TEXT,
+          homeScore INTEGER,
+          awayScore INTEGER,
           quarter INTEGER,
-          is_live BOOLEAN DEFAULT 0,
-          is_completed BOOLEAN DEFAULT 0,
-          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-          updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-          FOREIGN KEY (home_team_id) REFERENCES teams (id),
-          FOREIGN KEY (away_team_id) REFERENCES teams (id),
-          FOREIGN KEY (league_id) REFERENCES leagues (id),
-          FOREIGN KEY (venue_id) REFERENCES venues (id)
+          isLive BOOLEAN DEFAULT 0,
+          isCompleted BOOLEAN DEFAULT 0,
+          createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+          updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY (homeTeamId) REFERENCES teams (id),
+          FOREIGN KEY (awayTeamId) REFERENCES teams (id),
+          FOREIGN KEY (leagueId) REFERENCES leagues (id),
+          FOREIGN KEY (venueId) REFERENCES venues (id)
         )
       `);
 
@@ -93,53 +93,62 @@ const createTables = () => {
       db.run(`
         CREATE TABLE IF NOT EXISTS players (
           id TEXT PRIMARY KEY,
-          team_id TEXT NOT NULL,
-          display_name TEXT NOT NULL,
-          first_name TEXT NOT NULL,
-          last_name TEXT NOT NULL,
-          jersey_number INTEGER,
-          primary_position TEXT NOT NULL,
-          secondary_position TEXT,
+          teamId TEXT NOT NULL,
+          displayName TEXT NOT NULL,
+          firstName TEXT NOT NULL,
+          lastName TEXT NOT NULL,
+          jerseyNumber INTEGER,
+          primaryPosition TEXT NOT NULL,
+          secondaryPosition TEXT,
           birthdate TEXT NOT NULL,
-          height_inches INTEGER NOT NULL,
-          weight_lbs INTEGER NOT NULL,
+          heightInches INTEGER NOT NULL,
+          weightLbs INTEGER NOT NULL,
           nationality TEXT,
-          photo_url TEXT,
-          injury_status TEXT,
-          draft_year INTEGER,
-          draft_pick_overall INTEGER,
+          photoUrl TEXT,
+          injuryStatus TEXT,
+          draftYear INTEGER,
+          draftPickOverall INTEGER,
           active INTEGER NOT NULL DEFAULT 1,
-          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-          updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-          FOREIGN KEY (team_id) REFERENCES teams (id) ON DELETE SET NULL
+          createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+          updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY (teamId) REFERENCES teams (id) ON DELETE SET NULL
+        )
+      `);
+
+      // Rosters table
+      db.run(`
+        CREATE TABLE IF NOT EXISTS rosters (
+          id TEXT PRIMARY KEY,
+          createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+          updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP
         )
       `);
 
       // Data freshness tracking
       db.run(`
-        CREATE TABLE IF NOT EXISTS data_freshness (
-          league_id TEXT PRIMARY KEY,
-          last_updated DATETIME NOT NULL,
-          last_successful_fetch DATETIME,
-          fetch_attempts INTEGER DEFAULT 0,
-          last_error TEXT,
-          FOREIGN KEY (league_id) REFERENCES leagues (id)
+        CREATE TABLE IF NOT EXISTS dataFreshness (
+          leagueId TEXT PRIMARY KEY,
+          lastUpdated DATETIME NOT NULL,
+          lastSuccessfulFetch DATETIME,
+          fetchAttempts INTEGER DEFAULT 0,
+          lastError TEXT,
+          FOREIGN KEY (leagueId) REFERENCES leagues (id)
         )
       `);
 
       // Create indexes for better performance
-      db.run(`CREATE INDEX IF NOT EXISTS idx_games_league_season ON games (league_id, season)`);
-      db.run(`CREATE INDEX IF NOT EXISTS idx_games_date ON games (game_date)`);
-      db.run(`CREATE INDEX IF NOT EXISTS idx_games_home_team ON games (home_team_id)`);
-      db.run(`CREATE INDEX IF NOT EXISTS idx_games_away_team ON games (away_team_id)`);
-      db.run(`CREATE INDEX IF NOT EXISTS idx_games_venue ON games (venue_id)`);
-      db.run(`CREATE INDEX IF NOT EXISTS idx_teams_league ON teams (league_id)`);
-      db.run(`CREATE INDEX IF NOT EXISTS idx_teams_conference ON teams (conference)`);
-      db.run(`CREATE INDEX IF NOT EXISTS idx_venues_home_team ON venues (home_team_id)`);
-      db.run(`CREATE INDEX IF NOT EXISTS idx_players_team ON players (team_id)`);
-      db.run(`CREATE INDEX IF NOT EXISTS idx_players_display_name ON players (display_name)`);
-      db.run(`CREATE INDEX IF NOT EXISTS idx_players_position ON players (primary_position)`);
-      db.run(`CREATE INDEX IF NOT EXISTS idx_players_active ON players (active)`);
+      db.run(`CREATE INDEX IF NOT EXISTS idxGamesLeagueSeason ON games (leagueId, season)`);
+      db.run(`CREATE INDEX IF NOT EXISTS idxGamesDate ON games (gameDate)`);
+      db.run(`CREATE INDEX IF NOT EXISTS idxGamesHomeTeam ON games (homeTeamId)`);
+      db.run(`CREATE INDEX IF NOT EXISTS idxGamesAwayTeam ON games (awayTeamId)`);
+      db.run(`CREATE INDEX IF NOT EXISTS idxGamesVenue ON games (venueId)`);
+      db.run(`CREATE INDEX IF NOT EXISTS idxTeamsLeague ON teams (leagueId)`);
+      db.run(`CREATE INDEX IF NOT EXISTS idxTeamsConference ON teams (conference)`);
+      db.run(`CREATE INDEX IF NOT EXISTS idxVenuesHomeTeam ON venues (homeTeamId)`);
+      db.run(`CREATE INDEX IF NOT EXISTS idxPlayersTeam ON players (teamId)`);
+      db.run(`CREATE INDEX IF NOT EXISTS idxPlayersDisplayName ON players (displayName)`);
+      db.run(`CREATE INDEX IF NOT EXISTS idxPlayersPosition ON players (primaryPosition)`);
+      db.run(`CREATE INDEX IF NOT EXISTS idxPlayersActive ON players (active)`);
 
       db.run(`PRAGMA journal_mode = WAL`, (err) => {
         if (err) {

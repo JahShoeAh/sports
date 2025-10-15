@@ -13,10 +13,10 @@ router.get('/', async (req, res) => {
       id: league.id,
       name: league.name,
       abbreviation: league.abbreviation,
-      logoURL: league.logo_url,
+      logoURL: league.logoUrl,
       sport: league.sport,
       level: league.level,
-      isActive: league.is_active === 1
+      isActive: league.isActive === 1
     }));
 
     res.json({
@@ -54,10 +54,10 @@ router.get('/:id', async (req, res) => {
       id: league.id,
       name: league.name,
       abbreviation: league.abbreviation,
-      logoURL: league.logo_url,
+      logoURL: league.logoUrl,
       sport: league.sport,
       level: league.level,
-      isActive: league.is_active === 1
+      isActive: league.isActive === 1
     };
 
     res.json({
