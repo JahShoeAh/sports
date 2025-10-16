@@ -140,7 +140,7 @@ struct SearchView: View {
         }
         .sheet(item: $selectedLeague) { league in
             NavigationView {
-                LeaguePageView(league: league)
+                LeaguePageLoaderView(leagueId: league.id)
             }
         }
     }

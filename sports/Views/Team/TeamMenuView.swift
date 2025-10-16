@@ -206,68 +206,77 @@ struct PlayerRow: View {
     let player: Player
     
     var body: some View {
-        HStack {
-            // Player Headshot
-            AsyncImage(url: URL(string: player.photoUrl ?? "")) { image in
-                image
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
-            } placeholder: {
-                Circle()
-                    .fill(Color(.systemGray4))
-                    .overlay(
-                        Image(systemName: "person.fill")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                    )
-            }
-            .frame(width: 40, height: 40)
-            .clipShape(Circle())
-            
-            VStack(alignment: .leading, spacing: 2) {
-                Text(player.displayName)
-                    .font(.subheadline)
-                    .fontWeight(.medium)
-                
-                Text(player.positionString)
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                
-                if let nationality = player.nationality {
-                    Text(player.nationalityWithFlag)
-                        .font(.caption2)
-                        .foregroundColor(.secondary)
+        NavigationLink(destination: AthleteMenuLoaderView(playerId: player.id)) {
+            HStack {
+                // Player Headshot
+                AsyncImage(url: URL(string: player.photoUrl ?? "")) { image in
+                    image
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                } placeholder: {
+                    Circle()
+                        .fill(Color(.systemGray4))
+                        .overlay(
+                            Image(systemName: "person.fill")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        )
                 }
-            }
-            
-            Spacer()
-            
-            VStack(alignment: .trailing, spacing: 2) {
-                if let jerseyNumber = player.jerseyNumber {
-                    Text("#\(jerseyNumber)")
+                .frame(width: 40, height: 40)
+                .clipShape(Circle())
+                
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(player.displayName)
                         .font(.subheadline)
-                        .fontWeight(.bold)
+                        .fontWeight(.medium)
+                        .foregroundColor(.primary)
+                    
+                    Text(player.positionString)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    
+                    if let nationality = player.nationality {
+                        Text(player.nationalityWithFlag)
+                            .font(.caption2)
+                            .foregroundColor(.secondary)
+                    }
                 }
                 
-                Text(player.heightString)
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+                Spacer()
                 
-                Text("Age: \(player.ageString)")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                
-                if player.isInjured {
-                    Text(player.injuryStatus ?? "Injured")
-                        .font(.caption2)
-                        .foregroundColor(.red)
-                        .padding(.horizontal, 6)
-                        .padding(.vertical, 2)
-                        .background(Color.red.opacity(0.1))
-                        .cornerRadius(4)
+                VStack(alignment: .trailing, spacing: 2) {
+                    if let jerseyNumber = player.jerseyNumber {
+                        Text("#\(jerseyNumber)")
+                            .font(.subheadline)
+                            .fontWeight(.bold)
+                    }
+                    
+                    Text(player.heightString)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    
+                    Text("Age: \(player.ageString)")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    
+                    if player.isInjured {
+                        Text(player.injuryStatus ?? "Injured")
+                            .font(.caption2)
+                            .foregroundColor(.red)
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 2)
+                            .background(Color.red.opacity(0.1))
+                            .cornerRadius(4)
+                    }
                 }
+                
+                // Navigation chevron
+                Image(systemName: "chevron.right")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
             }
         }
+        .buttonStyle(PlainButtonStyle())
         .padding(.vertical, 4)
     }
 }
@@ -533,7 +542,7 @@ struct RecordRowView: View {
     var body: some View {
         HStack {
             // Opponent name (clickable)
-            NavigationLink(destination: TeamMenuView(team: opponent)) {
+            NavigationLink(destination: TeamMenuLoaderView(teamId: opponent.id)) {
                 Text(opponent.name)
                     .font(.subheadline)
                     .fontWeight(.bold)

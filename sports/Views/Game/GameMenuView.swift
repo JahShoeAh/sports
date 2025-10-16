@@ -64,7 +64,7 @@ struct GameHeaderView: View {
         VStack(alignment: .leading, spacing: 12) {
             // Title: "Away Team vs. Home Team" with clickable team names
             HStack(spacing: 8) {
-                NavigationLink(destination: TeamMenuView(team: game.awayTeam)) {
+                NavigationLink(destination: TeamMenuLoaderView(teamId: game.awayTeam.id)) {
                     Text(game.awayTeam.name)
                         .font(.title2)
                         .fontWeight(.bold)
@@ -76,7 +76,7 @@ struct GameHeaderView: View {
                     .fontWeight(.bold)
                     .foregroundColor(.secondary)
                 
-                NavigationLink(destination: TeamMenuView(team: game.homeTeam)) {
+                NavigationLink(destination: TeamMenuLoaderView(teamId: game.homeTeam.id)) {
                     Text(game.homeTeam.name)
                         .font(.title2)
                         .fontWeight(.bold)
@@ -306,7 +306,7 @@ struct GameResultView: View {
                         
                         // Away Team
                         HStack {
-                            NavigationLink(destination: TeamMenuView(team: game.awayTeam)) {
+                            NavigationLink(destination: TeamMenuLoaderView(teamId: game.awayTeam.id)) {
                                 Text(game.awayTeam.name)
                                     .font(.subheadline)
                                     .fontWeight(.bold)
@@ -329,7 +329,7 @@ struct GameResultView: View {
                         
                         // Home Team
                         HStack {
-                            NavigationLink(destination: TeamMenuView(team: game.homeTeam)) {
+                            NavigationLink(destination: TeamMenuLoaderView(teamId: game.homeTeam.id)) {
                                 Text(game.homeTeam.name)
                                     .font(.subheadline)
                                     .fontWeight(.bold)
@@ -383,7 +383,7 @@ struct BoxScoreView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
-                NavigationLink(destination: TeamMenuView(team: team)) {
+                NavigationLink(destination: TeamMenuLoaderView(teamId: team.id)) {
                     Text("\(team.name) Box Score")
                         .font(.headline)
                         .fontWeight(.bold)

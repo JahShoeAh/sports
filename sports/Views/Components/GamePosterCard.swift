@@ -18,7 +18,7 @@ struct GamePosterCard: View {
     }()
     
     var body: some View {
-        NavigationLink(destination: GameMenuView(game: game)) {
+        NavigationLink(destination: GameMenuLoaderView(gameId: game.id)) {
             VStack(alignment: .leading, spacing: 0) {
                 // Game Poster Image
                 ZStack {
