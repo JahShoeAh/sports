@@ -434,9 +434,8 @@ struct BoxScoreView: View {
         errorMessage = nil
         
         do {
-            // Fetch player stats for this specific game and team using team-specific endpoint
-            // This avoids the generic game endpoint returning all players for both tabs
-            let stats = try await api.fetchPlayerStatsByTeam(teamId: team.id, gameId: game.id)
+            // Fetch with retry to improve resiliency
+            let stats = try await fetchPlayerStatsByTeamWithRetry(teamId: team.id, gameId: game.id)
             playerStats = stats
         } catch {
             errorMessage = "Failed to load box score: \(error.localizedDescription)"
@@ -444,6 +443,18 @@ struct BoxScoreView: View {
         }
         
         isLoading = false
+    }
+
+    private func fetchPlayerStatsByTeamWithRetry(teamId: String, gameId: String, maxRetries: Int = 2) async throws -> [PlayerStats] {
+        var lastError: Error?
+        for attempt in 0...maxRetries {
+            do { return try await api.fetchPlayerStatsByTeam(teamId: teamId, gameId: gameId) }
+            catch {
+                lastError = error
+                if attempt < maxRetries { try? await Task.sleep(nanoseconds: UInt64(500_000_000 * (attempt + 1))) }
+            }
+        }
+        throw lastError ?? APIError.networkError("Unknown error")
     }
 }
 

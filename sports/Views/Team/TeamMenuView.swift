@@ -16,6 +16,8 @@ struct TeamMenuView: View {
     @State private var record: [Game] = []
     @State private var isLoading = false
     @State private var errorMessage: String?
+    private let dataManager = SimpleDataManager.shared
+    private let cacheService = CacheService.shared
     
     var body: some View {
         ScrollView {
@@ -61,32 +63,69 @@ struct TeamMenuView: View {
         isLoading = true
         errorMessage = nil
         
+        // 1) Load games from cache first, filtered for team
+        let cachedGamesAll = dataManager.fetchGames(for: team.league.id)
+        let cachedTeamGames = cachedGamesAll.filter { $0.homeTeam.id == team.id || $0.awayTeam.id == team.id }
+        let cachedCompleted = cachedTeamGames.filter { $0.isCompleted && $0.homeScore != nil && $0.awayScore != nil }
+        await MainActor.run {
+            self.games = cachedTeamGames.sorted { $0.gameTime > $1.gameTime }
+            self.record = cachedCompleted.sorted { $0.gameTime > $1.gameTime }
+        }
+        
+        // 2) Kick off cache refresh for league
+        await cacheService.refreshDataIfNeeded(for: team.league.id)
+        
+        // 3) Fetch roster and latest games with retry; update cache and UI
         do {
-            // Load roster from API
-            let fetchedRoster = try await YourServerAPI.shared.fetchTeamRoster(teamId: team.id)
+            let roster = try await fetchTeamRosterWithRetry(teamId: team.id)
+            let fetchedGames = try await fetchGamesWithRetry(leagueId: team.league.id)
+            dataManager.saveGames(fetchedGames, for: team.league.id)
             
-            // Load games for this team's league
-            let teamGames = try await YourServerAPI.shared.fetchGames(leagueId: team.league.id)
-            let filteredGames = teamGames.filter { game in
-                game.homeTeam.id == team.id || game.awayTeam.id == team.id
-            }
-            
-            // Filter completed games for record
-            let completedGames = filteredGames.filter { $0.isCompleted && $0.homeScore != nil && $0.awayScore != nil }
+            let teamGames = dataManager.fetchGames(for: team.league.id).filter { $0.homeTeam.id == team.id || $0.awayTeam.id == team.id }
+            let completedGames = teamGames.filter { $0.isCompleted && $0.homeScore != nil && $0.awayScore != nil }
             
             await MainActor.run {
-                self.roster = fetchedRoster
-                self.games = filteredGames.sorted { $0.gameTime > $1.gameTime }
+                self.roster = roster
+                self.games = teamGames.sorted { $0.gameTime > $1.gameTime }
                 self.record = completedGames.sorted { $0.gameTime > $1.gameTime }
                 self.isLoading = false
             }
         } catch {
-            print("Error loading team data: \(error)")
             await MainActor.run {
-                self.errorMessage = "Failed to load team data: \(error.localizedDescription)"
+                if self.games.isEmpty { self.errorMessage = "Failed to load team data: \(error.localizedDescription)" }
                 self.isLoading = false
             }
         }
+    }
+
+    private func fetchGamesWithRetry(leagueId: String, maxRetries: Int = 2) async throws -> [Game] {
+        var lastError: Error?
+        for attempt in 0...maxRetries {
+            do {
+                return try await YourServerAPI.shared.fetchGames(leagueId: leagueId)
+            } catch {
+                lastError = error
+                if attempt < maxRetries {
+                    try? await Task.sleep(nanoseconds: UInt64(500_000_000 * (attempt + 1)))
+                }
+            }
+        }
+        throw lastError ?? APIError.networkError("Unknown error")
+    }
+    
+    private func fetchTeamRosterWithRetry(teamId: String, maxRetries: Int = 2) async throws -> [Player] {
+        var lastError: Error?
+        for attempt in 0...maxRetries {
+            do {
+                return try await YourServerAPI.shared.fetchTeamRoster(teamId: teamId)
+            } catch {
+                lastError = error
+                if attempt < maxRetries {
+                    try? await Task.sleep(nanoseconds: UInt64(500_000_000 * (attempt + 1)))
+                }
+            }
+        }
+        throw lastError ?? APIError.networkError("Unknown error")
     }
 }
 

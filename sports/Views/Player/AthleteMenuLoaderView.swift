@@ -41,12 +41,24 @@ struct AthleteMenuLoaderView: View {
         isLoading = true
         errorMessage = nil
         do {
-            let fetched = try await YourServerAPI.shared.fetchPlayer(playerId: playerId)
+            let fetched = try await fetchPlayerWithRetry(playerId: playerId)
             player = fetched
         } catch {
             errorMessage = "Failed to load player: \(error.localizedDescription)"
         }
         isLoading = false
+    }
+
+    private func fetchPlayerWithRetry(playerId: String, maxRetries: Int = 2) async throws -> Player {
+        var lastError: Error?
+        for attempt in 0...maxRetries {
+            do { return try await YourServerAPI.shared.fetchPlayer(playerId: playerId) }
+            catch {
+                lastError = error
+                if attempt < maxRetries { try? await Task.sleep(nanoseconds: UInt64(500_000_000 * (attempt + 1))) }
+            }
+        }
+        throw lastError ?? APIError.networkError("Unknown error")
     }
 }
 

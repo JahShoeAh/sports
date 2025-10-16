@@ -17,6 +17,8 @@ struct AthleteMenuView: View {
     @State private var filteredStats: [(stat: PlayerStats, game: Game)] = []
     @State private var isLoading = false
     @State private var errorMessage: String?
+    private let dataManager = SimpleDataManager.shared
+    private let cacheService = CacheService.shared
     
     var body: some View {
         ScrollView {
@@ -67,29 +69,32 @@ struct AthleteMenuView: View {
         isLoading = true
         errorMessage = nil
         
+        let leagueId = player.team?.league.id ?? "NBA"
+        
+        // 1) Seed from cache for games if available
+        var gameIdToGame: [String: Game] = [:]
+        let cachedGames = dataManager.fetchGames(for: leagueId)
+        for game in cachedGames { gameIdToGame[game.id] = game }
+        
+        // 2) Kick off cache refresh in background
+        await cacheService.refreshDataIfNeeded(for: leagueId)
+        
+        // 3) Fetch stats and ensure game mapping, with retries
         do {
-            let leagueId = player.team?.league.id ?? "NBA"
-            let games = try await YourServerAPI.shared.fetchGames(leagueId: leagueId)
-            let statsForPlayer = try await YourServerAPI.shared.fetchPlayerStatsByPlayer(playerId: player.id)
-            
+            let statsForPlayer = try await fetchPlayerStatsByPlayerWithRetry(playerId: player.id)
             let nonZeroStats = statsForPlayer.filter { minutesToSeconds($0.min) > 0 }
             
-            var gameIdToGame: [String: Game] = [:]
-            for game in games { gameIdToGame[game.id] = game }
-            
-            var joined: [(PlayerStats, Game)] = []
-            for stat in nonZeroStats {
-                if let game = gameIdToGame[stat.gameId] {
-                    joined.append((stat, game))
-                } else {
-                    // Fallback: fetch single game (covers games outside initially fetched season set)
-                    if let fetched = try await YourServerAPI.shared.fetchGame(gameId: stat.gameId, leagueId: leagueId) {
-                        gameIdToGame[fetched.id] = fetched
-                        joined.append((stat, fetched))
-                    }
+            // Ensure we have game objects for each stat (use cache first, then fetch missing)
+            for stat in nonZeroStats where gameIdToGame[stat.gameId] == nil {
+                if let fetched = try await YourServerAPI.shared.fetchGame(gameId: stat.gameId, leagueId: leagueId) {
+                    gameIdToGame[fetched.id] = fetched
                 }
             }
             
+            let joined: [(PlayerStats, Game)] = nonZeroStats.compactMap { stat in
+                guard let game = gameIdToGame[stat.gameId] else { return nil }
+                return (stat, game)
+            }
             let sorted = joined.sorted { $0.1.gameTime < $1.1.gameTime }
             let seasons = Array(Set(sorted.map { $0.1.season })).sorted()
             
@@ -107,6 +112,18 @@ struct AthleteMenuView: View {
                 self.isLoading = false
             }
         }
+    }
+
+    private func fetchPlayerStatsByPlayerWithRetry(playerId: String, maxRetries: Int = 2) async throws -> [PlayerStats] {
+        var lastError: Error?
+        for attempt in 0...maxRetries {
+            do { return try await YourServerAPI.shared.fetchPlayerStatsByPlayer(playerId: playerId) }
+            catch {
+                lastError = error
+                if attempt < maxRetries { try? await Task.sleep(nanoseconds: UInt64(500_000_000 * (attempt + 1))) }
+            }
+        }
+        throw lastError ?? APIError.networkError("Unknown error")
     }
     
     private func applySeasonFilter() {
