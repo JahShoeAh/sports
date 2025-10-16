@@ -15,12 +15,12 @@ struct Player: Identifiable, Codable {
     let lastName: String
     let jerseyNumber: Int?
     let position: String?
-    let birthdate: String
-    let age: Int
-    let heightInches: Int
-    let heightFormatted: String
-    let weightLbs: Int
-    let weightFormatted: String
+    let birthdate: String?
+    let age: Int?
+    let heightInches: Int?
+    let heightFormatted: String?
+    let weightLbs: Int?
+    let weightFormatted: String?
     let nationality: String?
     let college: String?
     let photoUrl: String?
@@ -41,7 +41,7 @@ struct Player: Identifiable, Codable {
         case active, apiPlayerId, team, createdAt, updatedAt
     }
     
-    init(id: String, teamId: String, displayName: String, firstName: String, lastName: String, jerseyNumber: Int? = nil, position: String? = nil, birthdate: String, age: Int, heightInches: Int, heightFormatted: String, weightLbs: Int, weightFormatted: String, nationality: String? = nil, college: String? = nil, photoUrl: String? = nil, injuryStatus: String? = nil, draftYear: Int? = nil, draftPickOverall: Int? = nil, active: Bool = true, apiPlayerId: Int? = nil, team: Team? = nil, createdAt: String? = nil, updatedAt: String? = nil) {
+    init(id: String, teamId: String, displayName: String, firstName: String, lastName: String, jerseyNumber: Int? = nil, position: String? = nil, birthdate: String? = nil, age: Int? = nil, heightInches: Int? = nil, heightFormatted: String? = nil, weightLbs: Int? = nil, weightFormatted: String? = nil, nationality: String? = nil, college: String? = nil, photoUrl: String? = nil, injuryStatus: String? = nil, draftYear: Int? = nil, draftPickOverall: Int? = nil, active: Bool = true, apiPlayerId: Int? = nil, team: Team? = nil, createdAt: String? = nil, updatedAt: String? = nil) {
         self.id = id
         self.teamId = teamId
         self.displayName = displayName
@@ -77,12 +77,12 @@ struct Player: Identifiable, Codable {
         lastName = try container.decode(String.self, forKey: .lastName)
         jerseyNumber = try container.decodeIfPresent(Int.self, forKey: .jerseyNumber)
         position = try container.decodeIfPresent(String.self, forKey: .position)
-        birthdate = try container.decode(String.self, forKey: .birthdate)
-        age = try container.decode(Int.self, forKey: .age)
-        heightInches = try container.decode(Int.self, forKey: .heightInches)
-        heightFormatted = try container.decode(String.self, forKey: .heightFormatted)
-        weightLbs = try container.decode(Int.self, forKey: .weightLbs)
-        weightFormatted = try container.decode(String.self, forKey: .weightFormatted)
+        birthdate = try container.decodeIfPresent(String.self, forKey: .birthdate)
+        age = try container.decodeIfPresent(Int.self, forKey: .age)
+        heightInches = try container.decodeIfPresent(Int.self, forKey: .heightInches)
+        heightFormatted = try container.decodeIfPresent(String.self, forKey: .heightFormatted)
+        weightLbs = try container.decodeIfPresent(Int.self, forKey: .weightLbs)
+        weightFormatted = try container.decodeIfPresent(String.self, forKey: .weightFormatted)
         nationality = try container.decodeIfPresent(String.self, forKey: .nationality)
         college = try container.decodeIfPresent(String.self, forKey: .college)
         photoUrl = try container.decodeIfPresent(String.self, forKey: .photoUrl)
@@ -144,6 +144,21 @@ struct Player: Identifiable, Codable {
     /// Returns true if the player is available to play
     var isAvailable: Bool {
         return active && !isInjured
+    }
+    
+    /// Returns the age as a string, or "Unknown" if not available
+    var ageString: String {
+        return age.map { "\($0)" } ?? "Unknown"
+    }
+    
+    /// Returns the height as a string, or "Unknown" if not available
+    var heightString: String {
+        return heightFormatted ?? "Unknown"
+    }
+    
+    /// Returns the weight as a string, or "Unknown" if not available
+    var weightString: String {
+        return weightFormatted ?? "Unknown"
     }
     
     /// Returns the draft information as a formatted string

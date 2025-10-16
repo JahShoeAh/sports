@@ -62,10 +62,27 @@ struct GameHeaderView: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            // Title: "Away Team vs. Home Team"
-            Text(game.displayTitle)
-                .font(.title2)
-                .fontWeight(.bold)
+            // Title: "Away Team vs. Home Team" with clickable team names
+            HStack(spacing: 8) {
+                NavigationLink(destination: TeamMenuView(team: game.awayTeam)) {
+                    Text(game.awayTeam.name)
+                        .font(.title2)
+                        .fontWeight(.bold)
+                        .foregroundColor(.primary)
+                }
+                
+                Text("vs.")
+                    .font(.title2)
+                    .fontWeight(.bold)
+                    .foregroundColor(.secondary)
+                
+                NavigationLink(destination: TeamMenuView(team: game.homeTeam)) {
+                    Text(game.homeTeam.name)
+                        .font(.title2)
+                        .fontWeight(.bold)
+                        .foregroundColor(.primary)
+                }
+            }
             
             // Date
             HStack {
@@ -289,9 +306,13 @@ struct GameResultView: View {
                         
                         // Away Team
                         HStack {
-                            Text(game.awayTeam.name)
-                                .font(.subheadline)
-                                .frame(maxWidth: .infinity, alignment: .leading)
+                            NavigationLink(destination: TeamMenuView(team: game.awayTeam)) {
+                                Text(game.awayTeam.name)
+                                    .font(.subheadline)
+                                    .fontWeight(.bold)
+                                    .foregroundColor(.primary)
+                            }
+                            .frame(maxWidth: .infinity, alignment: .leading)
                             
                             ForEach(0..<awayLineScore.count, id: \.self) { quarter in
                                 Text("\(awayLineScore[quarter])")
@@ -308,9 +329,13 @@ struct GameResultView: View {
                         
                         // Home Team
                         HStack {
-                            Text(game.homeTeam.name)
-                                .font(.subheadline)
-                                .frame(maxWidth: .infinity, alignment: .leading)
+                            NavigationLink(destination: TeamMenuView(team: game.homeTeam)) {
+                                Text(game.homeTeam.name)
+                                    .font(.subheadline)
+                                    .fontWeight(.bold)
+                                    .foregroundColor(.primary)
+                            }
+                            .frame(maxWidth: .infinity, alignment: .leading)
                             
                             ForEach(0..<homeLineScore.count, id: \.self) { quarter in
                                 Text("\(homeLineScore[quarter])")
@@ -358,9 +383,12 @@ struct BoxScoreView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
-                Text("\(team.name) Box Score")
-                    .font(.headline)
-                    .fontWeight(.semibold)
+                NavigationLink(destination: TeamMenuView(team: team)) {
+                    Text("\(team.name) Box Score")
+                        .font(.headline)
+                        .fontWeight(.bold)
+                        .foregroundColor(.primary)
+                }
                 
                 if isLoading {
                     ProgressView("Loading box score...")

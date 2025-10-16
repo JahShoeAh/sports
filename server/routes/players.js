@@ -38,11 +38,11 @@ const transformPlayer = (player) => ({
   jerseyNumber: player.jerseyNumber,
   position: player.position,
   birthdate: player.birthdate,
-  age: calculateAge(player.birthdate),
+  age: player.birthdate ? calculateAge(player.birthdate) : null,
   heightInches: player.heightInches,
-  heightFormatted: formatHeight(player.heightInches),
+  heightFormatted: player.heightInches ? formatHeight(player.heightInches) : null,
   weightLbs: player.weightLbs,
-  weightFormatted: formatWeight(player.weightLbs),
+  weightFormatted: player.weightLbs ? formatWeight(player.weightLbs) : null,
   nationality: player.nationality,
   college: player.college,
   photoUrl: player.photoUrl,
@@ -58,7 +58,16 @@ const transformPlayer = (player) => ({
     abbreviation: player.teamAbbreviation,
     logoUrl: player.teamLogoUrl,
     conference: player.teamConference,
-    division: player.teamDivision
+    division: player.teamDivision,
+    league: {
+      id: player.leagueId || 'NBA',
+      name: player.leagueName || 'National Basketball Association',
+      abbreviation: player.leagueAbbreviation || 'NBA',
+      logoUrl: player.leagueLogoUrl || null,
+      sport: player.leagueSport || 'basketball',
+      level: player.leagueLevel || 'professional',
+      isActive: Boolean(player.leagueIsActive !== undefined ? player.leagueIsActive : true)
+    }
   },
   createdAt: player.createdAt,
   updatedAt: player.updatedAt

@@ -12,9 +12,10 @@ struct TeamMenuView: View {
     @State private var selectedTab = 0
     @State private var selectedSeason = "2025"
     @State private var roster: [Player] = []
-    @State private var pastGames: [Game] = []
-    @State private var futureGames: [Game] = []
+    @State private var games: [Game] = []
+    @State private var record: [Game] = []
     @State private var isLoading = false
+    @State private var errorMessage: String?
     
     var body: some View {
         ScrollView {
@@ -27,9 +28,8 @@ struct TeamMenuView: View {
                     // Tab Picker
                     Picker("Team Details", selection: $selectedTab) {
                         Text("Roster").tag(0)
-                        Text("Past Games").tag(1)
-                        Text("Future Schedule").tag(2)
-                        Text("Record").tag(3)
+                        Text("Games").tag(1)
+                        Text("Record").tag(2)
                     }
                     .pickerStyle(SegmentedPickerStyle())
                     
@@ -38,14 +38,11 @@ struct TeamMenuView: View {
                         RosterView(team: team, selectedSeason: $selectedSeason, roster: $roster, isLoading: $isLoading)
                             .tag(0)
                         
-                        PastGamesView(team: team, pastGames: $pastGames, isLoading: $isLoading)
+                        GamesView(team: team, games: $games, isLoading: $isLoading, errorMessage: $errorMessage)
                             .tag(1)
                         
-                        FutureScheduleView(team: team, futureGames: $futureGames, isLoading: $isLoading)
+                        RecordView(team: team, selectedSeason: $selectedSeason, record: $record, isLoading: $isLoading)
                             .tag(2)
-                        
-                        RecordView(team: team, selectedSeason: $selectedSeason)
-                            .tag(3)
                     }
                     .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
                     .frame(height: 400)
@@ -62,18 +59,31 @@ struct TeamMenuView: View {
     
     private func loadTeamData() async {
         isLoading = true
+        errorMessage = nil
         
         do {
             // Load roster from API
             let fetchedRoster = try await YourServerAPI.shared.fetchTeamRoster(teamId: team.id)
             
+            // Load games for this team's league
+            let teamGames = try await YourServerAPI.shared.fetchGames(leagueId: team.league.id)
+            let filteredGames = teamGames.filter { game in
+                game.homeTeam.id == team.id || game.awayTeam.id == team.id
+            }
+            
+            // Filter completed games for record
+            let completedGames = filteredGames.filter { $0.isCompleted && $0.homeScore != nil && $0.awayScore != nil }
+            
             await MainActor.run {
                 self.roster = fetchedRoster
+                self.games = filteredGames.sorted { $0.gameTime > $1.gameTime }
+                self.record = completedGames.sorted { $0.gameTime > $1.gameTime }
                 self.isLoading = false
             }
         } catch {
             print("Error loading team data: \(error)")
             await MainActor.run {
+                self.errorMessage = "Failed to load team data: \(error.localizedDescription)"
                 self.isLoading = false
             }
         }
@@ -133,9 +143,12 @@ struct RosterView: View {
                     .fontWeight(.semibold)
                 
                 Picker("Season", selection: $selectedSeason) {
-                    Text("2025").tag("2025")
-                    Text("2024").tag("2024")
-                    Text("2023").tag("2023")
+                    Text("2025 Regular").tag("2025")
+                    Text("2025 Postseason").tag("2025-post")
+                    Text("2024 Regular").tag("2024")
+                    Text("2024 Postseason").tag("2024-post")
+                    Text("2023 Regular").tag("2023")
+                    Text("2023 Postseason").tag("2023-post")
                 }
                 .pickerStyle(MenuPickerStyle())
                 
@@ -217,11 +230,11 @@ struct PlayerRow: View {
                         .fontWeight(.bold)
                 }
                 
-                Text(player.heightFormatted)
+                Text(player.heightString)
                     .font(.caption)
                     .foregroundColor(.secondary)
                 
-                Text("Age: \(player.age)")
+                Text("Age: \(player.ageString)")
                     .font(.caption)
                     .foregroundColor(.secondary)
                 
@@ -240,78 +253,53 @@ struct PlayerRow: View {
     }
 }
 
-struct PastGamesView: View {
+struct GamesView: View {
     let team: Team
-    @Binding var pastGames: [Game]
+    @Binding var games: [Game]
     @Binding var isLoading: Bool
+    @Binding var errorMessage: String?
     
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("Past Games")
+            Text("Games")
                 .font(.headline)
                 .fontWeight(.semibold)
             
             if isLoading {
-                ProgressView("Loading past games...")
+                ProgressView("Loading games...")
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
-            } else if pastGames.isEmpty {
+            } else if let errorMessage = errorMessage {
                 VStack {
-                    Image(systemName: "clock.arrow.circlepath")
+                    Image(systemName: "exclamationmark.triangle")
                         .font(.largeTitle)
-                        .foregroundColor(.secondary)
-                    Text("No past games available")
+                        .foregroundColor(.orange)
+                    Text("Error loading games")
                         .font(.headline)
                         .foregroundColor(.secondary)
+                    Text(errorMessage)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                        .multilineTextAlignment(.center)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
-            } else {
-                ScrollView {
-                    LazyVStack(spacing: 12) {
-                        ForEach(pastGames) { game in
-                            GamePosterCard(game: game)
-                                .frame(height: 200)
-                        }
-                    }
-                }
-            }
-        }
-        .padding()
-    }
-}
-
-struct FutureScheduleView: View {
-    let team: Team
-    @Binding var futureGames: [Game]
-    @Binding var isLoading: Bool
-    
-    var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text("Future Schedule")
-                .font(.headline)
-                .fontWeight(.semibold)
-            
-            if isLoading {
-                ProgressView("Loading future games...")
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-            } else if futureGames.isEmpty {
+            } else if games.isEmpty {
                 VStack {
                     Image(systemName: "calendar")
                         .font(.largeTitle)
                         .foregroundColor(.secondary)
-                    Text("No future games scheduled")
+                    Text("No games found")
                         .font(.headline)
                         .foregroundColor(.secondary)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
-                ScrollView {
-                    LazyVStack(spacing: 12) {
-                        ForEach(futureGames) { game in
-                            GamePosterCard(game: game)
-                                .frame(height: 200)
-                        }
-                    }
-                }
+                // Use the existing GameScheduleView component
+                GameScheduleView(
+                    games: games,
+                    isLoading: false,
+                    errorMessage: nil,
+                    onGameTap: { _ in }
+                )
             }
         }
         .padding()
@@ -321,6 +309,8 @@ struct FutureScheduleView: View {
 struct RecordView: View {
     let team: Team
     @Binding var selectedSeason: String
+    @Binding var record: [Game]
+    @Binding var isLoading: Bool
     
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -331,9 +321,12 @@ struct RecordView: View {
                     .fontWeight(.semibold)
                 
                 Picker("Season", selection: $selectedSeason) {
-                    Text("2025").tag("2025")
-                    Text("2024").tag("2024")
-                    Text("2023").tag("2023")
+                    Text("2025 Regular").tag("2025")
+                    Text("2025 Postseason").tag("2025-post")
+                    Text("2024 Regular").tag("2024")
+                    Text("2024 Postseason").tag("2024-post")
+                    Text("2023 Regular").tag("2023")
+                    Text("2023 Postseason").tag("2023-post")
                 }
                 .pickerStyle(MenuPickerStyle())
                 
@@ -341,34 +334,118 @@ struct RecordView: View {
             }
             
             // Record Table
-            VStack(spacing: 0) {
-                // Header
-                HStack {
-                    Text("Opponent")
-                        .font(.subheadline)
-                        .fontWeight(.semibold)
-                    Spacer()
-                    Text("Score")
-                        .font(.subheadline)
-                        .fontWeight(.semibold)
-                    Text("W/L")
-                        .font(.subheadline)
-                        .fontWeight(.semibold)
-                        .frame(width: 40)
-                }
-                .padding()
-                .background(Color(.systemGray6))
-                
-                // TODO: Implement record rows
+            if isLoading {
+                ProgressView("Loading record...")
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else if record.isEmpty {
                 VStack {
-                    Text("Record data will be displayed here")
-                        .font(.subheadline)
+                    Image(systemName: "chart.bar")
+                        .font(.largeTitle)
                         .foregroundColor(.secondary)
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    Text("No record data available")
+                        .font(.headline)
+                        .foregroundColor(.secondary)
                 }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else {
+                ScrollView {
+                    VStack(spacing: 0) {
+                        // Header
+                        HStack {
+                            Text("Opponent")
+                                .font(.subheadline)
+                                .fontWeight(.semibold)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                            
+                            Text("Score")
+                                .font(.subheadline)
+                                .fontWeight(.semibold)
+                                .frame(width: 80)
+                            
+                            Text("W/L")
+                                .font(.subheadline)
+                                .fontWeight(.semibold)
+                                .frame(width: 40)
+                            
+                            Text("Top Scorer")
+                                .font(.subheadline)
+                                .fontWeight(.semibold)
+                                .frame(width: 100)
+                        }
+                        .padding()
+                        .background(Color(.systemGray6))
+                        
+                        // Record Rows
+                        ForEach(record) { game in
+                            RecordRowView(team: team, game: game)
+                        }
+                    }
+                }
+                .background(Color(.systemBackground))
+                .cornerRadius(8)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 8)
+                        .stroke(Color(.systemGray4), lineWidth: 1)
+                )
             }
-            .cornerRadius(8)
         }
         .padding()
+    }
+}
+
+struct RecordRowView: View {
+    let team: Team
+    let game: Game
+    
+    private var opponent: Team {
+        game.homeTeam.id == team.id ? game.awayTeam : game.homeTeam
+    }
+    
+    private var teamScore: Int {
+        game.homeTeam.id == team.id ? (game.homeScore ?? 0) : (game.awayScore ?? 0)
+    }
+    
+    private var opponentScore: Int {
+        game.homeTeam.id == team.id ? (game.awayScore ?? 0) : (game.homeScore ?? 0)
+    }
+    
+    private var isWin: Bool {
+        teamScore > opponentScore
+    }
+    
+    var body: some View {
+        HStack {
+            // Opponent name (clickable)
+            NavigationLink(destination: TeamMenuView(team: opponent)) {
+                Text(opponent.name)
+                    .font(.subheadline)
+                    .fontWeight(.bold)
+                    .foregroundColor(.primary)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            
+            // Score
+            Text("\(teamScore) - \(opponentScore)")
+                .font(.subheadline)
+                .frame(width: 80)
+            
+            // W/L indicator
+            Text(isWin ? "W" : "L")
+                .font(.subheadline)
+                .fontWeight(.bold)
+                .foregroundColor(isWin ? .green : .red)
+                .frame(width: 40)
+            
+            // Top scorer placeholder (would need player stats data)
+            Text("TBD")
+                .font(.caption)
+                .foregroundColor(.secondary)
+                .frame(width: 100)
+        }
+        .padding(.horizontal)
+        .padding(.vertical, 8)
+        .background(Color.clear)
+        
+        // Note: Divider will be handled by the parent ForEach
     }
 }

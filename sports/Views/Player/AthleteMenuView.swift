@@ -94,15 +94,15 @@ struct PlayerHeaderView: View {
                     }
                     
                     HStack(spacing: 16) {
-                        Text("Age: \(player.age)")
+                        Text("Age: \(player.ageString)")
                             .font(.caption)
                             .foregroundColor(.secondary)
                         
-                        Text("Height: \(player.heightFormatted)")
+                        Text("Height: \(player.heightString)")
                             .font(.caption)
                             .foregroundColor(.secondary)
                         
-                        Text("Weight: \(player.weightLbs) lbs")
+                        Text("Weight: \(player.weightString)")
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }
