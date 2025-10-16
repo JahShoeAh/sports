@@ -239,10 +239,10 @@ struct GameDetailsTabView: View {
                 GameResultView(game: game)
                     .tag(0)
                 
-                BoxScoreView(team: game.homeTeam, isHome: true)
+                BoxScoreView(team: game.homeTeam, isHome: true, game: game)
                     .tag(1)
                 
-                BoxScoreView(team: game.awayTeam, isHome: false)
+                BoxScoreView(team: game.awayTeam, isHome: false, game: game)
                     .tag(2)
             }
             .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
@@ -348,6 +348,12 @@ struct GameResultView: View {
 struct BoxScoreView: View {
     let team: Team
     let isHome: Bool
+    let game: Game
+    
+    @StateObject private var api = YourServerAPI.shared
+    @State private var playerStats: [PlayerStats] = []
+    @State private var isLoading = false
+    @State private var errorMessage: String?
     
     var body: some View {
         ScrollView {
@@ -356,13 +362,164 @@ struct BoxScoreView: View {
                     .font(.headline)
                     .fontWeight(.semibold)
                 
-                // TODO: Implement box score
-                Text("Box score will be displayed here")
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
+                if isLoading {
+                    ProgressView("Loading box score...")
+                        .frame(maxWidth: .infinity, alignment: .center)
+                        .padding()
+                } else if let errorMessage = errorMessage {
+                    VStack(spacing: 8) {
+                        Image(systemName: "exclamationmark.triangle")
+                            .font(.title2)
+                            .foregroundColor(.orange)
+                        Text(errorMessage)
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                            .multilineTextAlignment(.center)
+                    }
                     .frame(maxWidth: .infinity, alignment: .center)
                     .padding()
+                } else if playerStats.isEmpty {
+                    VStack(spacing: 8) {
+                        Image(systemName: "chart.bar.doc.horizontal")
+                            .font(.title2)
+                            .foregroundColor(.secondary)
+                        Text("No box score data available for this game")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                            .multilineTextAlignment(.center)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .padding()
+                } else {
+                    // Box Score Table
+                    BoxScoreTableView(playerStats: playerStats)
+                }
             }
         }
+        .task {
+            await loadBoxScore()
+        }
+    }
+    
+    private func loadBoxScore() async {
+        isLoading = true
+        errorMessage = nil
+        
+        do {
+            // Fetch player stats for this specific game and team
+            let stats = try await api.fetchPlayerStats(gameId: game.id, teamId: team.id)
+            playerStats = stats
+        } catch {
+            errorMessage = "Failed to load box score: \(error.localizedDescription)"
+            playerStats = []
+        }
+        
+        isLoading = false
+    }
+}
+
+struct BoxScoreTableView: View {
+    let playerStats: [PlayerStats]
+    
+    var body: some View {
+        VStack(spacing: 0) {
+            // Header
+            HStack {
+                Text("Player")
+                    .font(.caption)
+                    .fontWeight(.semibold)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                
+                Text("MIN")
+                    .font(.caption)
+                    .fontWeight(.semibold)
+                    .frame(width: 40)
+                
+                Text("PTS")
+                    .font(.caption)
+                    .fontWeight(.semibold)
+                    .frame(width: 30)
+                
+                Text("REB")
+                    .font(.caption)
+                    .fontWeight(.semibold)
+                    .frame(width: 30)
+                
+                Text("AST")
+                    .font(.caption)
+                    .fontWeight(.semibold)
+                    .frame(width: 30)
+                
+                Text("STL")
+                    .font(.caption)
+                    .fontWeight(.semibold)
+                    .frame(width: 30)
+                
+                Text("BLK")
+                    .font(.caption)
+                    .fontWeight(.semibold)
+                    .frame(width: 30)
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
+            .background(Color(.systemGray6))
+            
+            // Player Rows
+            ForEach(playerStats) { stat in
+                HStack {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(stat.player.displayName)
+                            .font(.caption)
+                            .fontWeight(.medium)
+                        
+                        if let jerseyNumber = stat.player.jerseyNumber {
+                            Text("#\(jerseyNumber)")
+                                .font(.caption2)
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    
+                    Text(stat.min)
+                        .font(.caption)
+                        .frame(width: 40)
+                    
+                    Text("\(stat.points)")
+                        .font(.caption)
+                        .fontWeight(.medium)
+                        .frame(width: 30)
+                    
+                    Text("\(stat.totReb)")
+                        .font(.caption)
+                        .frame(width: 30)
+                    
+                    Text("\(stat.assists)")
+                        .font(.caption)
+                        .frame(width: 30)
+                    
+                    Text("\(stat.steals)")
+                        .font(.caption)
+                        .frame(width: 30)
+                    
+                    Text("\(stat.blocks)")
+                        .font(.caption)
+                        .frame(width: 30)
+                }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 6)
+                .background(Color.clear)
+                
+                if stat.id != playerStats.last?.id {
+                    Divider()
+                        .padding(.horizontal, 12)
+                }
+            }
+        }
+        .background(Color(.systemBackground))
+        .cornerRadius(8)
+        .overlay(
+            RoundedRectangle(cornerRadius: 8)
+                .stroke(Color(.systemGray4), lineWidth: 1)
+        )
     }
 }

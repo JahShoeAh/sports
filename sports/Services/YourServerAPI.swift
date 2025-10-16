@@ -177,6 +177,98 @@ class YourServerAPI: ObservableObject {
         return apiResponse.data
     }
     
+    // MARK: - Player Stats
+    func fetchPlayerStats(gameId: String, teamId: String? = nil) async throws -> [PlayerStats] {
+        var urlComponents = URLComponents(string: "\(baseURL)/playerStats")!
+        var queryItems: [URLQueryItem] = [
+            URLQueryItem(name: "gameId", value: gameId)
+        ]
+        
+        if let teamId = teamId {
+            queryItems.append(URLQueryItem(name: "teamId", value: teamId))
+        }
+        
+        urlComponents.queryItems = queryItems
+        
+        guard let url = urlComponents.url else {
+            throw APIError.invalidURL
+        }
+        
+        let request = createRequest(url: url)
+        let (data, response) = try await session.data(for: request)
+        
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw APIError.invalidResponse
+        }
+        
+        // Handle case where no player stats exist for this game
+        if httpResponse.statusCode == 200 {
+            let apiResponse = try JSONDecoder().decode(YourServerPlayerStatsResponse.self, from: data)
+            return apiResponse.data
+        } else if httpResponse.statusCode == 404 {
+            // No player stats found for this game - return empty array
+            return []
+        } else {
+            throw APIError.invalidResponse
+        }
+    }
+    
+    func fetchPlayerStatsByGame(gameId: String) async throws -> [PlayerStats] {
+        guard let url = URL(string: "\(baseURL)/playerStats/game/\(gameId)") else {
+            throw APIError.invalidURL
+        }
+        
+        let request = createRequest(url: url)
+        let (data, response) = try await session.data(for: request)
+        
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw APIError.invalidResponse
+        }
+        
+        // Handle case where no player stats exist for this game
+        if httpResponse.statusCode == 200 {
+            let apiResponse = try JSONDecoder().decode(YourServerPlayerStatsResponse.self, from: data)
+            return apiResponse.data
+        } else if httpResponse.statusCode == 404 {
+            // No player stats found for this game - return empty array
+            return []
+        } else {
+            throw APIError.invalidResponse
+        }
+    }
+    
+    func fetchPlayerStatsByTeam(teamId: String, gameId: String? = nil) async throws -> [PlayerStats] {
+        var urlComponents = URLComponents(string: "\(baseURL)/playerStats/team/\(teamId)")!
+        
+        if let gameId = gameId {
+            urlComponents.queryItems = [
+                URLQueryItem(name: "gameId", value: gameId)
+            ]
+        }
+        
+        guard let url = urlComponents.url else {
+            throw APIError.invalidURL
+        }
+        
+        let request = createRequest(url: url)
+        let (data, response) = try await session.data(for: request)
+        
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw APIError.invalidResponse
+        }
+        
+        // Handle case where no player stats exist for this team/game
+        if httpResponse.statusCode == 200 {
+            let apiResponse = try JSONDecoder().decode(YourServerPlayerStatsResponse.self, from: data)
+            return apiResponse.data
+        } else if httpResponse.statusCode == 404 {
+            // No player stats found - return empty array
+            return []
+        } else {
+            throw APIError.invalidResponse
+        }
+    }
+    
     // MARK: - Data Refresh
     func refreshData(leagueId: String = "NBA", season: String = "2024-25 Regular") async throws -> RefreshResponse {
         guard let url = URL(string: "\(baseURL)/refresh") else {
