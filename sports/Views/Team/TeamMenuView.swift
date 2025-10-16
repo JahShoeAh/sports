@@ -173,7 +173,10 @@ struct RosterView: View {
                 ScrollView {
                     LazyVStack(spacing: 8) {
                         ForEach(roster) { player in
-                            PlayerRow(player: player)
+                            NavigationLink(destination: AthleteMenuView(player: player)) {
+                                PlayerRow(player: player)
+                            }
+                            .buttonStyle(PlainButtonStyle())
                         }
                     }
                 }

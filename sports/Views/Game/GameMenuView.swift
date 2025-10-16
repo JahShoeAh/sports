@@ -434,8 +434,9 @@ struct BoxScoreView: View {
         errorMessage = nil
         
         do {
-            // Fetch player stats for this specific game and team
-            let stats = try await api.fetchPlayerStats(gameId: game.id, teamId: team.id)
+            // Fetch player stats for this specific game and team using team-specific endpoint
+            // This avoids the generic game endpoint returning all players for both tabs
+            let stats = try await api.fetchPlayerStatsByTeam(teamId: team.id, gameId: game.id)
             playerStats = stats
         } catch {
             errorMessage = "Failed to load box score: \(error.localizedDescription)"
@@ -496,9 +497,12 @@ struct BoxScoreTableView: View {
             ForEach(playerStats) { stat in
                 HStack {
                     VStack(alignment: .leading, spacing: 2) {
-                        Text(stat.player.displayName)
-                            .font(.caption)
-                            .fontWeight(.medium)
+                        NavigationLink(destination: AthleteMenuLoaderView(playerId: stat.player.id)) {
+                            Text(stat.player.displayName)
+                                .font(.caption)
+                                .fontWeight(.medium)
+                                .foregroundColor(.primary)
+                        }
                         
                         if let jerseyNumber = stat.player.jerseyNumber {
                             Text("#\(jerseyNumber)")

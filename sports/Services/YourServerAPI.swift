@@ -269,6 +269,52 @@ class YourServerAPI: ObservableObject {
         }
     }
     
+    func fetchPlayerStatsByPlayer(playerId: String) async throws -> [PlayerStats] {
+        guard let url = URL(string: "\(baseURL)/playerStats/player/\(playerId)") else {
+            throw APIError.invalidURL
+        }
+        
+        let request = createRequest(url: url)
+        let (data, response) = try await session.data(for: request)
+        
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw APIError.invalidResponse
+        }
+        
+        if httpResponse.statusCode == 200 {
+            let apiResponse = try JSONDecoder().decode(YourServerPlayerStatsResponse.self, from: data)
+            return apiResponse.data
+        } else if httpResponse.statusCode == 404 {
+            return []
+        } else {
+            throw APIError.invalidResponse
+        }
+    }
+
+    // MARK: - Single Game
+    func fetchGame(gameId: String, leagueId: String? = nil) async throws -> Game? {
+        var urlString = "\(baseURL)/games/\(gameId)"
+        if let leagueId = leagueId, let encoded = leagueId.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) {
+            urlString += "?leagueId=\(encoded)"
+        }
+        guard let url = URL(string: urlString) else {
+            throw APIError.invalidURL
+        }
+        let request = createRequest(url: url)
+        let (data, response) = try await session.data(for: request)
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw APIError.invalidResponse
+        }
+        if httpResponse.statusCode == 200 {
+            let apiResponse = try JSONDecoder().decode(YourServerSingleGameResponse.self, from: data)
+            return apiResponse.data
+        } else if httpResponse.statusCode == 404 {
+            return nil
+        } else {
+            throw APIError.invalidResponse
+        }
+    }
+    
     // MARK: - Data Refresh
     func refreshData(leagueId: String = "NBA", season: String = "2024-25 Regular") async throws -> RefreshResponse {
         guard let url = URL(string: "\(baseURL)/refresh") else {
@@ -327,6 +373,11 @@ struct YourServerGamesResponse: Codable {
     let count: Int
     let leagueId: String
     let season: String
+}
+
+struct YourServerSingleGameResponse: Codable {
+    let success: Bool
+    let data: Game
 }
 
 struct YourServerTeamsResponse: Codable {
