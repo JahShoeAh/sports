@@ -14,6 +14,7 @@ struct LeaguePageView: View {
     @State private var games: [Game] = []
     @State private var teams: [Team] = []
     @State private var availableSeasons: [String] = []
+    @State private var seasonsLoaded: Bool = false
     @State private var isLoading = false
     @State private var isRefreshing = false
     @State private var errorMessage: String?
@@ -65,16 +66,28 @@ struct LeaguePageView: View {
                             .font(.subheadline)
                             .foregroundColor(.secondary)
                         
-                        if seasonsLoaded && !availableSeasons.isEmpty {
-                            Picker("Season", selection: $selectedSeason) {
-                                ForEach(availableSeasons, id: \.self) { season in
-                                    Text(season).tag(season)
+                        Group {
+                            if seasonsLoaded && !availableSeasons.isEmpty {
+                                Picker("Season", selection: $selectedSeason) {
+                                    ForEach(availableSeasons, id: \.self) { season in
+                                        Text(season).tag(season)
+                                    }
+                                }
+                                .pickerStyle(MenuPickerStyle())
+                            } else if seasonsLoaded && availableSeasons.isEmpty {
+                                Text("No seasons available")
+                                    .font(.subheadline)
+                                    .foregroundColor(.secondary)
+                            } else {
+                                HStack(spacing: 4) {
+                                    ProgressView()
+                                        .progressViewStyle(CircularProgressViewStyle())
+                                        .scaleEffect(0.8)
+                                    Text("Loading seasons...")
+                                        .font(.subheadline)
+                                        .foregroundColor(.secondary)
                                 }
                             }
-                            .pickerStyle(MenuPickerStyle())
-                        } else {
-                            ProgressView()
-                                .progressViewStyle(CircularProgressViewStyle())
                         }
                         .onChange(of: selectedSeason) { oldValue, newValue in
                             print("Season changed from \(oldValue) to \(newValue)")
@@ -179,8 +192,8 @@ struct LeaguePageView: View {
         // First, try to load from cache
         loadCachedData()
         
-        // Load seasons from server and gate picker
-        await loadSeasons()
+        // Load seasons efficiently - try cache first, then server if needed
+        await loadSeasonsEfficiently()
         
         // Then check if we need to refresh data
         await cacheService.refreshDataIfNeeded(for: league.id)
@@ -189,14 +202,41 @@ struct LeaguePageView: View {
         loadCachedData()
     }
 
-    private func loadSeasons() async {
+    private func loadSeasonsEfficiently() async {
+        // First, try to derive seasons from cached games
+        let cachedGames = dataManager.fetchGames(for: league.id, season: nil)
+        let cachedSeasons = Array(Set(cachedGames.map { $0.season })).sorted()
+        
+        await MainActor.run {
+            if !cachedSeasons.isEmpty {
+                self.availableSeasons = cachedSeasons
+                self.seasonsLoaded = true
+                print("[LeaguePage] Seasons loaded from cache: \(cachedSeasons)")
+                
+                // Set default season if needed
+                if self.selectedSeason.isEmpty || !cachedSeasons.contains(self.selectedSeason) {
+                    self.selectedSeason = cachedSeasons.last ?? ""
+                    print("[LeaguePage] Defaulting selectedSeason to: \(self.selectedSeason)")
+                    if !self.selectedSeason.isEmpty {
+                        self.loadGames(season: self.selectedSeason)
+                    }
+                }
+            }
+        }
+        
+        // If we have seasons from cache, we're done
+        if !cachedSeasons.isEmpty {
+            return
+        }
+        
+        // If no cached seasons, try to fetch from server
         do {
-            print("[LeaguePage] Fetching seasons for league: \(league.id)")
+            print("[LeaguePage] No cached seasons, fetching from server for league: \(league.id)")
             let seasons = try await yourServerAPI.fetchSeasons(leagueId: league.id)
             await MainActor.run {
                 self.availableSeasons = seasons
                 self.seasonsLoaded = true
-                print("[LeaguePage] Seasons loaded: \(seasons)")
+                print("[LeaguePage] Seasons loaded from server: \(seasons)")
                 if self.selectedSeason.isEmpty || !seasons.contains(self.selectedSeason) {
                     self.selectedSeason = seasons.last ?? ""
                     print("[LeaguePage] Defaulting selectedSeason to: \(self.selectedSeason)")
@@ -208,7 +248,8 @@ struct LeaguePageView: View {
         } catch {
             await MainActor.run {
                 self.seasonsLoaded = true
-                print("[LeaguePage] Failed to fetch seasons: \(error)")
+                print("[LeaguePage] Failed to fetch seasons from server: \(error)")
+                // Keep empty seasons array, picker will show loading state
             }
         }
     }
@@ -216,11 +257,14 @@ struct LeaguePageView: View {
     private func loadCachedData() {
         // Load games from cache
         games = dataManager.fetchGames(for: league.id, season: selectedSeason)
-        // Recompute available seasons from all cached games for this league
-        let allLeagueGames = dataManager.fetchGames(for: league.id, season: nil)
-        availableSeasons = Array(Set(allLeagueGames.map { $0.season })).sorted()
-        if selectedSeason.isEmpty || !availableSeasons.contains(selectedSeason) {
-            selectedSeason = availableSeasons.last ?? ""
+        
+        // Only recompute seasons if we don't have any yet (seasonsLoaded is false)
+        if !seasonsLoaded {
+            let allLeagueGames = dataManager.fetchGames(for: league.id, season: nil)
+            availableSeasons = Array(Set(allLeagueGames.map { $0.season })).sorted()
+            if selectedSeason.isEmpty || !availableSeasons.contains(selectedSeason) {
+                selectedSeason = availableSeasons.last ?? ""
+            }
         }
         
         // Load teams from cache
@@ -258,9 +302,13 @@ struct LeaguePageView: View {
                 print("Updated games array with \(games.count) games for season \(season)")
                 // Refresh available seasons again in case new seasons appeared
                 let allLeagueGames = dataManager.fetchGames(for: league.id, season: nil)
-                availableSeasons = Array(Set(allLeagueGames.map { $0.season })).sorted()
-                if !availableSeasons.contains(selectedSeason) {
-                    selectedSeason = availableSeasons.last ?? selectedSeason
+                let newSeasons = Array(Set(allLeagueGames.map { $0.season })).sorted()
+                if newSeasons != availableSeasons {
+                    availableSeasons = newSeasons
+                    print("[LeaguePage] Updated available seasons: \(newSeasons)")
+                    if !availableSeasons.contains(selectedSeason) {
+                        selectedSeason = availableSeasons.last ?? selectedSeason
+                    }
                 }
             }
         } catch {
@@ -275,11 +323,22 @@ struct LeaguePageView: View {
         isRefreshing = true
         errorMessage = nil
         
+        // Reset seasons loading state
+        await MainActor.run {
+            seasonsLoaded = false
+            availableSeasons = []
+        }
+        
         // Clear cache and force refresh
         dataManager.clearData(for: league.id)
         
-        // Fetch fresh data from server
-        await fetchGamesFromServer(season: selectedSeason)
+        // Load seasons efficiently (will try cache first, then server)
+        await loadSeasonsEfficiently()
+        
+        // Fetch fresh data from server for current season
+        if !selectedSeason.isEmpty {
+            await fetchGamesFromServer(season: selectedSeason)
+        }
         
         // Also fetch teams
         do {

@@ -379,6 +379,10 @@ struct RecordView: View {
         return values.sorted()
     }
     
+    private var filteredRecord: [Game] {
+        selectedSeason.isEmpty ? record : record.filter { $0.season == selectedSeason }
+    }
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             // Season Selector
@@ -406,7 +410,7 @@ struct RecordView: View {
             if isLoading {
                 ProgressView("Loading record...")
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
-            } else if record.isEmpty {
+            } else if filteredRecord.isEmpty {
                 VStack {
                     Image(systemName: "chart.bar")
                         .font(.largeTitle)
@@ -445,7 +449,7 @@ struct RecordView: View {
                         .background(Color(.systemGray6))
                         
                         // Record Rows
-                        ForEach(record) { game in
+                        ForEach(filteredRecord) { game in
                             RecordRowView(team: team, game: game)
                         }
                     }
@@ -456,6 +460,11 @@ struct RecordView: View {
                     RoundedRectangle(cornerRadius: 8)
                         .stroke(Color(.systemGray4), lineWidth: 1)
                 )
+            }
+        }
+        .onAppear {
+            if selectedSeason.isEmpty, let last = seasons.last {
+                selectedSeason = last
             }
         }
         .padding()

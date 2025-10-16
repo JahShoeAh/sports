@@ -75,10 +75,6 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// Data refresh endpoints removed - using static data only
-
-module.exports = router;
- 
 // GET /api/leagues/:leagueId/seasons - list distinct seasons for a league
 router.get('/:leagueId/seasons', async (req, res) => {
   const { leagueId } = req.params;
@@ -90,3 +86,7 @@ router.get('/:leagueId/seasons', async (req, res) => {
     res.status(500).json({ success: false, message: 'Error fetching seasons', error: error.message });
   }
 });
+
+// Data refresh endpoints removed - using static data only
+
+module.exports = router;
