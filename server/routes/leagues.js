@@ -78,3 +78,15 @@ router.get('/:id', async (req, res) => {
 // Data refresh endpoints removed - using static data only
 
 module.exports = router;
+ 
+// GET /api/leagues/:leagueId/seasons - list distinct seasons for a league
+router.get('/:leagueId/seasons', async (req, res) => {
+  const { leagueId } = req.params;
+  try {
+    const seasons = await database.getSeasons(leagueId);
+    res.json({ success: true, data: { seasons } });
+  } catch (error) {
+    console.error('Error fetching seasons:', error);
+    res.status(500).json({ success: false, message: 'Error fetching seasons', error: error.message });
+  }
+});

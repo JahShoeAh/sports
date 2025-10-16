@@ -214,12 +214,16 @@ struct PlayerPastGamesView: View {
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
-                GameScheduleView(
-                    games: pastGames,
-                    isLoading: false,
-                    errorMessage: nil,
-                    onGameTap: { _ in }
-                )
+                // 3-per-row grid for past games
+                LazyVGrid(columns: [
+                    GridItem(.flexible(), spacing: 12),
+                    GridItem(.flexible(), spacing: 12),
+                    GridItem(.flexible(), spacing: 12)
+                ], spacing: 12) {
+                    ForEach(pastGames) { game in
+                        GamePosterCard(game: game)
+                    }
+                }
             }
         }
         .padding()

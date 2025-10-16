@@ -260,6 +260,22 @@ class DatabaseService {
     });
   }
 
+  async getSeasons(leagueId) {
+    return new Promise((resolve, reject) => {
+      this.db.all(
+        'SELECT DISTINCT season FROM games WHERE leagueId = ? ORDER BY season',
+        [leagueId],
+        (err, rows) => {
+          if (err) {
+            reject(err);
+          } else {
+            resolve(rows.map(r => r.season));
+          }
+        }
+      );
+    });
+  }
+
   // Data freshness operations
   async updateDataFreshness(leagueId, success = true, error = null) {
     return new Promise((resolve, reject) => {

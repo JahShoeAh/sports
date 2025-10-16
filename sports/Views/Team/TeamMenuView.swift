@@ -10,7 +10,7 @@ import SwiftUI
 struct TeamMenuView: View {
     let team: Team
     @State private var selectedTab = 0
-    @State private var selectedSeason = "2025"
+    @State private var selectedSeason = ""
     @State private var roster: [Player] = []
     @State private var games: [Game] = []
     @State private var record: [Game] = []
@@ -35,10 +35,10 @@ struct TeamMenuView: View {
                     
                     // Tab Content
                     TabView(selection: $selectedTab) {
-                        RosterView(team: team, selectedSeason: $selectedSeason, roster: $roster, isLoading: $isLoading)
+                        RosterView(team: team, roster: $roster, isLoading: $isLoading)
                             .tag(0)
                         
-                        GamesView(team: team, games: $games, isLoading: $isLoading, errorMessage: $errorMessage)
+                        GamesView(team: team, games: $games, selectedSeason: $selectedSeason, isLoading: $isLoading, errorMessage: $errorMessage)
                             .tag(1)
                         
                         RecordView(team: team, selectedSeason: $selectedSeason, record: $record, isLoading: $isLoading)
@@ -130,32 +130,12 @@ struct TeamHeaderView: View {
 
 struct RosterView: View {
     let team: Team
-    @Binding var selectedSeason: String
     @Binding var roster: [Player]
     @Binding var isLoading: Bool
     
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            // Season Selector
-            HStack {
-                Text("Season:")
-                    .font(.headline)
-                    .fontWeight(.semibold)
-                
-                Picker("Season", selection: $selectedSeason) {
-                    Text("2025 Regular").tag("2025")
-                    Text("2025 Postseason").tag("2025-post")
-                    Text("2024 Regular").tag("2024")
-                    Text("2024 Postseason").tag("2024-post")
-                    Text("2023 Regular").tag("2023")
-                    Text("2023 Postseason").tag("2023-post")
-                }
-                .pickerStyle(MenuPickerStyle())
-                
-                Spacer()
-            }
-            
-            // Roster List
+            // Roster List (current roster)
             if isLoading {
                 ProgressView("Loading roster...")
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -173,10 +153,7 @@ struct RosterView: View {
                 ScrollView {
                     LazyVStack(spacing: 8) {
                         ForEach(roster) { player in
-                            NavigationLink(destination: AthleteMenuView(player: player)) {
-                                PlayerRow(player: player)
-                            }
-                            .buttonStyle(PlainButtonStyle())
+                            PlayerRow(player: player)
                         }
                     }
                 }
@@ -259,14 +236,68 @@ struct PlayerRow: View {
 struct GamesView: View {
     let team: Team
     @Binding var games: [Game]
+    @Binding var selectedSeason: String
     @Binding var isLoading: Bool
     @Binding var errorMessage: String?
     
+    private var seasons: [String] {
+        let values = Array(Set(games.map { $0.season }))
+        return values.sorted()
+    }
+    
+    private func monthKey(for date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "LLLL yyyy" // e.g., October 2025
+        return formatter.string(from: date)
+    }
+    
+    private var gamesByMonth: [String: [Game]] {
+        let filtered = selectedSeason.isEmpty ? games : games.filter { $0.season == selectedSeason }
+        var grouped: [String: [Game]] = [:]
+        for game in filtered {
+            let key = monthKey(for: game.gameTime)
+            grouped[key, default: []].append(game)
+        }
+        for key in grouped.keys {
+            grouped[key]?.sort { $0.gameTime < $1.gameTime }
+        }
+        return grouped
+    }
+    
+    private var sortedMonthKeys: [String] {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "LLLL yyyy"
+        return gamesByMonth.keys.sorted { a, b in
+            if let da = formatter.date(from: a), let db = formatter.date(from: b) {
+                return da < db
+            }
+            return a < b
+        }
+    }
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("Games")
-                .font(.headline)
-                .fontWeight(.semibold)
+            // Header
+            HStack {
+                Text("Games")
+                    .font(.headline)
+                    .fontWeight(.semibold)
+                Spacer()
+                if !seasons.isEmpty {
+                    Picker("Season", selection: $selectedSeason) {
+                        ForEach(seasons, id: \.self) { season in
+                            Text(season).tag(season)
+                        }
+                    }
+                    .pickerStyle(MenuPickerStyle())
+                    .onChange(of: seasons) { _, newSeasons in
+                        // Ensure the selection is valid when seasons list changes
+                        if !newSeasons.contains(selectedSeason) {
+                            selectedSeason = newSeasons.last ?? ""
+                        }
+                    }
+                }
+            }
             
             if isLoading {
                 ProgressView("Loading games...")
@@ -296,13 +327,41 @@ struct GamesView: View {
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
-                // Use the existing GameScheduleView component
-                GameScheduleView(
-                    games: games,
-                    isLoading: false,
-                    errorMessage: nil,
-                    onGameTap: { _ in }
-                )
+                ScrollView {
+                    LazyVStack(spacing: 24) {
+                        ForEach(sortedMonthKeys, id: \.self) { month in
+                            VStack(alignment: .leading, spacing: 12) {
+                                HStack {
+                                    Text(month)
+                                        .font(.headline)
+                                        .fontWeight(.semibold)
+                                    Spacer()
+                                    Text("\(gamesByMonth[month]?.count ?? 0) games")
+                                        .font(.subheadline)
+                                        .foregroundColor(.secondary)
+                                }
+                                .padding(.horizontal)
+                                
+                                LazyVGrid(columns: [
+                                    GridItem(.flexible(), spacing: 12),
+                                    GridItem(.flexible(), spacing: 12),
+                                    GridItem(.flexible(), spacing: 12)
+                                ], spacing: 12) {
+                                    ForEach(gamesByMonth[month] ?? []) { game in
+                                        GamePosterCard(game: game)
+                                    }
+                                }
+                                .padding(.horizontal)
+                            }
+                        }
+                    }
+                    .padding(.vertical)
+                }
+            }
+        }
+        .onAppear {
+            if selectedSeason.isEmpty, let last = seasons.last {
+                selectedSeason = last
             }
         }
         .padding()
@@ -315,6 +374,11 @@ struct RecordView: View {
     @Binding var record: [Game]
     @Binding var isLoading: Bool
     
+    private var seasons: [String] {
+        let values = Array(Set(record.map { $0.season }))
+        return values.sorted()
+    }
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             // Season Selector
@@ -324,14 +388,16 @@ struct RecordView: View {
                     .fontWeight(.semibold)
                 
                 Picker("Season", selection: $selectedSeason) {
-                    Text("2025 Regular").tag("2025")
-                    Text("2025 Postseason").tag("2025-post")
-                    Text("2024 Regular").tag("2024")
-                    Text("2024 Postseason").tag("2024-post")
-                    Text("2023 Regular").tag("2023")
-                    Text("2023 Postseason").tag("2023-post")
+                    ForEach(seasons, id: \.self) { season in
+                        Text(season).tag(season)
+                    }
                 }
                 .pickerStyle(MenuPickerStyle())
+                .onChange(of: seasons) { _, newSeasons in
+                    if !newSeasons.contains(selectedSeason) {
+                        selectedSeason = newSeasons.last ?? ""
+                    }
+                }
                 
                 Spacer()
             }

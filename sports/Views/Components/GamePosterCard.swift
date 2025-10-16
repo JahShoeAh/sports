@@ -11,6 +11,12 @@ struct GamePosterCard: View {
     let game: Game
     @State private var isPressed = false
     
+    private static let shortDateFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "M/d/yy" // e.g., 4/9/25
+        return formatter
+    }()
+    
     var body: some View {
         NavigationLink(destination: GameMenuView(game: game)) {
             VStack(alignment: .leading, spacing: 0) {
@@ -27,7 +33,7 @@ struct GamePosterCard: View {
                     
                     // Game text overlay
                     VStack(spacing: 8) {
-                        Text(game.leagueDisplayName)
+                        Text(game.league.abbreviation)
                             .font(.caption)
                             .fontWeight(.medium)
                             .foregroundColor(.white)
@@ -39,13 +45,13 @@ struct GamePosterCard: View {
                         Spacer()
                         
                         VStack(spacing: 4) {
-                            Text(game.displayTitle)
+                            Text("\(game.awayTeam.abbreviation) vs. \(game.homeTeam.abbreviation)")
                                 .font(.headline)
                                 .fontWeight(.bold)
                                 .foregroundColor(.white)
                                 .multilineTextAlignment(.center)
                             
-                            Text(game.gameTime, style: .date)
+                            Text(Self.shortDateFormatter.string(from: game.gameTime))
                                 .font(.caption)
                                 .foregroundColor(.white.opacity(0.9))
                             

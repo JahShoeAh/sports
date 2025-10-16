@@ -68,6 +68,21 @@ class YourServerAPI: ObservableObject {
         let apiResponse = try JSONDecoder().decode(YourServerGamesResponse.self, from: data)
         return apiResponse.data
     }
+
+    // MARK: - Seasons
+    func fetchSeasons(leagueId: String = "NBA") async throws -> [String] {
+        guard let url = URL(string: "\(baseURL)/leagues/\(leagueId)/seasons") else {
+            throw APIError.invalidURL
+        }
+        let request = createRequest(url: url)
+        let (data, response) = try await session.data(for: request)
+        guard let httpResponse = response as? HTTPURLResponse,
+              httpResponse.statusCode == 200 else {
+            throw APIError.invalidResponse
+        }
+        let apiResponse = try JSONDecoder().decode(YourServerSeasonsResponse.self, from: data)
+        return apiResponse.data.seasons
+    }
     
     // MARK: - Teams
     func fetchTeams(leagueId: String = "NBA") async throws -> [Team] {
@@ -392,6 +407,15 @@ struct YourServerLeaguesResponse: Codable {
     let success: Bool
     let data: [League]
     let count: Int
+}
+
+struct YourServerSeasonsResponse: Codable {
+    let success: Bool
+    let data: SeasonsPayload
+}
+
+struct SeasonsPayload: Codable {
+    let seasons: [String]
 }
 
 struct YourServerPlayersResponse: Codable {
