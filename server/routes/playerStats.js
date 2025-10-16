@@ -45,7 +45,7 @@ const transformPlayerStats = (stats) => ({
   },
   game: {
     id: stats.gameId,
-    gameDate: stats.gameDate,
+    gameTime: stats.gameTime,
     homeTeamId: stats.homeTeamId,
     awayTeamId: stats.awayTeamId
   },

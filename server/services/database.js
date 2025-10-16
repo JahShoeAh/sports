@@ -182,7 +182,7 @@ class DatabaseService {
     return new Promise((resolve, reject) => {
       const stmt = this.db.prepare(`
         INSERT OR REPLACE INTO games 
-        (id, homeTeamId, awayTeamId, leagueId, season, week, gameDate, gameTime,
+        (id, homeTeamId, awayTeamId, leagueId, season, week, gameTime,
          venueId, homeScore, awayScore, homeLineScore, awayLineScore, leadChanges,
          quarter, isLive, isCompleted, apiGameId, updatedAt)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
@@ -195,7 +195,6 @@ class DatabaseService {
         game.leagueId,
         game.season,
         game.week,
-        game.gameDate,
         game.gameTime,
         game.venueId || null,
         game.homeScore,
@@ -222,7 +221,7 @@ class DatabaseService {
   async getGames(leagueId, season = null) {
     return new Promise((resolve, reject) => {
       let query = `
-        SELECT g.id, g.homeTeamId, g.awayTeamId, g.leagueId, g.season, g.week, g.gameDate, g.gameTime,
+        SELECT g.id, g.homeTeamId, g.awayTeamId, g.leagueId, g.season, g.week, g.gameTime,
                g.venueId, g.homeScore, g.awayScore, g.homeLineScore, g.awayLineScore, g.leadChanges,
                g.quarter, g.isLive, g.isCompleted, g.apiGameId,
                g.createdAt, g.updatedAt,
@@ -249,7 +248,7 @@ class DatabaseService {
         params.push(season);
       }
       
-      query += ' ORDER BY g.gameDate DESC, g.gameTime DESC';
+      query += ' ORDER BY g.gameTime DESC';
       
       this.db.all(query, params, (err, rows) => {
         if (err) {
@@ -540,7 +539,7 @@ class DatabaseService {
       this.db.get(`
         SELECT ps.*, p.displayName, p.firstName, p.lastName, p.jerseyNumber, p.position,
                t.name as teamName, t.city as teamCity, t.abbreviation as teamAbbreviation,
-               g.gameDate, g.homeTeamId, g.awayTeamId
+               g.gameTime, g.homeTeamId, g.awayTeamId
         FROM playerStats ps
         LEFT JOIN players p ON ps.playerId = p.id
         LEFT JOIN teams t ON ps.teamId = t.id
@@ -561,7 +560,7 @@ class DatabaseService {
       this.db.all(`
         SELECT ps.*, p.displayName, p.firstName, p.lastName, p.jerseyNumber, p.position,
                t.name as teamName, t.city as teamCity, t.abbreviation as teamAbbreviation,
-               g.gameDate, g.homeTeamId, g.awayTeamId
+               g.gameTime, g.homeTeamId, g.awayTeamId
         FROM playerStats ps
         LEFT JOIN players p ON ps.playerId = p.id
         LEFT JOIN teams t ON ps.teamId = t.id
@@ -583,13 +582,13 @@ class DatabaseService {
       this.db.all(`
         SELECT ps.*, p.displayName, p.firstName, p.lastName, p.jerseyNumber, p.position,
                t.name as teamName, t.city as teamCity, t.abbreviation as teamAbbreviation,
-               g.gameDate, g.homeTeamId, g.awayTeamId
+               g.gameTime, g.homeTeamId, g.awayTeamId
         FROM playerStats ps
         LEFT JOIN players p ON ps.playerId = p.id
         LEFT JOIN teams t ON ps.teamId = t.id
         LEFT JOIN games g ON ps.gameId = g.id
         WHERE ps.playerId = ?
-        ORDER BY g.gameDate DESC
+        ORDER BY g.gameTime DESC
       `, [playerId], (err, rows) => {
         if (err) {
           reject(err);
@@ -605,7 +604,7 @@ class DatabaseService {
       let query = `
         SELECT ps.*, p.displayName, p.firstName, p.lastName, p.jerseyNumber, p.position,
                t.name as teamName, t.city as teamCity, t.abbreviation as teamAbbreviation,
-               g.gameDate, g.homeTeamId, g.awayTeamId
+               g.gameTime, g.homeTeamId, g.awayTeamId
         FROM playerStats ps
         LEFT JOIN players p ON ps.playerId = p.id
         LEFT JOIN teams t ON ps.teamId = t.id
@@ -620,7 +619,7 @@ class DatabaseService {
         params.push(gameId);
       }
       
-      query += ' ORDER BY g.gameDate DESC, p.jerseyNumber';
+      query += ' ORDER BY g.gameTime DESC, p.jerseyNumber';
       
       this.db.all(query, params, (err, rows) => {
         if (err) {

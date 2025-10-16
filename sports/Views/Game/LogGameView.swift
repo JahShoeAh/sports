@@ -31,7 +31,7 @@ struct LogGameView: View {
                             .font(.title2)
                             .fontWeight(.bold)
                         
-                        Text(game.gameDate, style: .date)
+                        Text(game.gameTime, style: .date)
                             .font(.subheadline)
                             .foregroundColor(.secondary)
                     }

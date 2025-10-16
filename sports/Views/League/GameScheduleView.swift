@@ -23,7 +23,7 @@ struct GameScheduleView: View {
         var grouped: [String: [Game]] = [:]
         
         for game in games {
-            let dateString = formatter.string(from: game.gameDate)
+            let dateString = formatter.string(from: game.gameTime)
             if grouped[dateString] == nil {
                 grouped[dateString] = []
             }

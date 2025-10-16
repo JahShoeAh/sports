@@ -15,35 +15,34 @@ struct GameMenuView: View {
     @State private var showingReviews = false
     @State private var isInWatchlist = false
     
+    // Check if game has started (short-circuit evaluation)
+    var hasGameStarted: Bool {
+        game.isCompleted || Date() > game.gameTime
+    }
+    
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
                 // Game Header
                 GameHeaderView(game: game)
                 
-                // Live Banner
-                if game.isLive {
-                    LiveBanner()
-                }
+                // To Watch Button
+                ToWatchButton(isInWatchlist: $isInWatchlist, gameId: game.id)
                 
-                // Action Buttons
-                ActionButtonsView(
-                    hasUserLogged: hasUserLogged,
-                    isInWatchlist: isInWatchlist,
-                    showingLogGame: $showingLogGame,
-                    showingReviews: $showingReviews
-                )
-                
-                // Poll Section
-                PollSectionView(game: game)
-                
-                // Rating Distribution (if game is completed)
-                if game.isCompleted {
+                // Conditional Content (only if game has started)
+                if hasGameStarted {
+                    // Rating Distribution
                     RatingDistributionView()
+                    
+                    // What they're saying button
+                    WhatTheyreSayingButton(showingReviews: $showingReviews)
+                    
+                    // Log, rate, review, tag button
+                    LogGameButton(hasUserLogged: hasUserLogged, showingLogGame: $showingLogGame)
+                    
+                    // Tab View
+                    GameDetailsTabView(game: game, selectedTab: $selectedTab)
                 }
-                
-                // Tab View
-                GameDetailsTabView(game: game, selectedTab: $selectedTab)
             }
             .padding()
         }
@@ -63,17 +62,20 @@ struct GameHeaderView: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
+            // Title: "Away Team vs. Home Team"
             Text(game.displayTitle)
                 .font(.title2)
                 .fontWeight(.bold)
             
+            // Date
             HStack {
                 Image(systemName: "calendar")
                     .foregroundColor(.secondary)
-                Text(game.gameDate, style: .date)
+                Text(game.gameTime, style: .date)
                     .foregroundColor(.secondary)
             }
             
+            // Start Time
             HStack {
                 Image(systemName: "clock")
                     .foregroundColor(.secondary)
@@ -81,6 +83,7 @@ struct GameHeaderView: View {
                     .foregroundColor(.secondary)
             }
             
+            // Venue name and city
             HStack {
                 Image(systemName: "location")
                     .foregroundColor(.secondary)
@@ -92,16 +95,69 @@ struct GameHeaderView: View {
                         .foregroundColor(.secondary)
                 }
             }
-            
-            if let homeScore = game.homeScore, let awayScore = game.awayScore {
-                HStack {
-                    Text("Final Score:")
-                        .fontWeight(.medium)
-                    Text("\(game.awayTeam.name) \(awayScore) - \(homeScore) \(game.homeTeam.name)")
-                        .fontWeight(.bold)
-                }
-                .padding(.top, 8)
+        }
+    }
+}
+
+struct ToWatchButton: View {
+    @Binding var isInWatchlist: Bool
+    let gameId: String
+    
+    var body: some View {
+        Button(action: {
+            print("add \(gameId) to watchlist")
+            isInWatchlist.toggle()
+        }) {
+            HStack {
+                Image(systemName: isInWatchlist ? "bookmark.fill" : "bookmark")
+                Text("To Watch")
             }
+            .frame(maxWidth: .infinity)
+            .padding()
+            .background(Color(.systemGray6))
+            .cornerRadius(12)
+        }
+    }
+}
+
+struct WhatTheyreSayingButton: View {
+    @Binding var showingReviews: Bool
+    
+    var body: some View {
+        Button(action: {
+            print("Clicked: What they're saying. From page: Game Menu. Actions performed: showingReviews = true. TODO: Show reviews sheet")
+            showingReviews = true
+        }) {
+            HStack {
+                Image(systemName: "bubble.left.and.bubble.right")
+                Text("What they're saying")
+            }
+            .frame(maxWidth: .infinity)
+            .padding()
+            .background(Color(.systemGray6))
+            .cornerRadius(12)
+        }
+    }
+}
+
+struct LogGameButton: View {
+    let hasUserLogged: Bool
+    @Binding var showingLogGame: Bool
+    
+    var body: some View {
+        Button(action: {
+            print("Clicked: \(hasUserLogged ? "Log Again" : "Log, rate, review, tag..."). From page: Game Menu. Actions performed: showingLogGame = true. TODO: Show log game sheet")
+            showingLogGame = true
+        }) {
+            HStack {
+                Image(systemName: "star")
+                Text(hasUserLogged ? "Log Again" : "Log, rate, review, tag...")
+            }
+            .frame(maxWidth: .infinity)
+            .padding()
+            .background(Color.blue)
+            .foregroundColor(.white)
+            .cornerRadius(12)
         }
     }
 }
@@ -124,141 +180,42 @@ struct LiveBanner: View {
     }
 }
 
-struct ActionButtonsView: View {
-    let hasUserLogged: Bool
-    let isInWatchlist: Bool
-    @Binding var showingLogGame: Bool
-    @Binding var showingReviews: Bool
-    
-    var body: some View {
-        VStack(spacing: 12) {
-            HStack(spacing: 12) {
-                Button(action: {
-                    print("Clicked: To Watch. From page: Game Menu. Actions performed: none. TODO: Toggle watchlist")
-                    // TODO: Toggle watchlist
-                }) {
-                    HStack {
-                        Image(systemName: isInWatchlist ? "bookmark.fill" : "bookmark")
-                        Text("To Watch")
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(Color(.systemGray6))
-                    .cornerRadius(12)
-                }
-                
-                Button(action: {
-                    print("Clicked: \(hasUserLogged ? "Log Again" : "Log, rate, review, tag..."). From page: Game Menu. Actions performed: showingLogGame = true. TODO: Show log game sheet")
-                    showingLogGame = true
-                }) {
-                    HStack {
-                        Image(systemName: "star")
-                        Text(hasUserLogged ? "Log Again" : "Log, rate, review, tag...")
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(Color.blue)
-                    .foregroundColor(.white)
-                    .cornerRadius(12)
-                }
-            }
-            
-            Button(action: {
-                print("Clicked: What they're saying. From page: Game Menu. Actions performed: showingReviews = true. TODO: Show reviews sheet")
-                showingReviews = true
-            }) {
-                HStack {
-                    Image(systemName: "bubble.left.and.bubble.right")
-                    Text("What they're saying")
-                }
-                .frame(maxWidth: .infinity)
-                .padding()
-                .background(Color(.systemGray6))
-                .cornerRadius(12)
-            }
-        }
-    }
-}
-
-struct PollSectionView: View {
-    let game: Game
-    @State private var selectedOption: String?
-    @State private var hasVoted = false
-    
-    var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Predict the winner")
-                .font(.headline)
-                .fontWeight(.semibold)
-            
-            VStack(spacing: 8) {
-                PollOptionButton(
-                    team: game.awayTeam,
-                    isSelected: selectedOption == game.awayTeam.id,
-                    isEnabled: !hasVoted && !game.isCompleted
-                ) {
-                    print("Clicked: \(game.awayTeam.name) (Poll). From page: Game Menu. Actions performed: selectedOption = \(game.awayTeam.id). TODO: Submit vote")
-                    selectedOption = game.awayTeam.id
-                    // TODO: Submit vote
-                }
-                
-                PollOptionButton(
-                    team: game.homeTeam,
-                    isSelected: selectedOption == game.homeTeam.id,
-                    isEnabled: !hasVoted && !game.isCompleted
-                ) {
-                    print("Clicked: \(game.homeTeam.name) (Poll). From page: Game Menu. Actions performed: selectedOption = \(game.homeTeam.id). TODO: Submit vote")
-                    selectedOption = game.homeTeam.id
-                    // TODO: Submit vote
-                }
-            }
-        }
-        .padding()
-        .background(Color(.systemGray6))
-        .cornerRadius(12)
-    }
-}
-
-struct PollOptionButton: View {
-    let team: Team
-    let isSelected: Bool
-    let isEnabled: Bool
-    let action: () -> Void
-    
-    var body: some View {
-        Button(action: action) {
-            HStack {
-                Text(team.name)
-                    .fontWeight(.medium)
-                Spacer()
-                if isSelected {
-                    Image(systemName: "checkmark.circle.fill")
-                        .foregroundColor(.blue)
-                }
-            }
-            .padding()
-            .background(isSelected ? Color.blue.opacity(0.1) : Color(.systemGray5))
-            .cornerRadius(8)
-        }
-        .disabled(!isEnabled)
-    }
-}
 
 struct RatingDistributionView: View {
+    // Mock data for rating distribution
+    let ratingData = [1: 2, 2: 1, 3: 3, 4: 5, 5: 8, 6: 12, 7: 15, 8: 18, 9: 10, 10: 6]
+    
+    var maxCount: Int {
+        ratingData.values.max() ?? 1
+    }
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Entertainment Rating Distribution")
                 .font(.headline)
                 .fontWeight(.semibold)
             
-            // TODO: Implement rating distribution chart
-            Text("Rating distribution chart will be implemented here")
-                .font(.subheadline)
-                .foregroundColor(.secondary)
-                .frame(maxWidth: .infinity, alignment: .center)
-                .padding()
-                .background(Color(.systemGray6))
-                .cornerRadius(8)
+            // Vertical bar chart
+            HStack(alignment: .bottom, spacing: 4) {
+                ForEach(1...10, id: \.self) { rating in
+                    VStack(spacing: 4) {
+                        // Bar
+                        Rectangle()
+                            .fill(Color.blue.opacity(0.7))
+                            .frame(width: 20, height: CGFloat(ratingData[rating] ?? 0) / CGFloat(maxCount) * 100)
+                            .cornerRadius(2)
+                        
+                        // Rating number
+                        Text("\(rating)")
+                            .font(.caption2)
+                            .foregroundColor(.secondary)
+                    }
+                }
+            }
+            .frame(height: 120)
+            .padding()
+            .background(Color(.systemGray6))
+            .cornerRadius(8)
         }
     }
 }
@@ -271,26 +228,22 @@ struct GameDetailsTabView: View {
         VStack(spacing: 0) {
             // Tab Picker
             Picker("Details", selection: $selectedTab) {
-                Text("Starting").tag(0)
-                Text("Result").tag(1)
-                Text("Home Box Score").tag(2)
-                Text("Away Box Score").tag(3)
+                Text("Results").tag(0)
+                Text("Home Box Score").tag(1)
+                Text("Away Box Score").tag(2)
             }
             .pickerStyle(SegmentedPickerStyle())
             
             // Tab Content
             TabView(selection: $selectedTab) {
-                StartingLineupView(game: game)
+                GameResultView(game: game)
                     .tag(0)
                 
-                GameResultView(game: game)
+                BoxScoreView(team: game.homeTeam, isHome: true)
                     .tag(1)
                 
-                BoxScoreView(team: game.homeTeam, isHome: true)
-                    .tag(2)
-                
                 BoxScoreView(team: game.awayTeam, isHome: false)
-                    .tag(3)
+                    .tag(2)
             }
             .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
             .frame(height: 300)
@@ -298,26 +251,6 @@ struct GameDetailsTabView: View {
     }
 }
 
-struct StartingLineupView: View {
-    let game: Game
-    
-    var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 16) {
-                Text("Starting Lineups")
-                    .font(.headline)
-                    .fontWeight(.semibold)
-                
-                // TODO: Implement starting lineups
-                Text("Starting lineups will be displayed here")
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-                    .frame(maxWidth: .infinity, alignment: .center)
-                    .padding()
-            }
-        }
-    }
-}
 
 struct GameResultView: View {
     let game: Game
@@ -329,13 +262,85 @@ struct GameResultView: View {
                     .font(.headline)
                     .fontWeight(.semibold)
                 
-                // TODO: Implement game result details
-                Text("Game result details will be displayed here")
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-                    .frame(maxWidth: .infinity, alignment: .center)
-                    .padding()
+                // Line Score Table
+                if let homeLineScore = game.homeLineScore, let awayLineScore = game.awayLineScore {
+                    VStack(spacing: 0) {
+                        // Header
+                        HStack {
+                            Text("Team")
+                                .font(.subheadline)
+                                .fontWeight(.semibold)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                            
+                            ForEach(0..<homeLineScore.count, id: \.self) { quarter in
+                                Text("Q\(quarter + 1)")
+                                    .font(.subheadline)
+                                    .fontWeight(.semibold)
+                                    .frame(width: 40)
+                            }
+                            
+                            Text("Total")
+                                .font(.subheadline)
+                                .fontWeight(.semibold)
+                                .frame(width: 50)
+                        }
+                        .padding(.vertical, 8)
+                        .background(Color(.systemGray5))
+                        
+                        // Away Team
+                        HStack {
+                            Text(game.awayTeam.name)
+                                .font(.subheadline)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                            
+                            ForEach(0..<awayLineScore.count, id: \.self) { quarter in
+                                Text("\(awayLineScore[quarter])")
+                                    .font(.subheadline)
+                                    .frame(width: 40)
+                            }
+                            
+                            Text("\(awayLineScore.reduce(0, +))")
+                                .font(.subheadline)
+                                .fontWeight(.semibold)
+                                .frame(width: 50)
+                        }
+                        .padding(.vertical, 8)
+                        
+                        // Home Team
+                        HStack {
+                            Text(game.homeTeam.name)
+                                .font(.subheadline)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                            
+                            ForEach(0..<homeLineScore.count, id: \.self) { quarter in
+                                Text("\(homeLineScore[quarter])")
+                                    .font(.subheadline)
+                                    .frame(width: 40)
+                            }
+                            
+                            Text("\(homeLineScore.reduce(0, +))")
+                                .font(.subheadline)
+                                .fontWeight(.semibold)
+                                .frame(width: 50)
+                        }
+                        .padding(.vertical, 8)
+                        .background(Color(.systemGray6))
+                    }
+                    .background(Color(.systemBackground))
+                    .cornerRadius(8)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 8)
+                            .stroke(Color(.systemGray4), lineWidth: 1)
+                    )
+                } else {
+                    Text("Line scores not available")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                        .frame(maxWidth: .infinity, alignment: .center)
+                        .padding()
+                }
             }
+            .padding()
         }
     }
 }

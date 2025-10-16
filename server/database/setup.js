@@ -72,7 +72,6 @@ const createTables = () => {
           leagueId TEXT NOT NULL,
           season TEXT NOT NULL,
           week INTEGER,
-          gameDate DATETIME NOT NULL,
           gameTime DATETIME NOT NULL,
           venueId TEXT,
           homeScore INTEGER,
@@ -180,7 +179,7 @@ const createTables = () => {
 
       // Create indexes for better performance
       db.run(`CREATE INDEX IF NOT EXISTS idxGamesLeagueSeason ON games (leagueId, season)`);
-      db.run(`CREATE INDEX IF NOT EXISTS idxGamesDate ON games (gameDate)`);
+      db.run(`CREATE INDEX IF NOT EXISTS idxGamesTime ON games (gameTime)`);
       db.run(`CREATE INDEX IF NOT EXISTS idxGamesHomeTeam ON games (homeTeamId)`);
       db.run(`CREATE INDEX IF NOT EXISTS idxGamesAwayTeam ON games (awayTeamId)`);
       db.run(`CREATE INDEX IF NOT EXISTS idxGamesVenue ON games (venueId)`);

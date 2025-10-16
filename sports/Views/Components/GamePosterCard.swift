@@ -12,10 +12,7 @@ struct GamePosterCard: View {
     @State private var isPressed = false
     
     var body: some View {
-        Button(action: {
-            print("Clicked: Game Card (\(game.displayTitle)). From page: Feed. Actions performed: none. TODO: Navigate to Game Menu")
-            // TODO: Navigate to Game Menu
-        }) {
+        NavigationLink(destination: GameMenuView(game: game)) {
             VStack(alignment: .leading, spacing: 0) {
                 // Game Poster Image
                 ZStack {
@@ -48,7 +45,7 @@ struct GamePosterCard: View {
                                 .foregroundColor(.white)
                                 .multilineTextAlignment(.center)
                             
-                            Text(game.gameDate, style: .date)
+                            Text(game.gameTime, style: .date)
                                 .font(.caption)
                                 .foregroundColor(.white.opacity(0.9))
                             

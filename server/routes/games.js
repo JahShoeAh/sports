@@ -74,8 +74,7 @@ router.get('/', async (req, res) => {
       },
       season: game.season,
       week: game.week,
-      gameDate: game.gameDate, // Keep as date string for easier parsing
-      gameTime: new Date(`${game.gameDate}T${game.gameTime}`).toISOString(), // Full datetime
+      gameTime: game.gameTime, // Already in UTC with Z suffix
       venue: game.venueId ? {
         id: game.venueId,
         name: game.venueName,
@@ -181,8 +180,7 @@ router.get('/:id', async (req, res) => {
       },
       season: game.season,
       week: game.week,
-      gameDate: game.gameDate, // Keep as date string for easier parsing
-      gameTime: new Date(`${game.gameDate}T${game.gameTime}`).toISOString(), // Full datetime
+      gameTime: game.gameTime, // Already in UTC with Z suffix
       venue: game.venueId ? {
         id: game.venueId,
         name: game.venueName,

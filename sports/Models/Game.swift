@@ -14,7 +14,6 @@ struct Game: Identifiable, Codable {
     let league: League
     let season: String
     let week: Int?
-    let gameDate: Date
     let gameTime: Date
     let venue: Venue?
     let homeScore: Int?
@@ -31,14 +30,13 @@ struct Game: Identifiable, Codable {
     let startingLineups: StartingLineups?
     
     // Default memberwise initializer
-    init(id: String, homeTeam: Team, awayTeam: Team, league: League, season: String, week: Int?, gameDate: Date, gameTime: Date, venue: Venue?, homeScore: Int?, awayScore: Int?, homeLineScore: [Int]?, awayLineScore: [Int]?, leadChanges: Int?, quarter: Int?, isLive: Bool, isCompleted: Bool, apiGameId: Int?, startingLineups: StartingLineups?) {
+    init(id: String, homeTeam: Team, awayTeam: Team, league: League, season: String, week: Int?, gameTime: Date, venue: Venue?, homeScore: Int?, awayScore: Int?, homeLineScore: [Int]?, awayLineScore: [Int]?, leadChanges: Int?, quarter: Int?, isLive: Bool, isCompleted: Bool, apiGameId: Int?, startingLineups: StartingLineups?) {
         self.id = id
         self.homeTeam = homeTeam
         self.awayTeam = awayTeam
         self.league = league
         self.season = season
         self.week = week
-        self.gameDate = gameDate
         self.gameTime = gameTime
         self.venue = venue
         self.homeScore = homeScore
@@ -75,19 +73,45 @@ struct Game: Identifiable, Codable {
         apiGameId = try container.decodeIfPresent(Int.self, forKey: .apiGameId)
         startingLineups = try container.decodeIfPresent(StartingLineups.self, forKey: .startingLineups)
         
-        // Custom date parsing
-        let gameDateString = try container.decode(String.self, forKey: .gameDate)
-        let gameTimeString = try container.decode(String.self, forKey: .gameTime)
-        
-        // Parse gameDate (simple date string like "2025-04-13")
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "yyyy-MM-dd"
-        dateFormatter.timeZone = TimeZone(identifier: "UTC")
-        gameDate = dateFormatter.date(from: gameDateString) ?? Date()
-        
         // Parse gameTime (ISO datetime string like "2025-04-13T19:30:00.000Z")
+        let gameTimeString = try container.decode(String.self, forKey: .gameTime)
+        print("DEBUG: Parsing gameTime - Raw string: '\(gameTimeString)'")
+        
+        // Configure ISO8601DateFormatter with proper options
         let isoFormatter = ISO8601DateFormatter()
-        gameTime = isoFormatter.date(from: gameTimeString) ?? Date()
+        isoFormatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        
+        if let parsedTime = isoFormatter.date(from: gameTimeString) {
+            gameTime = parsedTime
+            print("DEBUG: Successfully parsed gameTime as: \(parsedTime) (Local: \(parsedTime.formatted(date: .abbreviated, time: .shortened)))")
+        } else {
+            print("DEBUG: ISO8601 parsing failed, trying alternative formats...")
+            
+            // Try alternative date formats if ISO8601 fails
+            let alternativeFormatter = DateFormatter()
+            alternativeFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"
+            alternativeFormatter.timeZone = TimeZone(identifier: "UTC")
+            
+            if let altParsedTime = alternativeFormatter.date(from: gameTimeString) {
+                gameTime = altParsedTime
+                print("DEBUG: Alternative format succeeded: \(altParsedTime) (Local: \(altParsedTime.formatted(date: .abbreviated, time: .shortened)))")
+            } else {
+                // Try without fractional seconds
+                let simpleFormatter = DateFormatter()
+                simpleFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss'Z'"
+                simpleFormatter.timeZone = TimeZone(identifier: "UTC")
+                
+                if let simpleParsedTime = simpleFormatter.date(from: gameTimeString) {
+                    gameTime = simpleParsedTime
+                    print("DEBUG: Simple format succeeded: \(simpleParsedTime) (Local: \(simpleParsedTime.formatted(date: .abbreviated, time: .shortened)))")
+                } else {
+                    // If all parsing fails, use current time as fallback
+                    gameTime = Date()
+                    print("DEBUG: All parsing failed. Using current time: \(gameTime) (Local: \(gameTime.formatted(date: .abbreviated, time: .shortened)))")
+                    print("DEBUG: Failed to parse gameTime '\(gameTimeString)', using current time")
+                }
+            }
+        }
     }
     
     var displayTitle: String {
@@ -100,7 +124,7 @@ struct Game: Identifiable, Codable {
     
     // CodingKeys for custom decoding
     private enum CodingKeys: String, CodingKey {
-        case id, homeTeam, awayTeam, league, season, week, gameDate, gameTime
+        case id, homeTeam, awayTeam, league, season, week, gameTime
         case venue, homeScore, awayScore, homeLineScore, awayLineScore, leadChanges
         case quarter, isLive, isCompleted
         case apiGameId
