@@ -68,8 +68,8 @@ struct TeamMenuView: View {
         let cachedTeamGames = cachedGamesAll.filter { $0.homeTeam.id == team.id || $0.awayTeam.id == team.id }
         let cachedCompleted = cachedTeamGames.filter { $0.isCompleted && $0.homeScore != nil && $0.awayScore != nil }
         await MainActor.run {
-            self.games = cachedTeamGames.sorted { $0.gameTime > $1.gameTime }
-            self.record = cachedCompleted.sorted { $0.gameTime > $1.gameTime }
+            self.games = cachedTeamGames.sorted { $0.gameTime < $1.gameTime }
+            self.record = cachedCompleted.sorted { $0.gameTime < $1.gameTime }
         }
         
         // 2) Kick off cache refresh for league
@@ -86,8 +86,8 @@ struct TeamMenuView: View {
             
             await MainActor.run {
                 self.roster = roster
-                self.games = teamGames.sorted { $0.gameTime > $1.gameTime }
-                self.record = completedGames.sorted { $0.gameTime > $1.gameTime }
+                self.games = teamGames.sorted { $0.gameTime < $1.gameTime }
+                self.record = completedGames.sorted { $0.gameTime < $1.gameTime }
                 self.isLoading = false
             }
         } catch {
