@@ -18,9 +18,19 @@ class SimpleDataManager: ObservableObject {
     
     // MARK: - Save Data
     func saveGames(_ games: [Game], for leagueId: String) {
-        cachedGames[leagueId] = games
+        // Merge with existing games instead of overwriting
+        var existingGames = cachedGames[leagueId] ?? []
+        
+        // Remove games from the same season(s) as the new games
+        let seasonsToUpdate = Set(games.map { $0.season })
+        existingGames = existingGames.filter { !seasonsToUpdate.contains($0.season) }
+        
+        // Add the new games
+        existingGames.append(contentsOf: games)
+        
+        cachedGames[leagueId] = existingGames
         lastUpdateTime[leagueId] = Date()
-        print("Saved \(games.count) games for league \(leagueId)")
+        print("Saved \(games.count) games for league \(leagueId). Total games in cache: \(existingGames.count)")
     }
     
     func saveTeams(_ teams: [Team], for leagueId: String) {
@@ -31,12 +41,18 @@ class SimpleDataManager: ObservableObject {
     
     // MARK: - Fetch Data
     func fetchGames(for leagueId: String, season: String? = nil) -> [Game] {
-        guard let games = cachedGames[leagueId] else { return [] }
-        
-        if let season = season {
-            return games.filter { $0.season == season }
+        guard let games = cachedGames[leagueId] else { 
+            print("No cached games found for league \(leagueId)")
+            return [] 
         }
         
+        if let season = season {
+            let filteredGames = games.filter { $0.season == season }
+            print("Filtered \(filteredGames.count) games for season \(season) from \(games.count) total games")
+            return filteredGames
+        }
+        
+        print("Returning all \(games.count) games for league \(leagueId)")
         return games
     }
     

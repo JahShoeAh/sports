@@ -22,13 +22,12 @@ const createTables = () => {
           id TEXT PRIMARY KEY,
           name TEXT NOT NULL,
           abbreviation TEXT NOT NULL,
-          logo_url TEXT,
+          logoUrl TEXT,
           sport TEXT NOT NULL,
           level TEXT NOT NULL,
-          season TEXT NOT NULL,
-          is_active BOOLEAN DEFAULT 1,
-          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-          updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+          isActive BOOLEAN DEFAULT 1,
+          createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+          updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP
         )
       `);
 
@@ -39,13 +38,13 @@ const createTables = () => {
           name TEXT NOT NULL,
           city TEXT NOT NULL,
           abbreviation TEXT NOT NULL,
-          logo_url TEXT,
-          league_id TEXT NOT NULL,
+          logoUrl TEXT,
+          leagueId TEXT NOT NULL,
           conference TEXT,
           division TEXT,
-          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-          updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-          FOREIGN KEY (league_id) REFERENCES leagues (id)
+          createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+          updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY (leagueId) REFERENCES leagues (id)
         )
       `);
 
@@ -54,12 +53,13 @@ const createTables = () => {
         CREATE TABLE IF NOT EXISTS venues (
           id TEXT PRIMARY KEY,
           name TEXT NOT NULL,
-          city TEXT NOT NULL,
-          state TEXT NOT NULL,
-          country TEXT NOT NULL,
-          capacity INTEGER,
-          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-          updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+          city TEXT,
+          state TEXT,
+          country TEXT,
+          homeTeamId TEXT,
+          createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+          updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY (homeTeamId) REFERENCES teams (id)
         )
       `);
 
@@ -67,51 +67,133 @@ const createTables = () => {
       db.run(`
         CREATE TABLE IF NOT EXISTS games (
           id TEXT PRIMARY KEY,
-          home_team_id TEXT NOT NULL,
-          away_team_id TEXT NOT NULL,
-          league_id TEXT NOT NULL,
+          homeTeamId TEXT NOT NULL,
+          awayTeamId TEXT NOT NULL,
+          leagueId TEXT NOT NULL,
           season TEXT NOT NULL,
           week INTEGER,
-          game_date DATETIME NOT NULL,
-          game_time DATETIME NOT NULL,
-          venue_id TEXT,
-          venue TEXT NOT NULL,
-          city TEXT NOT NULL,
-          state TEXT NOT NULL,
-          country TEXT NOT NULL,
-          status TEXT NOT NULL,
-          home_score INTEGER,
-          away_score INTEGER,
+          gameTime DATETIME NOT NULL,
+          venueId TEXT,
+          homeScore INTEGER,
+          awayScore INTEGER,
+          homeLineScore TEXT,
+          awayLineScore TEXT,
+          leadChanges INTEGER,
           quarter INTEGER,
-          time_remaining TEXT,
-          is_live BOOLEAN DEFAULT 0,
-          is_completed BOOLEAN DEFAULT 0,
-          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-          updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-          FOREIGN KEY (home_team_id) REFERENCES teams (id),
-          FOREIGN KEY (away_team_id) REFERENCES teams (id),
-          FOREIGN KEY (league_id) REFERENCES leagues (id),
-          FOREIGN KEY (venue_id) REFERENCES venues (id)
+          isLive BOOLEAN DEFAULT 0,
+          isCompleted BOOLEAN DEFAULT 0,
+          apiGameId INTEGER,
+          createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+          updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY (homeTeamId) REFERENCES teams (id),
+          FOREIGN KEY (awayTeamId) REFERENCES teams (id),
+          FOREIGN KEY (leagueId) REFERENCES leagues (id),
+          FOREIGN KEY (venueId) REFERENCES venues (id)
+        )
+      `);
+
+      // Players table
+      db.run(`
+        CREATE TABLE IF NOT EXISTS players (
+          id TEXT PRIMARY KEY,
+          teamId TEXT NOT NULL,
+          displayName TEXT NOT NULL,
+          firstName TEXT NOT NULL,
+          lastName TEXT NOT NULL,
+          jerseyNumber INTEGER,
+          position TEXT,
+          birthdate TEXT,
+          heightInches INTEGER,
+          weightLbs INTEGER,
+          nationality TEXT,
+          college TEXT,
+          photoUrl TEXT,
+          injuryStatus TEXT,
+          draftYear INTEGER,
+          draftPickOverall INTEGER,
+          active INTEGER NOT NULL DEFAULT 1,
+          apiPlayerId INTEGER,
+          createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+          updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY (teamId) REFERENCES teams (id) ON DELETE SET NULL
+        )
+      `);
+
+      // Rosters table
+      db.run(`
+        CREATE TABLE IF NOT EXISTS rosters (
+          id TEXT PRIMARY KEY,
+          createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+          updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+      `);
+
+      // PlayerStats table
+      db.run(`
+        CREATE TABLE IF NOT EXISTS playerStats (
+          gameId TEXT NOT NULL,
+          playerId TEXT NOT NULL,
+          teamId TEXT NOT NULL,
+          points INTEGER DEFAULT 0,
+          pos TEXT,
+          min TEXT,
+          fgm INTEGER DEFAULT 0,
+          fga INTEGER DEFAULT 0,
+          fgp TEXT,
+          ftm INTEGER DEFAULT 0,
+          fta INTEGER DEFAULT 0,
+          ftp TEXT,
+          tpm INTEGER DEFAULT 0,
+          tpa INTEGER DEFAULT 0,
+          tpp TEXT,
+          offReb INTEGER DEFAULT 0,
+          defReb INTEGER DEFAULT 0,
+          totReb INTEGER DEFAULT 0,
+          assists INTEGER DEFAULT 0,
+          pFouls INTEGER DEFAULT 0,
+          steals INTEGER DEFAULT 0,
+          turnovers INTEGER DEFAULT 0,
+          blocks INTEGER DEFAULT 0,
+          plusMinus TEXT,
+          comment TEXT,
+          createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+          updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+          PRIMARY KEY (gameId, playerId),
+          FOREIGN KEY (gameId) REFERENCES games (id),
+          FOREIGN KEY (playerId) REFERENCES players (id),
+          FOREIGN KEY (teamId) REFERENCES teams (id)
         )
       `);
 
       // Data freshness tracking
       db.run(`
-        CREATE TABLE IF NOT EXISTS data_freshness (
-          league_id TEXT PRIMARY KEY,
-          last_updated DATETIME NOT NULL,
-          last_successful_fetch DATETIME,
-          fetch_attempts INTEGER DEFAULT 0,
-          last_error TEXT,
-          FOREIGN KEY (league_id) REFERENCES leagues (id)
+        CREATE TABLE IF NOT EXISTS dataFreshness (
+          leagueId TEXT PRIMARY KEY,
+          lastUpdated DATETIME NOT NULL,
+          lastSuccessfulFetch DATETIME,
+          fetchAttempts INTEGER DEFAULT 0,
+          lastError TEXT,
+          FOREIGN KEY (leagueId) REFERENCES leagues (id)
         )
       `);
 
       // Create indexes for better performance
-      db.run(`CREATE INDEX IF NOT EXISTS idx_games_league_season ON games (league_id, season)`);
-      db.run(`CREATE INDEX IF NOT EXISTS idx_games_date ON games (game_date)`);
-      db.run(`CREATE INDEX IF NOT EXISTS idx_teams_league ON teams (league_id)`);
-      db.run(`CREATE INDEX IF NOT EXISTS idx_teams_conference ON teams (conference)`);
+      db.run(`CREATE INDEX IF NOT EXISTS idxGamesLeagueSeason ON games (leagueId, season)`);
+      db.run(`CREATE INDEX IF NOT EXISTS idxGamesTime ON games (gameTime)`);
+      db.run(`CREATE INDEX IF NOT EXISTS idxGamesHomeTeam ON games (homeTeamId)`);
+      db.run(`CREATE INDEX IF NOT EXISTS idxGamesAwayTeam ON games (awayTeamId)`);
+      db.run(`CREATE INDEX IF NOT EXISTS idxGamesVenue ON games (venueId)`);
+      db.run(`CREATE INDEX IF NOT EXISTS idxTeamsLeague ON teams (leagueId)`);
+      db.run(`CREATE INDEX IF NOT EXISTS idxTeamsConference ON teams (conference)`);
+      db.run(`CREATE INDEX IF NOT EXISTS idxVenuesHomeTeam ON venues (homeTeamId)`);
+      db.run(`CREATE INDEX IF NOT EXISTS idxPlayersTeam ON players (teamId)`);
+      db.run(`CREATE INDEX IF NOT EXISTS idxPlayersDisplayName ON players (displayName)`);
+      db.run(`CREATE INDEX IF NOT EXISTS idxPlayersPosition ON players (position)`);
+      db.run(`CREATE INDEX IF NOT EXISTS idxPlayersActive ON players (active)`);
+      db.run(`CREATE INDEX IF NOT EXISTS idxPlayersApiId ON players (apiPlayerId)`);
+      db.run(`CREATE INDEX IF NOT EXISTS idxPlayerStatsGame ON playerStats (gameId)`);
+      db.run(`CREATE INDEX IF NOT EXISTS idxPlayerStatsPlayer ON playerStats (playerId)`);
+      db.run(`CREATE INDEX IF NOT EXISTS idxPlayerStatsTeam ON playerStats (teamId)`);
 
       db.run(`PRAGMA journal_mode = WAL`, (err) => {
         if (err) {

@@ -11,11 +11,14 @@ struct GamePosterCard: View {
     let game: Game
     @State private var isPressed = false
     
+    private static let shortDateFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "M/d/yy" // e.g., 4/9/25
+        return formatter
+    }()
+    
     var body: some View {
-        Button(action: {
-            print("Clicked: Game Card (\(game.displayTitle)). From page: Feed. Actions performed: none. TODO: Navigate to Game Menu")
-            // TODO: Navigate to Game Menu
-        }) {
+        NavigationLink(destination: GameMenuLoaderView(gameId: game.id)) {
             VStack(alignment: .leading, spacing: 0) {
                 // Game Poster Image
                 ZStack {
@@ -30,7 +33,7 @@ struct GamePosterCard: View {
                     
                     // Game text overlay
                     VStack(spacing: 8) {
-                        Text(game.leagueDisplayName)
+                        Text(game.league.abbreviation)
                             .font(.caption)
                             .fontWeight(.medium)
                             .foregroundColor(.white)
@@ -42,13 +45,13 @@ struct GamePosterCard: View {
                         Spacer()
                         
                         VStack(spacing: 4) {
-                            Text(game.displayTitle)
+                            Text("\(game.awayTeam.abbreviation) vs. \(game.homeTeam.abbreviation)")
                                 .font(.headline)
                                 .fontWeight(.bold)
                                 .foregroundColor(.white)
                                 .multilineTextAlignment(.center)
                             
-                            Text(game.gameDate, style: .date)
+                            Text(Self.shortDateFormatter.string(from: game.gameTime))
                                 .font(.caption)
                                 .foregroundColor(.white.opacity(0.9))
                             
@@ -113,55 +116,4 @@ struct GamePosterCard: View {
     }
 }
 
-#Preview {
-    VStack {
-        GamePosterCard(game: Game(
-            id: "1",
-            homeTeam: Team(id: "1", name: "Chiefs", city: "Kansas City", abbreviation: "KC", logoURL: nil, league: League(id: "1", name: "NFL", abbreviation: "NFL", logoURL: nil, sport: .football, level: .professional, isActive: true), conference: "AFC", division: "West", colors: nil),
-            awayTeam: Team(id: "2", name: "Bills", city: "Buffalo", abbreviation: "BUF", logoURL: nil, league: League(id: "1", name: "NFL", abbreviation: "NFL", logoURL: nil, sport: .football, level: .professional, isActive: true), conference: "AFC", division: "East", colors: nil),
-            league: League(id: "1", name: "NFL", abbreviation: "NFL", logoURL: nil, sport: .football, level: .professional, isActive: true),
-            season: "2025",
-            week: 1,
-            gameDate: Date(),
-            gameTime: Date(),
-            venue: "Arrowhead Stadium",
-            city: "Kansas City",
-            state: "MO",
-            country: "USA",
-            homeScore: nil,
-            awayScore: nil,
-            quarter: nil,
-            timeRemaining: nil,
-            isLive: false,
-            isCompleted: false,
-            startingLineups: nil,
-            boxScore: nil,
-            gameStats: nil
-        ))
-        
-        GamePosterCard(game: Game(
-            id: "2",
-            homeTeam: Team(id: "3", name: "Cowboys", city: "Dallas", abbreviation: "DAL", logoURL: nil, league: League(id: "1", name: "NFL", abbreviation: "NFL", logoURL: nil, sport: .football, level: .professional, isActive: true), conference: "NFC", division: "East", colors: nil),
-            awayTeam: Team(id: "4", name: "Eagles", city: "Philadelphia", abbreviation: "PHI", logoURL: nil, league: League(id: "1", name: "NFL", abbreviation: "NFL", logoURL: nil, sport: .football, level: .professional, isActive: true), conference: "NFC", division: "East", colors: nil),
-            league: League(id: "1", name: "NFL", abbreviation: "NFL", logoURL: nil, sport: .football, level: .professional, isActive: true),
-            season: "2025",
-            week: 1,
-            gameDate: Date(),
-            gameTime: Date(),
-            venue: "AT&T Stadium",
-            city: "Arlington",
-            state: "TX",
-            country: "USA",
-            homeScore: 14,
-            awayScore: 21,
-            quarter: 3,
-            timeRemaining: "12:34",
-            isLive: true,
-            isCompleted: false,
-            startingLineups: nil,
-            boxScore: nil,
-            gameStats: nil
-        ))
-    }
-    .padding()
-}
+// Preview removed - use real data from server instead

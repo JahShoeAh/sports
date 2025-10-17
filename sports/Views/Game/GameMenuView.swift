@@ -15,35 +15,34 @@ struct GameMenuView: View {
     @State private var showingReviews = false
     @State private var isInWatchlist = false
     
+    // Check if game has started (short-circuit evaluation)
+    var hasGameStarted: Bool {
+        game.isCompleted || Date() > game.gameTime
+    }
+    
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
                 // Game Header
                 GameHeaderView(game: game)
                 
-                // Live Banner
-                if game.isLive {
-                    LiveBanner()
-                }
+                // To Watch Button
+                ToWatchButton(isInWatchlist: $isInWatchlist, gameId: game.id)
                 
-                // Action Buttons
-                ActionButtonsView(
-                    hasUserLogged: hasUserLogged,
-                    isInWatchlist: isInWatchlist,
-                    showingLogGame: $showingLogGame,
-                    showingReviews: $showingReviews
-                )
-                
-                // Poll Section
-                PollSectionView(game: game)
-                
-                // Rating Distribution (if game is completed)
-                if game.isCompleted {
+                // Conditional Content (only if game has started)
+                if hasGameStarted {
+                    // Rating Distribution
                     RatingDistributionView()
+                    
+                    // What they're saying button
+                    WhatTheyreSayingButton(showingReviews: $showingReviews)
+                    
+                    // Log, rate, review, tag button
+                    LogGameButton(hasUserLogged: hasUserLogged, showingLogGame: $showingLogGame)
+                    
+                    // Tab View
+                    GameDetailsTabView(game: game, selectedTab: $selectedTab)
                 }
-                
-                // Tab View
-                GameDetailsTabView(game: game, selectedTab: $selectedTab)
             }
             .padding()
         }
@@ -63,17 +62,37 @@ struct GameHeaderView: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text(game.displayTitle)
-                .font(.title2)
-                .fontWeight(.bold)
+            // Title: "Away Team vs. Home Team" with clickable team names
+            HStack(spacing: 8) {
+                NavigationLink(destination: TeamMenuLoaderView(teamId: game.awayTeam.id)) {
+                    Text(game.awayTeam.name)
+                        .font(.title2)
+                        .fontWeight(.bold)
+                        .foregroundColor(.primary)
+                }
+                
+                Text("vs.")
+                    .font(.title2)
+                    .fontWeight(.bold)
+                    .foregroundColor(.secondary)
+                
+                NavigationLink(destination: TeamMenuLoaderView(teamId: game.homeTeam.id)) {
+                    Text(game.homeTeam.name)
+                        .font(.title2)
+                        .fontWeight(.bold)
+                        .foregroundColor(.primary)
+                }
+            }
             
+            // Date
             HStack {
                 Image(systemName: "calendar")
                     .foregroundColor(.secondary)
-                Text(game.gameDate, style: .date)
+                Text(game.gameTime, style: .date)
                     .foregroundColor(.secondary)
             }
             
+            // Start Time
             HStack {
                 Image(systemName: "clock")
                     .foregroundColor(.secondary)
@@ -81,22 +100,81 @@ struct GameHeaderView: View {
                     .foregroundColor(.secondary)
             }
             
+            // Venue name and city
             HStack {
                 Image(systemName: "location")
                     .foregroundColor(.secondary)
-                Text("\(game.venue), \(game.city), \(game.state)")
-                    .foregroundColor(.secondary)
-            }
-            
-            if let homeScore = game.homeScore, let awayScore = game.awayScore {
-                HStack {
-                    Text("Final Score:")
-                        .fontWeight(.medium)
-                    Text("\(game.awayTeam.name) \(awayScore) - \(homeScore) \(game.homeTeam.name)")
-                        .fontWeight(.bold)
+                if let venue = game.venue {
+                    Text(venue.fullLocation)
+                        .foregroundColor(.secondary)
+                } else {
+                    Text("Venue TBD")
+                        .foregroundColor(.secondary)
                 }
-                .padding(.top, 8)
             }
+        }
+    }
+}
+
+struct ToWatchButton: View {
+    @Binding var isInWatchlist: Bool
+    let gameId: String
+    
+    var body: some View {
+        Button(action: {
+            print("add \(gameId) to watchlist")
+            isInWatchlist.toggle()
+        }) {
+            HStack {
+                Image(systemName: isInWatchlist ? "bookmark.fill" : "bookmark")
+                Text("To Watch")
+            }
+            .frame(maxWidth: .infinity)
+            .padding()
+            .background(Color(.systemGray6))
+            .cornerRadius(12)
+        }
+    }
+}
+
+struct WhatTheyreSayingButton: View {
+    @Binding var showingReviews: Bool
+    
+    var body: some View {
+        Button(action: {
+            print("Clicked: What they're saying. From page: Game Menu. Actions performed: showingReviews = true. TODO: Show reviews sheet")
+            showingReviews = true
+        }) {
+            HStack {
+                Image(systemName: "bubble.left.and.bubble.right")
+                Text("What they're saying")
+            }
+            .frame(maxWidth: .infinity)
+            .padding()
+            .background(Color(.systemGray6))
+            .cornerRadius(12)
+        }
+    }
+}
+
+struct LogGameButton: View {
+    let hasUserLogged: Bool
+    @Binding var showingLogGame: Bool
+    
+    var body: some View {
+        Button(action: {
+            print("Clicked: \(hasUserLogged ? "Log Again" : "Log, rate, review, tag..."). From page: Game Menu. Actions performed: showingLogGame = true. TODO: Show log game sheet")
+            showingLogGame = true
+        }) {
+            HStack {
+                Image(systemName: "star")
+                Text(hasUserLogged ? "Log Again" : "Log, rate, review, tag...")
+            }
+            .frame(maxWidth: .infinity)
+            .padding()
+            .background(Color.blue)
+            .foregroundColor(.white)
+            .cornerRadius(12)
         }
     }
 }
@@ -119,141 +197,42 @@ struct LiveBanner: View {
     }
 }
 
-struct ActionButtonsView: View {
-    let hasUserLogged: Bool
-    let isInWatchlist: Bool
-    @Binding var showingLogGame: Bool
-    @Binding var showingReviews: Bool
-    
-    var body: some View {
-        VStack(spacing: 12) {
-            HStack(spacing: 12) {
-                Button(action: {
-                    print("Clicked: To Watch. From page: Game Menu. Actions performed: none. TODO: Toggle watchlist")
-                    // TODO: Toggle watchlist
-                }) {
-                    HStack {
-                        Image(systemName: isInWatchlist ? "bookmark.fill" : "bookmark")
-                        Text("To Watch")
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(Color(.systemGray6))
-                    .cornerRadius(12)
-                }
-                
-                Button(action: {
-                    print("Clicked: \(hasUserLogged ? "Log Again" : "Log, rate, review, tag..."). From page: Game Menu. Actions performed: showingLogGame = true. TODO: Show log game sheet")
-                    showingLogGame = true
-                }) {
-                    HStack {
-                        Image(systemName: "star")
-                        Text(hasUserLogged ? "Log Again" : "Log, rate, review, tag...")
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(Color.blue)
-                    .foregroundColor(.white)
-                    .cornerRadius(12)
-                }
-            }
-            
-            Button(action: {
-                print("Clicked: What they're saying. From page: Game Menu. Actions performed: showingReviews = true. TODO: Show reviews sheet")
-                showingReviews = true
-            }) {
-                HStack {
-                    Image(systemName: "bubble.left.and.bubble.right")
-                    Text("What they're saying")
-                }
-                .frame(maxWidth: .infinity)
-                .padding()
-                .background(Color(.systemGray6))
-                .cornerRadius(12)
-            }
-        }
-    }
-}
-
-struct PollSectionView: View {
-    let game: Game
-    @State private var selectedOption: String?
-    @State private var hasVoted = false
-    
-    var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Predict the winner")
-                .font(.headline)
-                .fontWeight(.semibold)
-            
-            VStack(spacing: 8) {
-                PollOptionButton(
-                    team: game.awayTeam,
-                    isSelected: selectedOption == game.awayTeam.id,
-                    isEnabled: !hasVoted && !game.isCompleted
-                ) {
-                    print("Clicked: \(game.awayTeam.name) (Poll). From page: Game Menu. Actions performed: selectedOption = \(game.awayTeam.id). TODO: Submit vote")
-                    selectedOption = game.awayTeam.id
-                    // TODO: Submit vote
-                }
-                
-                PollOptionButton(
-                    team: game.homeTeam,
-                    isSelected: selectedOption == game.homeTeam.id,
-                    isEnabled: !hasVoted && !game.isCompleted
-                ) {
-                    print("Clicked: \(game.homeTeam.name) (Poll). From page: Game Menu. Actions performed: selectedOption = \(game.homeTeam.id). TODO: Submit vote")
-                    selectedOption = game.homeTeam.id
-                    // TODO: Submit vote
-                }
-            }
-        }
-        .padding()
-        .background(Color(.systemGray6))
-        .cornerRadius(12)
-    }
-}
-
-struct PollOptionButton: View {
-    let team: Team
-    let isSelected: Bool
-    let isEnabled: Bool
-    let action: () -> Void
-    
-    var body: some View {
-        Button(action: action) {
-            HStack {
-                Text(team.name)
-                    .fontWeight(.medium)
-                Spacer()
-                if isSelected {
-                    Image(systemName: "checkmark.circle.fill")
-                        .foregroundColor(.blue)
-                }
-            }
-            .padding()
-            .background(isSelected ? Color.blue.opacity(0.1) : Color(.systemGray5))
-            .cornerRadius(8)
-        }
-        .disabled(!isEnabled)
-    }
-}
 
 struct RatingDistributionView: View {
+    // Mock data for rating distribution
+    let ratingData = [1: 2, 2: 1, 3: 3, 4: 5, 5: 8, 6: 12, 7: 15, 8: 18, 9: 10, 10: 6]
+    
+    var maxCount: Int {
+        ratingData.values.max() ?? 1
+    }
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Entertainment Rating Distribution")
                 .font(.headline)
                 .fontWeight(.semibold)
             
-            // TODO: Implement rating distribution chart
-            Text("Rating distribution chart will be implemented here")
-                .font(.subheadline)
-                .foregroundColor(.secondary)
-                .frame(maxWidth: .infinity, alignment: .center)
-                .padding()
-                .background(Color(.systemGray6))
-                .cornerRadius(8)
+            // Vertical bar chart
+            HStack(alignment: .bottom, spacing: 4) {
+                ForEach(1...10, id: \.self) { rating in
+                    VStack(spacing: 4) {
+                        // Bar
+                        Rectangle()
+                            .fill(Color.blue.opacity(0.7))
+                            .frame(width: 20, height: CGFloat(ratingData[rating] ?? 0) / CGFloat(maxCount) * 100)
+                            .cornerRadius(2)
+                        
+                        // Rating number
+                        Text("\(rating)")
+                            .font(.caption2)
+                            .foregroundColor(.secondary)
+                    }
+                }
+            }
+            .frame(height: 120)
+            .padding()
+            .background(Color(.systemGray6))
+            .cornerRadius(8)
         }
     }
 }
@@ -266,26 +245,22 @@ struct GameDetailsTabView: View {
         VStack(spacing: 0) {
             // Tab Picker
             Picker("Details", selection: $selectedTab) {
-                Text("Starting").tag(0)
-                Text("Result").tag(1)
-                Text("Home Box Score").tag(2)
-                Text("Away Box Score").tag(3)
+                Text("Results").tag(0)
+                Text("Home Box Score").tag(1)
+                Text("Away Box Score").tag(2)
             }
             .pickerStyle(SegmentedPickerStyle())
             
             // Tab Content
             TabView(selection: $selectedTab) {
-                StartingLineupView(game: game)
+                GameResultView(game: game)
                     .tag(0)
                 
-                GameResultView(game: game)
+                BoxScoreView(team: game.homeTeam, isHome: true, game: game)
                     .tag(1)
                 
-                BoxScoreView(team: game.homeTeam, isHome: true)
+                BoxScoreView(team: game.awayTeam, isHome: false, game: game)
                     .tag(2)
-                
-                BoxScoreView(team: game.awayTeam, isHome: false)
-                    .tag(3)
             }
             .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
             .frame(height: 300)
@@ -293,26 +268,6 @@ struct GameDetailsTabView: View {
     }
 }
 
-struct StartingLineupView: View {
-    let game: Game
-    
-    var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 16) {
-                Text("Starting Lineups")
-                    .font(.headline)
-                    .fontWeight(.semibold)
-                
-                // TODO: Implement starting lineups
-                Text("Starting lineups will be displayed here")
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-                    .frame(maxWidth: .infinity, alignment: .center)
-                    .padding()
-            }
-        }
-    }
-}
 
 struct GameResultView: View {
     let game: Game
@@ -324,13 +279,93 @@ struct GameResultView: View {
                     .font(.headline)
                     .fontWeight(.semibold)
                 
-                // TODO: Implement game result details
-                Text("Game result details will be displayed here")
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-                    .frame(maxWidth: .infinity, alignment: .center)
-                    .padding()
+                // Line Score Table
+                if let homeLineScore = game.homeLineScore, let awayLineScore = game.awayLineScore {
+                    VStack(spacing: 0) {
+                        // Header
+                        HStack {
+                            Text("Team")
+                                .font(.subheadline)
+                                .fontWeight(.semibold)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                            
+                            ForEach(0..<homeLineScore.count, id: \.self) { quarter in
+                                Text("Q\(quarter + 1)")
+                                    .font(.subheadline)
+                                    .fontWeight(.semibold)
+                                    .frame(width: 40)
+                            }
+                            
+                            Text("Total")
+                                .font(.subheadline)
+                                .fontWeight(.semibold)
+                                .frame(width: 50)
+                        }
+                        .padding(.vertical, 8)
+                        .background(Color(.systemGray5))
+                        
+                        // Away Team
+                        HStack {
+                            NavigationLink(destination: TeamMenuLoaderView(teamId: game.awayTeam.id)) {
+                                Text(game.awayTeam.name)
+                                    .font(.subheadline)
+                                    .fontWeight(.bold)
+                                    .foregroundColor(.primary)
+                            }
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            
+                            ForEach(0..<awayLineScore.count, id: \.self) { quarter in
+                                Text("\(awayLineScore[quarter])")
+                                    .font(.subheadline)
+                                    .frame(width: 40)
+                            }
+                            
+                            Text("\(awayLineScore.reduce(0, +))")
+                                .font(.subheadline)
+                                .fontWeight(.semibold)
+                                .frame(width: 50)
+                        }
+                        .padding(.vertical, 8)
+                        
+                        // Home Team
+                        HStack {
+                            NavigationLink(destination: TeamMenuLoaderView(teamId: game.homeTeam.id)) {
+                                Text(game.homeTeam.name)
+                                    .font(.subheadline)
+                                    .fontWeight(.bold)
+                                    .foregroundColor(.primary)
+                            }
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            
+                            ForEach(0..<homeLineScore.count, id: \.self) { quarter in
+                                Text("\(homeLineScore[quarter])")
+                                    .font(.subheadline)
+                                    .frame(width: 40)
+                            }
+                            
+                            Text("\(homeLineScore.reduce(0, +))")
+                                .font(.subheadline)
+                                .fontWeight(.semibold)
+                                .frame(width: 50)
+                        }
+                        .padding(.vertical, 8)
+                        .background(Color(.systemGray6))
+                    }
+                    .background(Color(.systemBackground))
+                    .cornerRadius(8)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 8)
+                            .stroke(Color(.systemGray4), lineWidth: 1)
+                    )
+                } else {
+                    Text("Line scores not available")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                        .frame(maxWidth: .infinity, alignment: .center)
+                        .padding()
+                }
             }
+            .padding()
         }
     }
 }
@@ -338,49 +373,196 @@ struct GameResultView: View {
 struct BoxScoreView: View {
     let team: Team
     let isHome: Bool
+    let game: Game
+    
+    @StateObject private var api = YourServerAPI.shared
+    @State private var playerStats: [PlayerStats] = []
+    @State private var isLoading = false
+    @State private var errorMessage: String?
     
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
-                Text("\(team.name) Box Score")
-                    .font(.headline)
-                    .fontWeight(.semibold)
+                NavigationLink(destination: TeamMenuLoaderView(teamId: team.id)) {
+                    Text("\(team.name) Box Score")
+                        .font(.headline)
+                        .fontWeight(.bold)
+                        .foregroundColor(.primary)
+                }
                 
-                // TODO: Implement box score
-                Text("Box score will be displayed here")
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
+                if isLoading {
+                    ProgressView("Loading box score...")
+                        .frame(maxWidth: .infinity, alignment: .center)
+                        .padding()
+                } else if let errorMessage = errorMessage {
+                    VStack(spacing: 8) {
+                        Image(systemName: "exclamationmark.triangle")
+                            .font(.title2)
+                            .foregroundColor(.orange)
+                        Text(errorMessage)
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                            .multilineTextAlignment(.center)
+                    }
                     .frame(maxWidth: .infinity, alignment: .center)
                     .padding()
+                } else if playerStats.isEmpty {
+                    VStack(spacing: 8) {
+                        Image(systemName: "chart.bar.doc.horizontal")
+                            .font(.title2)
+                            .foregroundColor(.secondary)
+                        Text("No box score data available for this game")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                            .multilineTextAlignment(.center)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .padding()
+                } else {
+                    // Box Score Table
+                    BoxScoreTableView(playerStats: playerStats)
+                }
             }
         }
+        .task {
+            await loadBoxScore()
+        }
+    }
+    
+    private func loadBoxScore() async {
+        isLoading = true
+        errorMessage = nil
+        
+        do {
+            // Fetch with retry to improve resiliency
+            let stats = try await fetchPlayerStatsByTeamWithRetry(teamId: team.id, gameId: game.id)
+            playerStats = stats
+        } catch {
+            errorMessage = "Failed to load box score: \(error.localizedDescription)"
+            playerStats = []
+        }
+        
+        isLoading = false
+    }
+
+    private func fetchPlayerStatsByTeamWithRetry(teamId: String, gameId: String, maxRetries: Int = 2) async throws -> [PlayerStats] {
+        var lastError: Error?
+        for attempt in 0...maxRetries {
+            do { return try await api.fetchPlayerStatsByTeam(teamId: teamId, gameId: gameId) }
+            catch {
+                lastError = error
+                if attempt < maxRetries { try? await Task.sleep(nanoseconds: UInt64(500_000_000 * (attempt + 1))) }
+            }
+        }
+        throw lastError ?? APIError.networkError("Unknown error")
     }
 }
 
-#Preview {
-    NavigationView {
-        GameMenuView(game: Game(
-            id: "1",
-            homeTeam: Team(id: "1", name: "Chiefs", city: "Kansas City", abbreviation: "KC", logoURL: nil, league: League(id: "1", name: "NFL", abbreviation: "NFL", logoURL: nil, sport: .football, level: .professional, isActive: true), conference: "AFC", division: "West", colors: nil),
-            awayTeam: Team(id: "2", name: "Bills", city: "Buffalo", abbreviation: "BUF", logoURL: nil, league: League(id: "1", name: "NFL", abbreviation: "NFL", logoURL: nil, sport: .football, level: .professional, isActive: true), conference: "AFC", division: "East", colors: nil),
-            league: League(id: "1", name: "NFL", abbreviation: "NFL", logoURL: nil, sport: .football, level: .professional, isActive: true),
-            season: "2025",
-            week: 1,
-            gameDate: Date(),
-            gameTime: Date(),
-            venue: "Arrowhead Stadium",
-            city: "Kansas City",
-            state: "MO",
-            country: "USA",
-            homeScore: 24,
-            awayScore: 21,
-            quarter: 4,
-            timeRemaining: "0:00",
-            isLive: false,
-            isCompleted: true,
-            startingLineups: nil,
-            boxScore: nil,
-            gameStats: nil
-        ))
+struct BoxScoreTableView: View {
+    let playerStats: [PlayerStats]
+    
+    var body: some View {
+        VStack(spacing: 0) {
+            // Header
+            HStack {
+                Text("Player")
+                    .font(.caption)
+                    .fontWeight(.semibold)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                
+                Text("MIN")
+                    .font(.caption)
+                    .fontWeight(.semibold)
+                    .frame(width: 40)
+                
+                Text("PTS")
+                    .font(.caption)
+                    .fontWeight(.semibold)
+                    .frame(width: 30)
+                
+                Text("REB")
+                    .font(.caption)
+                    .fontWeight(.semibold)
+                    .frame(width: 30)
+                
+                Text("AST")
+                    .font(.caption)
+                    .fontWeight(.semibold)
+                    .frame(width: 30)
+                
+                Text("STL")
+                    .font(.caption)
+                    .fontWeight(.semibold)
+                    .frame(width: 30)
+                
+                Text("BLK")
+                    .font(.caption)
+                    .fontWeight(.semibold)
+                    .frame(width: 30)
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
+            .background(Color(.systemGray6))
+            
+            // Player Rows
+            ForEach(playerStats) { stat in
+                HStack {
+                    VStack(alignment: .leading, spacing: 2) {
+                        NavigationLink(destination: AthleteMenuLoaderView(playerId: stat.player.id)) {
+                            Text(stat.player.displayName)
+                                .font(.caption)
+                                .fontWeight(.medium)
+                                .foregroundColor(.primary)
+                        }
+                        
+                        if let jerseyNumber = stat.player.jerseyNumber {
+                            Text("#\(jerseyNumber)")
+                                .font(.caption2)
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    
+                    Text(stat.min)
+                        .font(.caption)
+                        .frame(width: 40)
+                    
+                    Text("\(stat.points)")
+                        .font(.caption)
+                        .fontWeight(.medium)
+                        .frame(width: 30)
+                    
+                    Text("\(stat.totReb)")
+                        .font(.caption)
+                        .frame(width: 30)
+                    
+                    Text("\(stat.assists)")
+                        .font(.caption)
+                        .frame(width: 30)
+                    
+                    Text("\(stat.steals)")
+                        .font(.caption)
+                        .frame(width: 30)
+                    
+                    Text("\(stat.blocks)")
+                        .font(.caption)
+                        .frame(width: 30)
+                }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 6)
+                .background(Color.clear)
+                
+                if stat.id != playerStats.last?.id {
+                    Divider()
+                        .padding(.horizontal, 12)
+                }
+            }
+        }
+        .background(Color(.systemBackground))
+        .cornerRadius(8)
+        .overlay(
+            RoundedRectangle(cornerRadius: 8)
+                .stroke(Color(.systemGray4), lineWidth: 1)
+        )
     }
 }

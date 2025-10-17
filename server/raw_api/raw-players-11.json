@@ -1,0 +1,890 @@
+{
+  "get": "players/",
+  "parameters": {
+    "season": "2022",
+    "team": "11"
+  },
+  "errors": [],
+  "results": 24,
+  "response": [
+    {
+      "id": 322,
+      "firstname": "Kevon",
+      "lastname": "Looney",
+      "birth": {
+        "date": "1996-02-06",
+        "country": "USA"
+      },
+      "nba": {
+        "start": 2015,
+        "pro": 6
+      },
+      "height": {
+        "feets": "6",
+        "inches": "9",
+        "meters": "2.06"
+      },
+      "weight": {
+        "pounds": "222",
+        "kilograms": "100.7"
+      },
+      "college": "UCLA",
+      "affiliation": "UCLA/USA",
+      "leagues": {
+        "standard": {
+          "jersey": 5,
+          "active": true,
+          "pos": "F"
+        }
+      }
+    },
+    {
+      "id": 593,
+      "firstname": "Gary",
+      "lastname": "Payton II",
+      "birth": {
+        "date": "1992-12-01",
+        "country": "USA"
+      },
+      "nba": {
+        "start": 2016,
+        "pro": 5
+      },
+      "height": {
+        "feets": "6",
+        "inches": "3",
+        "meters": "1.9"
+      },
+      "weight": {
+        "pounds": "195",
+        "kilograms": "88.5"
+      },
+      "college": "Oregon State",
+      "affiliation": "Oregon State/USA",
+      "leagues": {
+        "standard": {
+          "jersey": null,
+          "active": true,
+          "pos": "G"
+        },
+        "sacramento": {
+          "jersey": null,
+          "active": true,
+          "pos": "G"
+        },
+        "vegas": {
+          "jersey": null,
+          "active": true,
+          "pos": "G"
+        }
+      }
+    },
+    {
+      "id": 962,
+      "firstname": "Donte",
+      "lastname": "DiVincenzo",
+      "birth": {
+        "date": "1997-01-31",
+        "country": "USA"
+      },
+      "nba": {
+        "start": 2018,
+        "pro": 3
+      },
+      "height": {
+        "feets": "6",
+        "inches": "4",
+        "meters": "1.93"
+      },
+      "weight": {
+        "pounds": "203",
+        "kilograms": "92.1"
+      },
+      "college": "Villanova",
+      "affiliation": "Villanova/USA",
+      "leagues": {
+        "standard": {
+          "jersey": null,
+          "active": true,
+          "pos": "G"
+        },
+        "vegas": {
+          "jersey": 9,
+          "active": true,
+          "pos": "G"
+        }
+      }
+    },
+    {
+      "id": 1019,
+      "firstname": "Jerome",
+      "lastname": "Robinson",
+      "birth": {
+        "date": null,
+        "country": null
+      },
+      "nba": {
+        "start": 0,
+        "pro": 0
+      },
+      "height": {
+        "feets": null,
+        "inches": null,
+        "meters": null
+      },
+      "weight": {
+        "pounds": null,
+        "kilograms": null
+      },
+      "college": null,
+      "affiliation": null,
+      "leagues": {
+        "standard": {
+          "jersey": 8,
+          "active": true,
+          "pos": "G"
+        },
+        "vegas": {
+          "jersey": 13,
+          "active": true,
+          "pos": "G"
+        }
+      }
+    },
+    {
+      "id": 1870,
+      "firstname": "Ty",
+      "lastname": "Jerome",
+      "birth": {
+        "date": "1997-07-08",
+        "country": "USA"
+      },
+      "nba": {
+        "start": 2019,
+        "pro": 2
+      },
+      "height": {
+        "feets": "6",
+        "inches": "5",
+        "meters": "1.96"
+      },
+      "weight": {
+        "pounds": "195",
+        "kilograms": "88.5"
+      },
+      "college": "Virginia",
+      "affiliation": "Virginia/USA",
+      "leagues": {
+        "standard": {
+          "jersey": 16,
+          "active": true,
+          "pos": "G-F"
+        }
+      }
+    },
+    {
+      "id": 1887,
+      "firstname": "Jordan",
+      "lastname": "Poole",
+      "birth": {
+        "date": "1999-06-19",
+        "country": "USA"
+      },
+      "nba": {
+        "start": 2019,
+        "pro": 2
+      },
+      "height": {
+        "feets": "6",
+        "inches": "4",
+        "meters": "1.93"
+      },
+      "weight": {
+        "pounds": "194",
+        "kilograms": "88.0"
+      },
+      "college": "Michigan",
+      "affiliation": "Michigan/USA",
+      "leagues": {
+        "standard": {
+          "jersey": 3,
+          "active": true,
+          "pos": "G"
+        },
+        "sacramento": {
+          "jersey": 3,
+          "active": true,
+          "pos": "G"
+        },
+        "vegas": {
+          "jersey": 3,
+          "active": true,
+          "pos": "G"
+        }
+      }
+    },
+    {
+      "id": 1899,
+      "firstname": "Quinndary",
+      "lastname": "Weatherspoon",
+      "birth": {
+        "date": "1996-09-10",
+        "country": "USA"
+      },
+      "nba": {
+        "start": 2019,
+        "pro": 2
+      },
+      "height": {
+        "feets": "6",
+        "inches": "3",
+        "meters": "1.9"
+      },
+      "weight": {
+        "pounds": "205",
+        "kilograms": "93.0"
+      },
+      "college": "Mississippi State",
+      "affiliation": "Mississippi State/USA",
+      "leagues": {
+        "standard": {
+          "jersey": 12,
+          "active": true,
+          "pos": "G"
+        },
+        "utah": {
+          "jersey": 15,
+          "active": true,
+          "pos": "G"
+        },
+        "vegas": {
+          "jersey": 12,
+          "active": true,
+          "pos": "G"
+        },
+        "sacramento": {
+          "jersey": 12,
+          "active": true,
+          "pos": "G"
+        }
+      }
+    },
+    {
+      "id": 2666,
+      "firstname": "James",
+      "lastname": "Wiseman",
+      "birth": {
+        "date": "2001-03-31",
+        "country": "USA"
+      },
+      "nba": {
+        "start": 2020,
+        "pro": 1
+      },
+      "height": {
+        "feets": "7",
+        "inches": "0",
+        "meters": "2.13"
+      },
+      "weight": {
+        "pounds": "240",
+        "kilograms": "108.9"
+      },
+      "college": "Memphis",
+      "affiliation": "Memphis/USA",
+      "leagues": {
+        "standard": {
+          "jersey": 33,
+          "active": true,
+          "pos": "C"
+        },
+        "sacramento": {
+          "jersey": 33,
+          "active": true,
+          "pos": "C"
+        },
+        "vegas": {
+          "jersey": 33,
+          "active": true,
+          "pos": "C"
+        }
+      }
+    },
+    {
+      "id": 2827,
+      "firstname": "Jonathan",
+      "lastname": "Kuminga",
+      "birth": {
+        "date": "2002-10-06",
+        "country": "DRC"
+      },
+      "nba": {
+        "start": 2021,
+        "pro": 0
+      },
+      "height": {
+        "feets": "6",
+        "inches": "7",
+        "meters": "2.01"
+      },
+      "weight": {
+        "pounds": "225",
+        "kilograms": "102.1"
+      },
+      "college": "NBA G League Ignite",
+      "affiliation": "NBA G League Ignite/DRC",
+      "leagues": {
+        "standard": {
+          "jersey": null,
+          "active": true,
+          "pos": "F"
+        },
+        "sacramento": {
+          "jersey": null,
+          "active": true,
+          "pos": "F"
+        },
+        "vegas": {
+          "jersey": null,
+          "active": true,
+          "pos": "F"
+        }
+      }
+    },
+    {
+      "id": 2609,
+      "firstname": "Anthony",
+      "lastname": "Lamb",
+      "birth": {
+        "date": "1998-01-20",
+        "country": "USA"
+      },
+      "nba": {
+        "start": 2020,
+        "pro": 1
+      },
+      "height": {
+        "feets": "6",
+        "inches": "6",
+        "meters": "1.98"
+      },
+      "weight": {
+        "pounds": "227",
+        "kilograms": "103.0"
+      },
+      "college": "Vermont",
+      "affiliation": "Vermont/USA",
+      "leagues": {
+        "standard": {
+          "jersey": 33,
+          "active": true,
+          "pos": "F"
+        },
+        "vegas": {
+          "jersey": 33,
+          "active": true,
+          "pos": "F"
+        }
+      }
+    },
+    {
+      "id": 3492,
+      "firstname": "Pat",
+      "lastname": "Spencer",
+      "birth": {
+        "date": null,
+        "country": null
+      },
+      "nba": {
+        "start": 0,
+        "pro": 0
+      },
+      "height": {
+        "feets": null,
+        "inches": null,
+        "meters": null
+      },
+      "weight": {
+        "pounds": null,
+        "kilograms": null
+      },
+      "college": null,
+      "affiliation": null,
+      "leagues": {
+        "standard": {
+          "jersey": 61,
+          "active": true,
+          "pos": "G"
+        },
+        "vegas": {
+          "jersey": 61,
+          "active": true,
+          "pos": "G"
+        }
+      }
+    },
+    {
+      "id": 2836,
+      "firstname": "Moses",
+      "lastname": "Moody",
+      "birth": {
+        "date": "2002-05-31",
+        "country": "USA"
+      },
+      "nba": {
+        "start": 2021,
+        "pro": 0
+      },
+      "height": {
+        "feets": "6",
+        "inches": "5",
+        "meters": "1.96"
+      },
+      "weight": {
+        "pounds": "211",
+        "kilograms": "95.7"
+      },
+      "college": "Arkansas",
+      "affiliation": "Arkansas/USA",
+      "leagues": {
+        "standard": {
+          "jersey": 4,
+          "active": true,
+          "pos": "G"
+        },
+        "sacramento": {
+          "jersey": 4,
+          "active": true,
+          "pos": "G"
+        },
+        "vegas": {
+          "jersey": 4,
+          "active": true,
+          "pos": "G"
+        }
+      }
+    },
+    {
+      "id": 3485,
+      "firstname": "Gui",
+      "lastname": "Santos",
+      "birth": {
+        "date": null,
+        "country": null
+      },
+      "nba": {
+        "start": 0,
+        "pro": 0
+      },
+      "height": {
+        "feets": null,
+        "inches": null,
+        "meters": null
+      },
+      "weight": {
+        "pounds": null,
+        "kilograms": null
+      },
+      "college": null,
+      "affiliation": null,
+      "leagues": {
+        "standard": {
+          "jersey": 15,
+          "active": true,
+          "pos": "G"
+        },
+        "sacramento": {
+          "jersey": 15,
+          "active": true,
+          "pos": "F"
+        },
+        "vegas": {
+          "jersey": 15,
+          "active": true,
+          "pos": "F"
+        }
+      }
+    },
+    {
+      "id": 2833,
+      "firstname": "Mac",
+      "lastname": "McClung",
+      "birth": {
+        "date": "1999-01-06",
+        "country": "USA"
+      },
+      "nba": {
+        "start": 2021,
+        "pro": 0
+      },
+      "height": {
+        "feets": "6",
+        "inches": "2",
+        "meters": "1.88"
+      },
+      "weight": {
+        "pounds": "185",
+        "kilograms": "83.9"
+      },
+      "college": "Texas Tech",
+      "affiliation": "Texas Tech/USA",
+      "leagues": {
+        "standard": {
+          "jersey": 37,
+          "active": true,
+          "pos": "G"
+        },
+        "sacramento": {
+          "jersey": 55,
+          "active": true,
+          "pos": "G"
+        },
+        "vegas": {
+          "jersey": 55,
+          "active": true,
+          "pos": "G"
+        }
+      }
+    },
+    {
+      "id": 3507,
+      "firstname": "Trevion",
+      "lastname": "Williams",
+      "birth": {
+        "date": null,
+        "country": null
+      },
+      "nba": {
+        "start": 0,
+        "pro": 0
+      },
+      "height": {
+        "feets": null,
+        "inches": null,
+        "meters": null
+      },
+      "weight": {
+        "pounds": null,
+        "kilograms": null
+      },
+      "college": null,
+      "affiliation": null,
+      "leagues": {
+        "standard": {
+          "jersey": null,
+          "active": true,
+          "pos": "C"
+        },
+        "vegas": {
+          "jersey": 50,
+          "active": true,
+          "pos": "C"
+        }
+      }
+    },
+    {
+      "id": 3413,
+      "firstname": "Patrick",
+      "lastname": "Baldwin Jr.",
+      "birth": {
+        "date": null,
+        "country": null
+      },
+      "nba": {
+        "start": 0,
+        "pro": 0
+      },
+      "height": {
+        "feets": null,
+        "inches": null,
+        "meters": null
+      },
+      "weight": {
+        "pounds": null,
+        "kilograms": null
+      },
+      "college": null,
+      "affiliation": null,
+      "leagues": {
+        "standard": {
+          "jersey": 7,
+          "active": true,
+          "pos": "F"
+        },
+        "sacramento": {
+          "jersey": 7,
+          "active": true,
+          "pos": "G-F"
+        },
+        "vegas": {
+          "jersey": 7,
+          "active": true,
+          "pos": "G-F"
+        }
+      }
+    },
+    {
+      "id": 3484,
+      "firstname": "Ryan",
+      "lastname": "Rollins",
+      "birth": {
+        "date": null,
+        "country": null
+      },
+      "nba": {
+        "start": 0,
+        "pro": 0
+      },
+      "height": {
+        "feets": null,
+        "inches": null,
+        "meters": null
+      },
+      "weight": {
+        "pounds": null,
+        "kilograms": null
+      },
+      "college": null,
+      "affiliation": null,
+      "leagues": {
+        "standard": {
+          "jersey": 2,
+          "active": true,
+          "pos": "G"
+        },
+        "sacramento": {
+          "jersey": 2,
+          "active": true,
+          "pos": "G"
+        },
+        "vegas": {
+          "jersey": 2,
+          "active": true,
+          "pos": "G"
+        }
+      }
+    },
+    {
+      "id": 3480,
+      "firstname": "Lester",
+      "lastname": "Quinones",
+      "birth": {
+        "date": null,
+        "country": null
+      },
+      "nba": {
+        "start": 0,
+        "pro": 0
+      },
+      "height": {
+        "feets": null,
+        "inches": null,
+        "meters": null
+      },
+      "weight": {
+        "pounds": null,
+        "kilograms": null
+      },
+      "college": null,
+      "affiliation": null,
+      "leagues": {
+        "standard": {
+          "jersey": 25,
+          "active": true,
+          "pos": "G"
+        },
+        "vegas": {
+          "jersey": 25,
+          "active": true,
+          "pos": "G"
+        }
+      }
+    },
+    {
+      "id": 124,
+      "firstname": "Stephen",
+      "lastname": "Curry",
+      "birth": {
+        "date": "1988-03-14",
+        "country": "USA"
+      },
+      "nba": {
+        "start": 2009,
+        "pro": 12
+      },
+      "height": {
+        "feets": "6",
+        "inches": "2",
+        "meters": "1.88"
+      },
+      "weight": {
+        "pounds": "185",
+        "kilograms": "83.9"
+      },
+      "college": "Davidson",
+      "affiliation": "Davidson/USA",
+      "leagues": {
+        "standard": {
+          "jersey": 30,
+          "active": true,
+          "pos": "G"
+        }
+      }
+    },
+    {
+      "id": 514,
+      "firstname": "Klay",
+      "lastname": "Thompson",
+      "birth": {
+        "date": "1990-02-08",
+        "country": "USA"
+      },
+      "nba": {
+        "start": 2011,
+        "pro": 8
+      },
+      "height": {
+        "feets": "6",
+        "inches": "6",
+        "meters": "1.98"
+      },
+      "weight": {
+        "pounds": "220",
+        "kilograms": "99.8"
+      },
+      "college": "Washington State",
+      "affiliation": "Washington State/USA",
+      "leagues": {
+        "standard": {
+          "jersey": 11,
+          "active": true,
+          "pos": "G"
+        }
+      }
+    },
+    {
+      "id": 204,
+      "firstname": "Draymond",
+      "lastname": "Green",
+      "birth": {
+        "date": "1990-03-04",
+        "country": "USA"
+      },
+      "nba": {
+        "start": 2012,
+        "pro": 9
+      },
+      "height": {
+        "feets": "6",
+        "inches": "6",
+        "meters": "1.98"
+      },
+      "weight": {
+        "pounds": "230",
+        "kilograms": "104.3"
+      },
+      "college": "Michigan State",
+      "affiliation": "Michigan State/USA",
+      "leagues": {
+        "standard": {
+          "jersey": 23,
+          "active": true,
+          "pos": "F"
+        }
+      }
+    },
+    {
+      "id": 206,
+      "firstname": "JaMychal",
+      "lastname": "Green",
+      "birth": {
+        "date": "1990-06-21",
+        "country": "USA"
+      },
+      "nba": {
+        "start": 2014,
+        "pro": 7
+      },
+      "height": {
+        "feets": "6",
+        "inches": "8",
+        "meters": "2.03"
+      },
+      "weight": {
+        "pounds": "227",
+        "kilograms": "103.0"
+      },
+      "college": "Alabama",
+      "affiliation": "Alabama/USA",
+      "leagues": {
+        "standard": {
+          "jersey": 1,
+          "active": true,
+          "pos": "F-C"
+        }
+      }
+    },
+    {
+      "id": 548,
+      "firstname": "Andrew",
+      "lastname": "Wiggins",
+      "birth": {
+        "date": "1995-02-23",
+        "country": "Canada"
+      },
+      "nba": {
+        "start": 2014,
+        "pro": 7
+      },
+      "height": {
+        "feets": "6",
+        "inches": "7",
+        "meters": "2.01"
+      },
+      "weight": {
+        "pounds": "197",
+        "kilograms": "89.4"
+      },
+      "college": "Kansas",
+      "affiliation": "Kansas/Canada",
+      "leagues": {
+        "standard": {
+          "jersey": 22,
+          "active": true,
+          "pos": "F"
+        }
+      }
+    },
+    {
+      "id": 256,
+      "firstname": "Andre",
+      "lastname": "Iguodala",
+      "birth": {
+        "date": "1984-01-28",
+        "country": "USA"
+      },
+      "nba": {
+        "start": 2004,
+        "pro": 17
+      },
+      "height": {
+        "feets": "6",
+        "inches": "6",
+        "meters": "1.98"
+      },
+      "weight": {
+        "pounds": "215",
+        "kilograms": "97.5"
+      },
+      "college": "Arizona",
+      "affiliation": "Arizona/USA",
+      "leagues": {
+        "standard": {
+          "jersey": 9,
+          "active": true,
+          "pos": "G-F"
+        }
+      }
+    }
+  ]
+}

@@ -13,6 +13,9 @@ const { initializeDatabase } = require('./database/setup');
 const gamesRoutes = require('./routes/games');
 const teamsRoutes = require('./routes/teams');
 const leaguesRoutes = require('./routes/leagues');
+const venuesRoutes = require('./routes/venues');
+const playersRoutes = require('./routes/players');
+const playerStatsRoutes = require('./routes/playerStats');
 
 const app = express();
 
@@ -81,6 +84,9 @@ app.get('/api/status', async (req, res) => {
 app.use('/api/games', gamesRoutes);
 app.use('/api/teams', teamsRoutes);
 app.use('/api/leagues', leaguesRoutes);
+app.use('/api/venues', venuesRoutes);
+app.use('/api/players', playersRoutes);
+app.use('/api/playerStats', playerStatsRoutes);
 
 // Data refresh endpoint removed - using static data only
 

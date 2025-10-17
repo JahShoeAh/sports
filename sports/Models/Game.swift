@@ -14,47 +14,41 @@ struct Game: Identifiable, Codable {
     let league: League
     let season: String
     let week: Int?
-    let gameDate: Date
     let gameTime: Date
-    let venue: String
-    let city: String
-    let state: String
-    let country: String
+    let venue: Venue?
     let homeScore: Int?
     let awayScore: Int?
+    let homeLineScore: [Int]?
+    let awayLineScore: [Int]?
+    let leadChanges: Int?
     let quarter: Int?
-    let timeRemaining: String?
     let isLive: Bool
     let isCompleted: Bool
+    let apiGameId: Int?
     
     // Game details
     let startingLineups: StartingLineups?
-    let boxScore: BoxScore?
-    let gameStats: GameStats?
     
     // Default memberwise initializer
-    init(id: String, homeTeam: Team, awayTeam: Team, league: League, season: String, week: Int?, gameDate: Date, gameTime: Date, venue: String, city: String, state: String, country: String, homeScore: Int?, awayScore: Int?, quarter: Int?, timeRemaining: String?, isLive: Bool, isCompleted: Bool, startingLineups: StartingLineups?, boxScore: BoxScore?, gameStats: GameStats?) {
+    init(id: String, homeTeam: Team, awayTeam: Team, league: League, season: String, week: Int?, gameTime: Date, venue: Venue?, homeScore: Int?, awayScore: Int?, homeLineScore: [Int]?, awayLineScore: [Int]?, leadChanges: Int?, quarter: Int?, isLive: Bool, isCompleted: Bool, apiGameId: Int?, startingLineups: StartingLineups?) {
         self.id = id
         self.homeTeam = homeTeam
         self.awayTeam = awayTeam
         self.league = league
         self.season = season
         self.week = week
-        self.gameDate = gameDate
         self.gameTime = gameTime
         self.venue = venue
-        self.city = city
-        self.state = state
-        self.country = country
         self.homeScore = homeScore
         self.awayScore = awayScore
+        self.homeLineScore = homeLineScore
+        self.awayLineScore = awayLineScore
+        self.leadChanges = leadChanges
         self.quarter = quarter
-        self.timeRemaining = timeRemaining
         self.isLive = isLive
         self.isCompleted = isCompleted
+        self.apiGameId = apiGameId
         self.startingLineups = startingLineups
-        self.boxScore = boxScore
-        self.gameStats = gameStats
     }
     
     // Custom date decoding
@@ -67,33 +61,57 @@ struct Game: Identifiable, Codable {
         league = try container.decode(League.self, forKey: .league)
         season = try container.decode(String.self, forKey: .season)
         week = try container.decodeIfPresent(Int.self, forKey: .week)
-        venue = try container.decode(String.self, forKey: .venue)
-        city = try container.decode(String.self, forKey: .city)
-        state = try container.decode(String.self, forKey: .state)
-        country = try container.decode(String.self, forKey: .country)
+        venue = try container.decodeIfPresent(Venue.self, forKey: .venue)
         homeScore = try container.decodeIfPresent(Int.self, forKey: .homeScore)
         awayScore = try container.decodeIfPresent(Int.self, forKey: .awayScore)
+        homeLineScore = try container.decodeIfPresent([Int].self, forKey: .homeLineScore)
+        awayLineScore = try container.decodeIfPresent([Int].self, forKey: .awayLineScore)
+        leadChanges = try container.decodeIfPresent(Int.self, forKey: .leadChanges)
         quarter = try container.decodeIfPresent(Int.self, forKey: .quarter)
-        timeRemaining = try container.decodeIfPresent(String.self, forKey: .timeRemaining)
         isLive = try container.decode(Bool.self, forKey: .isLive)
         isCompleted = try container.decode(Bool.self, forKey: .isCompleted)
+        apiGameId = try container.decodeIfPresent(Int.self, forKey: .apiGameId)
         startingLineups = try container.decodeIfPresent(StartingLineups.self, forKey: .startingLineups)
-        boxScore = try container.decodeIfPresent(BoxScore.self, forKey: .boxScore)
-        gameStats = try container.decodeIfPresent(GameStats.self, forKey: .gameStats)
-        
-        // Custom date parsing
-        let gameDateString = try container.decode(String.self, forKey: .gameDate)
-        let gameTimeString = try container.decode(String.self, forKey: .gameTime)
-        
-        // Parse gameDate (simple date string like "2025-04-13")
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "yyyy-MM-dd"
-        dateFormatter.timeZone = TimeZone(identifier: "UTC")
-        gameDate = dateFormatter.date(from: gameDateString) ?? Date()
         
         // Parse gameTime (ISO datetime string like "2025-04-13T19:30:00.000Z")
+        let gameTimeString = try container.decode(String.self, forKey: .gameTime)
+        print("DEBUG: Parsing gameTime - Raw string: '\(gameTimeString)'")
+        
+        // Configure ISO8601DateFormatter with proper options
         let isoFormatter = ISO8601DateFormatter()
-        gameTime = isoFormatter.date(from: gameTimeString) ?? Date()
+        isoFormatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        
+        if let parsedTime = isoFormatter.date(from: gameTimeString) {
+            gameTime = parsedTime
+            print("DEBUG: Successfully parsed gameTime as: \(parsedTime) (Local: \(parsedTime.formatted(date: .abbreviated, time: .shortened)))")
+        } else {
+            print("DEBUG: ISO8601 parsing failed, trying alternative formats...")
+            
+            // Try alternative date formats if ISO8601 fails
+            let alternativeFormatter = DateFormatter()
+            alternativeFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"
+            alternativeFormatter.timeZone = TimeZone(identifier: "UTC")
+            
+            if let altParsedTime = alternativeFormatter.date(from: gameTimeString) {
+                gameTime = altParsedTime
+                print("DEBUG: Alternative format succeeded: \(altParsedTime) (Local: \(altParsedTime.formatted(date: .abbreviated, time: .shortened)))")
+            } else {
+                // Try without fractional seconds
+                let simpleFormatter = DateFormatter()
+                simpleFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss'Z'"
+                simpleFormatter.timeZone = TimeZone(identifier: "UTC")
+                
+                if let simpleParsedTime = simpleFormatter.date(from: gameTimeString) {
+                    gameTime = simpleParsedTime
+                    print("DEBUG: Simple format succeeded: \(simpleParsedTime) (Local: \(simpleParsedTime.formatted(date: .abbreviated, time: .shortened)))")
+                } else {
+                    // If all parsing fails, use current time as fallback
+                    gameTime = Date()
+                    print("DEBUG: All parsing failed. Using current time: \(gameTime) (Local: \(gameTime.formatted(date: .abbreviated, time: .shortened)))")
+                    print("DEBUG: Failed to parse gameTime '\(gameTimeString)', using current time")
+                }
+            }
+        }
     }
     
     var displayTitle: String {
@@ -106,10 +124,11 @@ struct Game: Identifiable, Codable {
     
     // CodingKeys for custom decoding
     private enum CodingKeys: String, CodingKey {
-        case id, homeTeam, awayTeam, league, season, week, gameDate, gameTime
-        case venue, city, state, country, homeScore, awayScore
-        case quarter, timeRemaining, isLive, isCompleted
-        case startingLineups, boxScore, gameStats
+        case id, homeTeam, awayTeam, league, season, week, gameTime
+        case venue, homeScore, awayScore, homeLineScore, awayLineScore, leadChanges
+        case quarter, isLive, isCompleted
+        case apiGameId
+        case startingLineups
     }
 }
 
@@ -118,46 +137,6 @@ struct StartingLineups: Codable {
     let away: [Player]
 }
 
-struct BoxScore: Codable {
-    let home: TeamBoxScore
-    let away: TeamBoxScore
-}
+// Removed BoxScore storage from model per backend change
 
-struct TeamBoxScore: Codable {
-    let team: Team
-    let stats: [String: Any] // TODO:QUESTION - Define specific stat structure per sport
-    
-    enum CodingKeys: String, CodingKey {
-        case team
-        case stats
-    }
-    
-    init(from decoder: Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        team = try container.decode(Team.self, forKey: .team)
-        stats = [:] // TODO: Implement proper stat decoding
-    }
-    
-    func encode(to encoder: Encoder) throws {
-        var container = encoder.container(keyedBy: CodingKeys.self)
-        try container.encode(team, forKey: .team)
-        // TODO: Implement proper stat encoding
-    }
-}
-
-struct GameStats: Codable {
-    let home: TeamGameStats
-    let away: TeamGameStats
-}
-
-struct TeamGameStats: Codable {
-    let team: Team
-    let statLeaders: [StatLeader]
-}
-
-struct StatLeader: Codable {
-    let category: String
-    let player: Player
-    let value: String
-}
 

@@ -13,10 +13,10 @@ router.get('/', async (req, res) => {
       id: league.id,
       name: league.name,
       abbreviation: league.abbreviation,
-      logoURL: league.logo_url,
+      logoURL: league.logoUrl,
       sport: league.sport,
       level: league.level,
-      isActive: league.is_active === 1
+      isActive: league.isActive === 1
     }));
 
     res.json({
@@ -54,10 +54,10 @@ router.get('/:id', async (req, res) => {
       id: league.id,
       name: league.name,
       abbreviation: league.abbreviation,
-      logoURL: league.logo_url,
+      logoURL: league.logoUrl,
       sport: league.sport,
       level: league.level,
-      isActive: league.is_active === 1
+      isActive: league.isActive === 1
     };
 
     res.json({
@@ -72,6 +72,18 @@ router.get('/:id', async (req, res) => {
       message: 'Internal server error',
       error: error.message
     });
+  }
+});
+
+// GET /api/leagues/:leagueId/seasons - list distinct seasons for a league
+router.get('/:leagueId/seasons', async (req, res) => {
+  const { leagueId } = req.params;
+  try {
+    const seasons = await database.getSeasons(leagueId);
+    res.json({ success: true, data: { seasons } });
+  } catch (error) {
+    console.error('Error fetching seasons:', error);
+    res.status(500).json({ success: false, message: 'Error fetching seasons', error: error.message });
   }
 });
 
