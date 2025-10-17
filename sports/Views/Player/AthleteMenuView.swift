@@ -231,19 +231,24 @@ struct PlayerPastGamesView: View {
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
-                // 3-per-row grid for past games
-                LazyVGrid(columns: [
-                    GridItem(.flexible(), spacing: 12),
-                    GridItem(.flexible(), spacing: 12),
-                    GridItem(.flexible(), spacing: 12)
-                ], spacing: 12) {
+                // Vertical stack for past games
+                LazyVStack(spacing: 12) {
                     ForEach(pastGames) { game in
-                        GamePosterCard(game: game)
+                        GameCardAthlete(game: game, athleteTeam: player.team ?? getTeamFromGame(game, playerTeamId: player.teamId))
                     }
                 }
             }
         }
         .padding()
+    }
+    
+    private func getTeamFromGame(_ game: Game, playerTeamId: String) -> Team {
+        // If player's team matches home team, return home team, otherwise return away team
+        if game.homeTeam.id == playerTeamId {
+            return game.homeTeam
+        } else {
+            return game.awayTeam
+        }
     }
 }
 

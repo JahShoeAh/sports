@@ -16,9 +16,9 @@ struct LeaguePageView: View {
     @State private var availableSeasons: [String] = []
     @State private var seasonsLoaded: Bool = false
     @State private var isLoading = false
-    @State private var isRefreshing = false
     @State private var errorMessage: String?
-    @State private var lastUpdateTime: Date?
+    @State private var showingTeamFilter: Bool = false
+    @State private var selectedTeamIds: Set<String> = []
     
     private let dataManager = SimpleDataManager.shared
     private let cacheService = CacheService.shared
@@ -58,14 +58,38 @@ struct LeaguePageView: View {
                     Spacer()
                 }
                 .padding(.horizontal)
-                
-                // Season Selector and Refresh Button (only show on schedule tab)
-                if selectedTab == .schedule {
+            }
+            .padding(.vertical, 12)
+            .background(Color(.systemBackground))
+            
+            // Tab Selector
+            HStack(spacing: 0) {
+                ForEach(LeagueTab.allCases, id: \.self) { tab in
+                    Button(action: {
+                        selectedTab = tab
+                    }) {
+                        VStack(spacing: 8) {
+                            Text(tab.rawValue)
+                                .font(.headline)
+                                .fontWeight(.semibold)
+                                .foregroundColor(selectedTab == tab ? .primary : .secondary)
+                            
+                            Rectangle()
+                                .fill(selectedTab == tab ? Color.primary : Color.clear)
+                                .frame(height: 2)
+                        }
+                    }
+                    .frame(maxWidth: .infinity)
+                }
+            }
+            .padding(.horizontal)
+            .background(Color(.systemBackground))
+            
+            // Season Selector and Controls (only show on schedule tab)
+            if selectedTab == .schedule {
+                VStack(spacing: 8) {
+                    // Top row: Season picker and filter button
                     HStack {
-                        Text("Season:")
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
-                        
                         Group {
                             if seasonsLoaded && !availableSeasons.isEmpty {
                                 Picker("Season", selection: $selectedSeason) {
@@ -74,6 +98,7 @@ struct LeaguePageView: View {
                                     }
                                 }
                                 .pickerStyle(MenuPickerStyle())
+                                .lineLimit(1)
                             } else if seasonsLoaded && availableSeasons.isEmpty {
                                 Text("No seasons available")
                                     .font(.subheadline)
@@ -104,52 +129,28 @@ struct LeaguePageView: View {
                         
                         Spacer()
                         
-                        // Refresh Button
+                        // Filter Button
                         Button(action: {
-                            Task {
-                                await refreshData()
-                            }
+                            showingTeamFilter = true
                         }) {
-                            Image(systemName: "arrow.clockwise")
-                                .foregroundColor(.blue)
+                            HStack(spacing: 4) {
+                                Image(systemName: "line.3.horizontal.decrease.circle")
+                                    .foregroundColor(.blue)
+                                if !selectedTeamIds.isEmpty {
+                                    Text("\(selectedTeamIds.count)")
+                                        .font(.caption)
+                                        .foregroundColor(.blue)
+                                }
+                            }
                         }
-                        .disabled(isRefreshing)
-                        
-                        // Last Update Time
-                        if let lastUpdate = lastUpdateTime {
-                            Text("Updated \(formatLastUpdate(lastUpdate))")
-                                .font(.caption2)
-                                .foregroundColor(.secondary)
-                        }
+                        .disabled(teams.isEmpty)
                     }
-                    .padding(.horizontal)
+                    
                 }
+                .padding(.horizontal)
+                .padding(.vertical, 8)
+                .background(Color(.systemBackground))
             }
-            .padding(.vertical, 12)
-            .background(Color(.systemBackground))
-            
-            // Tab Selector
-            HStack(spacing: 0) {
-                ForEach(LeagueTab.allCases, id: \.self) { tab in
-                    Button(action: {
-                        selectedTab = tab
-                    }) {
-                        VStack(spacing: 8) {
-                            Text(tab.rawValue)
-                                .font(.headline)
-                                .fontWeight(.semibold)
-                                .foregroundColor(selectedTab == tab ? .primary : .secondary)
-                            
-                            Rectangle()
-                                .fill(selectedTab == tab ? Color.primary : Color.clear)
-                                .frame(height: 2)
-                        }
-                    }
-                    .frame(maxWidth: .infinity)
-                }
-            }
-            .padding(.horizontal)
-            .background(Color(.systemBackground))
             
             Divider()
             
@@ -158,7 +159,9 @@ struct LeaguePageView: View {
                 switch selectedTab {
                 case .schedule:
                     GameScheduleView(
-                        games: games,
+                        allGames: games,
+                        teams: teams,
+                        selectedTeamIds: selectedTeamIds,
                         isLoading: isLoading,
                         errorMessage: errorMessage,
                         onGameTap: { game in
@@ -185,6 +188,13 @@ struct LeaguePageView: View {
         }
         .refreshable {
             await refreshData()
+        }
+        .sheet(isPresented: $showingTeamFilter) {
+            TeamFilterSheet(
+                teams: teams,
+                selectedTeamIds: $selectedTeamIds,
+                isPresented: $showingTeamFilter
+            )
         }
     }
     
@@ -270,9 +280,6 @@ struct LeaguePageView: View {
         // Load teams from cache
         teams = dataManager.fetchTeams(for: league.id)
         
-        // Update last update time
-        lastUpdateTime = cacheService.getLastUpdateTime(for: league.id)
-        
         // Clear any previous errors
         errorMessage = nil
     }
@@ -320,7 +327,6 @@ struct LeaguePageView: View {
     }
     
     private func refreshData() async {
-        isRefreshing = true
         errorMessage = nil
         
         // Reset seasons loading state
@@ -350,14 +356,135 @@ struct LeaguePageView: View {
         
         await MainActor.run {
             loadCachedData()
-            isRefreshing = false
         }
     }
     
-    private func formatLastUpdate(_ date: Date) -> String {
-        let formatter = RelativeDateTimeFormatter()
-        formatter.unitsStyle = .abbreviated
-        return formatter.localizedString(for: date, relativeTo: Date())
+}
+
+// MARK: - Team Filter Sheet
+struct TeamFilterSheet: View {
+    let teams: [Team]
+    @Binding var selectedTeamIds: Set<String>
+    @Binding var isPresented: Bool
+    
+    private var sortedTeams: [Team] {
+        teams.sorted { $0.name < $1.name }
+    }
+    
+    var body: some View {
+        NavigationView {
+            VStack(spacing: 0) {
+                // Clear Filters Button
+                Button(action: {
+                    selectedTeamIds.removeAll()
+                }) {
+                    HStack {
+                        Image(systemName: "xmark.circle.fill")
+                            .foregroundColor(.red)
+                        Text("Clear Filters")
+                            .font(.headline)
+                            .fontWeight(.semibold)
+                            .foregroundColor(.red)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(Color.red.opacity(0.1))
+                    .cornerRadius(12)
+                }
+                .padding()
+                .disabled(selectedTeamIds.isEmpty)
+                
+                Divider()
+                
+                // Teams List
+                List {
+                    ForEach(sortedTeams) { team in
+                        TeamFilterRow(
+                            team: team,
+                            isSelected: selectedTeamIds.contains(team.id)
+                        ) {
+                            if selectedTeamIds.contains(team.id) {
+                                selectedTeamIds.remove(team.id)
+                            } else {
+                                selectedTeamIds.insert(team.id)
+                            }
+                        }
+                    }
+                }
+                .listStyle(PlainListStyle())
+            }
+            .navigationTitle("Filter by Team")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("Cancel") {
+                        isPresented = false
+                    }
+                }
+                
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Done") {
+                        isPresented = false
+                    }
+                    .fontWeight(.semibold)
+                }
+            }
+        }
+    }
+}
+
+// MARK: - Team Filter Row
+struct TeamFilterRow: View {
+    let team: Team
+    let isSelected: Bool
+    let onTap: () -> Void
+    
+    var body: some View {
+        Button(action: onTap) {
+            HStack(spacing: 12) {
+                // Team Logo
+                AsyncImage(url: URL(string: team.logoURL ?? "")) { image in
+                    image
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                } placeholder: {
+                    RoundedRectangle(cornerRadius: 6)
+                        .fill(Color(.systemGray5))
+                        .overlay(
+                            Image(systemName: "person.3")
+                                .font(.title3)
+                                .foregroundColor(.secondary)
+                        )
+                }
+                .frame(width: 40, height: 40)
+                
+                // Team Info
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(team.name)
+                        .font(.headline)
+                        .foregroundColor(.primary)
+                    
+                    Text(team.city)
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                }
+                
+                Spacer()
+                
+                // Checkmark
+                if isSelected {
+                    Image(systemName: "checkmark.circle.fill")
+                        .foregroundColor(.blue)
+                        .font(.title2)
+                } else {
+                    Image(systemName: "circle")
+                        .foregroundColor(.secondary)
+                        .font(.title2)
+                }
+            }
+            .padding(.vertical, 4)
+        }
+        .buttonStyle(PlainButtonStyle())
     }
 }
 

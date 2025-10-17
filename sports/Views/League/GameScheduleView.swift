@@ -8,7 +8,9 @@
 import SwiftUI
 
 struct GameScheduleView: View {
-    let games: [Game]
+    let allGames: [Game]
+    let teams: [Team]
+    let selectedTeamIds: Set<String>
     let isLoading: Bool
     let errorMessage: String?
     let onGameTap: (Game) -> Void
@@ -20,6 +22,16 @@ struct GameScheduleView: View {
     @State private var showingNoGamesMessage = false
     @State private var noGamesMessage = ""
     @State private var scrollTarget: String?
+    
+    private var games: [Game] {
+        if selectedTeamIds.isEmpty {
+            return allGames
+        } else {
+            return allGames.filter { game in
+                selectedTeamIds.contains(game.homeTeam.id) || selectedTeamIds.contains(game.awayTeam.id)
+            }
+        }
+    }
     
     private var gamesByDate: [String: [Game]] {
         let formatter = DateFormatter()

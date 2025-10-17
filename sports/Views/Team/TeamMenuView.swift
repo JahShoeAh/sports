@@ -390,13 +390,9 @@ struct GamesView: View {
                                 }
                                 .padding(.horizontal)
                                 
-                                LazyVGrid(columns: [
-                                    GridItem(.flexible(), spacing: 12),
-                                    GridItem(.flexible(), spacing: 12),
-                                    GridItem(.flexible(), spacing: 12)
-                                ], spacing: 12) {
+                                LazyVStack(spacing: 12) {
                                     ForEach(gamesByMonth[month] ?? []) { game in
-                                        GamePosterCard(game: game)
+                                        GameCardTeam(game: game, viewingTeam: team)
                                     }
                                 }
                                 .padding(.horizontal)
