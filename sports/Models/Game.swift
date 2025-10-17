@@ -75,7 +75,6 @@ struct Game: Identifiable, Codable {
         
         // Parse gameTime (ISO datetime string like "2025-04-13T19:30:00.000Z")
         let gameTimeString = try container.decode(String.self, forKey: .gameTime)
-        print("DEBUG: Parsing gameTime - Raw string: '\(gameTimeString)'")
         
         // Configure ISO8601DateFormatter with proper options
         let isoFormatter = ISO8601DateFormatter()
@@ -83,10 +82,7 @@ struct Game: Identifiable, Codable {
         
         if let parsedTime = isoFormatter.date(from: gameTimeString) {
             gameTime = parsedTime
-            print("DEBUG: Successfully parsed gameTime as: \(parsedTime) (Local: \(parsedTime.formatted(date: .abbreviated, time: .shortened)))")
         } else {
-            print("DEBUG: ISO8601 parsing failed, trying alternative formats...")
-            
             // Try alternative date formats if ISO8601 fails
             let alternativeFormatter = DateFormatter()
             alternativeFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"
@@ -94,7 +90,6 @@ struct Game: Identifiable, Codable {
             
             if let altParsedTime = alternativeFormatter.date(from: gameTimeString) {
                 gameTime = altParsedTime
-                print("DEBUG: Alternative format succeeded: \(altParsedTime) (Local: \(altParsedTime.formatted(date: .abbreviated, time: .shortened)))")
             } else {
                 // Try without fractional seconds
                 let simpleFormatter = DateFormatter()
@@ -103,12 +98,10 @@ struct Game: Identifiable, Codable {
                 
                 if let simpleParsedTime = simpleFormatter.date(from: gameTimeString) {
                     gameTime = simpleParsedTime
-                    print("DEBUG: Simple format succeeded: \(simpleParsedTime) (Local: \(simpleParsedTime.formatted(date: .abbreviated, time: .shortened)))")
                 } else {
                     // If all parsing fails, use current time as fallback
                     gameTime = Date()
-                    print("DEBUG: All parsing failed. Using current time: \(gameTime) (Local: \(gameTime.formatted(date: .abbreviated, time: .shortened)))")
-                    print("DEBUG: Failed to parse gameTime '\(gameTimeString)', using current time")
+                    print("DEBUG: ALL TIME PARSING FAILED")
                 }
             }
         }

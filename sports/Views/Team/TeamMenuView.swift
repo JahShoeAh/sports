@@ -20,37 +20,31 @@ struct TeamMenuView: View {
     private let cacheService = CacheService.shared
     
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
-                // Team Header
-                TeamHeaderView(team: team)
-                
-                // Tab View
-                VStack(spacing: 0) {
-                    // Tab Picker
-                    Picker("Team Details", selection: $selectedTab) {
-                        Text("Roster").tag(0)
-                        Text("Games").tag(1)
-                        Text("Record").tag(2)
-                    }
-                    .pickerStyle(SegmentedPickerStyle())
-                    
-                    // Tab Content
-                    TabView(selection: $selectedTab) {
-                        RosterView(team: team, roster: $roster, isLoading: $isLoading)
-                            .tag(0)
-                        
-                        GamesView(team: team, games: $games, selectedSeason: $selectedSeason, isLoading: $isLoading, errorMessage: $errorMessage)
-                            .tag(1)
-                        
-                        RecordView(team: team, selectedSeason: $selectedSeason, record: $record, isLoading: $isLoading)
-                            .tag(2)
-                    }
-                    .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
-                    .frame(height: 400)
-                }
+        VStack(spacing: 0) {
+            // Team Header
+            TeamHeaderView(team: team)
+                .padding()
+            
+            // Tab Picker
+            Picker("Team Details", selection: $selectedTab) {
+                Text("Roster").tag(0)
+                Text("Games").tag(1)
+                Text("Record").tag(2)
             }
-            .padding()
+            .pickerStyle(SegmentedPickerStyle())
+            .padding(.horizontal)
+            
+            // Tab Content
+            if selectedTab == 0 {
+                RosterView(team: team, roster: $roster, isLoading: $isLoading)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else if selectedTab == 1 {
+                GamesView(team: team, games: $games, selectedSeason: $selectedSeason, isLoading: $isLoading, errorMessage: $errorMessage)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else {
+                RecordView(team: team, selectedSeason: $selectedSeason, record: $record, isLoading: $isLoading)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            }
         }
         .navigationTitle(team.name)
         .navigationBarTitleDisplayMode(.large)
@@ -198,6 +192,7 @@ struct RosterView: View {
                 }
             }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .padding()
     }
 }
@@ -287,6 +282,7 @@ struct GamesView: View {
     @Binding var selectedSeason: String
     @Binding var isLoading: Bool
     @Binding var errorMessage: String?
+    @State private var collapsedMonths: Set<String> = []
     
     private var seasons: [String] {
         let values = Array(Set(games.map { $0.season }))
@@ -379,23 +375,35 @@ struct GamesView: View {
                     LazyVStack(spacing: 24) {
                         ForEach(sortedMonthKeys, id: \.self) { month in
                             VStack(alignment: .leading, spacing: 12) {
-                                HStack {
-                                    Text(month)
-                                        .font(.headline)
-                                        .fontWeight(.semibold)
-                                    Spacer()
-                                    Text("\(gamesByMonth[month]?.count ?? 0) games")
-                                        .font(.subheadline)
-                                        .foregroundColor(.secondary)
-                                }
-                                .padding(.horizontal)
-                                
-                                LazyVStack(spacing: 12) {
-                                    ForEach(gamesByMonth[month] ?? []) { game in
-                                        GameCardTeam(game: game, viewingTeam: team)
+                                Button(action: {
+                                    if collapsedMonths.contains(month) {
+                                        collapsedMonths.remove(month)
+                                    } else {
+                                        collapsedMonths.insert(month)
+                                    }
+                                }) {
+                                    HStack {
+                                        Image(systemName: collapsedMonths.contains(month) ? "chevron.right" : "chevron.down")
+                                            .foregroundColor(.secondary)
+                                        Text(month)
+                                            .font(.headline)
+                                            .fontWeight(.semibold)
+                                        Spacer()
+                                        Text("\(gamesByMonth[month]?.count ?? 0) games")
+                                            .font(.subheadline)
+                                            .foregroundColor(.secondary)
                                     }
                                 }
                                 .padding(.horizontal)
+                                
+                                if !collapsedMonths.contains(month) {
+                                    LazyVStack(spacing: 12) {
+                                        ForEach(gamesByMonth[month] ?? []) { game in
+                                            GameCardTeam(game: game, viewingTeam: team)
+                                        }
+                                    }
+                                    .padding(.horizontal)
+                                }
                             }
                         }
                     }
@@ -403,6 +411,7 @@ struct GamesView: View {
                 }
             }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .onAppear {
             if selectedSeason.isEmpty, let last = seasons.last {
                 selectedSeason = last
@@ -465,38 +474,46 @@ struct RecordView: View {
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
-                ScrollView {
-                    VStack(spacing: 0) {
-                        // Header
-                        HStack {
-                            Text("Opponent")
-                                .font(.subheadline)
-                                .fontWeight(.semibold)
-                                .frame(maxWidth: .infinity, alignment: .leading)
+                VStack(alignment: .leading, spacing: 0) {
+                    ScrollView([.horizontal, .vertical]) {
+                        VStack(spacing: 0) {
+                            // Header
+                            HStack(spacing: 0) {
+                                Text("DATE")
+                                    .font(.subheadline)
+                                    .fontWeight(.semibold)
+                                    .frame(width: 60, alignment: .leading)
+                                
+                                Text("OPP")
+                                    .font(.subheadline)
+                                    .fontWeight(.semibold)
+                                    .frame(width: 80, alignment: .leading)
+                                
+                                Text("SCORE")
+                                    .font(.subheadline)
+                                    .fontWeight(.semibold)
+                                    .frame(width: 80)
+                                
+                                Text("W/L")
+                                    .font(.subheadline)
+                                    .fontWeight(.semibold)
+                                    .frame(width: 40)
+                                
+                                Text("HI POINTS")
+                                    .font(.subheadline)
+                                    .fontWeight(.semibold)
+                                    .frame(width: 100)
+                            }
+                            .padding()
+                            .background(Color(.systemGray6))
                             
-                            Text("Score")
-                                .font(.subheadline)
-                                .fontWeight(.semibold)
-                                .frame(width: 80)
-                            
-                            Text("W/L")
-                                .font(.subheadline)
-                                .fontWeight(.semibold)
-                                .frame(width: 40)
-                            
-                            Text("Top Scorer")
-                                .font(.subheadline)
-                                .fontWeight(.semibold)
-                                .frame(width: 100)
-                        }
-                        .padding()
-                        .background(Color(.systemGray6))
-                        
-                        // Record Rows
-                        ForEach(filteredRecord) { game in
-                            RecordRowView(team: team, game: game)
+                            // Record Rows
+                            ForEach(filteredRecord) { game in
+                                RecordRowView(team: team, game: game)
+                            }
                         }
                     }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
                 }
                 .background(Color(.systemBackground))
                 .cornerRadius(8)
@@ -506,6 +523,7 @@ struct RecordView: View {
                 )
             }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .onAppear {
             if selectedSeason.isEmpty, let last = seasons.last {
                 selectedSeason = last
@@ -535,16 +553,33 @@ struct RecordRowView: View {
         teamScore > opponentScore
     }
     
+    private var gameDate: String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "M/d"
+        return formatter.string(from: game.gameTime)
+    }
+    
+    private var opponentDisplay: String {
+        let isHome = game.homeTeam.id == team.id
+        let prefix = isHome ? "vs" : "@"
+        return "\(prefix) \(opponent.abbreviation ?? opponent.name)"
+    }
+    
     var body: some View {
-        HStack {
-            // Opponent name (clickable)
+        HStack(spacing: 0) {
+            // Date
+            Text(gameDate)
+                .font(.subheadline)
+                .frame(width: 60, alignment: .leading)
+            
+            // Opponent (clickable)
             NavigationLink(destination: TeamMenuLoaderView(teamId: opponent.id)) {
-                Text(opponent.name)
+                Text(opponentDisplay)
                     .font(.subheadline)
                     .fontWeight(.bold)
                     .foregroundColor(.primary)
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
+            .frame(width: 80, alignment: .leading)
             
             // Score
             Text("\(teamScore) - \(opponentScore)")
@@ -558,7 +593,7 @@ struct RecordRowView: View {
                 .foregroundColor(isWin ? .green : .red)
                 .frame(width: 40)
             
-            // Top scorer placeholder (would need player stats data)
+            // High points placeholder (would need player stats data)
             Text("TBD")
                 .font(.caption)
                 .foregroundColor(.secondary)

@@ -21,39 +21,33 @@ struct AthleteMenuView: View {
     private let cacheService = CacheService.shared
     
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
-                // Player Header
-                PlayerHeaderView(player: player)
-                
-                // Tab View
-                VStack(spacing: 0) {
-                    // Tab Picker
-                    Picker("Player Details", selection: $selectedTab) {
-                        Text("Past Games").tag(0)
-                        Text("Stats").tag(1)
-                    }
-                    .pickerStyle(SegmentedPickerStyle())
-                    
-                    // Tab Content
-                    TabView(selection: $selectedTab) {
-                        PlayerPastGamesView(player: player, pastGames: $pastGames, isLoading: $isLoading)
-                            .tag(0)
-                        
-                        PlayerStatsView(
-                            player: player,
-                            selectedSeason: $selectedSeason,
-                            availableSeasons: $availableSeasons,
-                            filteredStats: $filteredStats,
-                            isLoading: $isLoading
-                        )
-                        .tag(1)
-                    }
-                    .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
-                    .frame(height: 400)
-                }
+        VStack(spacing: 0) {
+            // Player Header
+            PlayerHeaderView(player: player)
+                .padding()
+            
+            // Tab Picker
+            Picker("Player Details", selection: $selectedTab) {
+                Text("Past Games").tag(0)
+                Text("Stats").tag(1)
             }
-            .padding()
+            .pickerStyle(SegmentedPickerStyle())
+            .padding(.horizontal)
+            
+            // Tab Content
+            if selectedTab == 0 {
+                PlayerPastGamesView(player: player, pastGames: $pastGames, isLoading: $isLoading)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else {
+                PlayerStatsView(
+                    player: player,
+                    selectedSeason: $selectedSeason,
+                    availableSeasons: $availableSeasons,
+                    filteredStats: $filteredStats,
+                    isLoading: $isLoading
+                )
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            }
         }
         .navigationTitle(player.displayName)
         .navigationBarTitleDisplayMode(.large)
@@ -210,6 +204,36 @@ struct PlayerPastGamesView: View {
     let player: Player
     @Binding var pastGames: [Game]
     @Binding var isLoading: Bool
+    @State private var collapsedMonths: Set<String> = []
+    
+    private func monthKey(for date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "LLLL yyyy"
+        return formatter.string(from: date)
+    }
+    
+    private var gamesByMonth: [String: [Game]] {
+        var grouped: [String: [Game]] = [:]
+        for game in pastGames {
+            let key = monthKey(for: game.gameTime)
+            grouped[key, default: []].append(game)
+        }
+        for key in grouped.keys {
+            grouped[key]?.sort { $0.gameTime < $1.gameTime }
+        }
+        return grouped
+    }
+    
+    private var sortedMonthKeys: [String] {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "LLLL yyyy"
+        return gamesByMonth.keys.sorted { a, b in
+            if let da = formatter.date(from: a), let db = formatter.date(from: b) {
+                return da < db
+            }
+            return a < b
+        }
+    }
     
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -231,14 +255,43 @@ struct PlayerPastGamesView: View {
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
-                // Vertical stack for past games
-                LazyVStack(spacing: 12) {
-                    ForEach(pastGames) { game in
-                        GameCardAthlete(game: game, athleteTeam: player.team ?? getTeamFromGame(game, playerTeamId: player.teamId))
+                ScrollView {
+                    LazyVStack(spacing: 24) {
+                        ForEach(sortedMonthKeys, id: \.self) { month in
+                            VStack(alignment: .leading, spacing: 12) {
+                                Button(action: {
+                                    if collapsedMonths.contains(month) { collapsedMonths.remove(month) } else { collapsedMonths.insert(month) }
+                                }) {
+                                    HStack {
+                                        Image(systemName: collapsedMonths.contains(month) ? "chevron.right" : "chevron.down")
+                                            .foregroundColor(.secondary)
+                                        Text(month)
+                                            .font(.headline)
+                                            .fontWeight(.semibold)
+                                        Spacer()
+                                        Text("\(gamesByMonth[month]?.count ?? 0) games")
+                                            .font(.subheadline)
+                                            .foregroundColor(.secondary)
+                                    }
+                                }
+                                .padding(.horizontal)
+                                
+                                if !collapsedMonths.contains(month) {
+                                    LazyVStack(spacing: 12) {
+                                        ForEach(gamesByMonth[month] ?? []) { game in
+                                            GameCardAthlete(game: game, athleteTeam: player.team ?? getTeamFromGame(game, playerTeamId: player.teamId))
+                                        }
+                                    }
+                                    .padding(.horizontal)
+                                }
+                            }
+                        }
                     }
+                    .padding(.vertical)
                 }
             }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .padding()
     }
     
@@ -294,9 +347,13 @@ struct PlayerStatsView: View {
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
-                PlayerStatsTableView(rows: filteredStats)
+                ScrollView([.horizontal, .vertical]) {
+                    PlayerStatsTableView(rows: filteredStats)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
             }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .padding()
     }
 }
@@ -307,8 +364,9 @@ struct PlayerStatsTableView: View {
     var body: some View {
         VStack(spacing: 0) {
             HStack {
-                Text("Date").font(.caption).fontWeight(.semibold).frame(width: 72, alignment: .leading)
-                Text("Opponent").font(.caption).fontWeight(.semibold).frame(maxWidth: .infinity, alignment: .leading)
+                Text("DATE").font(.caption).fontWeight(.semibold).frame(width: 60, alignment: .leading)
+                Text("TEAM").font(.caption).fontWeight(.semibold).frame(width: 52, alignment: .leading)
+                Text("OPP").font(.caption).fontWeight(.semibold).frame(width: 52, alignment: .leading)
                 Text("MIN").font(.caption).fontWeight(.semibold).frame(width: 36)
                 Text("PTS").font(.caption).fontWeight(.semibold).frame(width: 36)
                 Text("REB").font(.caption).fontWeight(.semibold).frame(width: 36)
@@ -322,12 +380,15 @@ struct PlayerStatsTableView: View {
             
             ForEach(Array(rows.enumerated()), id: \.offset) { _, row in
                 HStack {
-                    Text(row.game.gameTime, style: .date)
+                    Text(formattedDate(row.game.gameTime))
                         .font(.caption)
-                        .frame(width: 72, alignment: .leading)
-                    Text(opponentName(for: row.game, playerTeamId: row.stat.teamId))
+                        .frame(width: 60, alignment: .leading)
+                    Text(teamAbbrev(for: row.game, stat: row.stat))
                         .font(.caption)
-                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .frame(width: 52, alignment: .leading)
+                    Text(opponentDisplay(for: row.game, playerTeamId: row.stat.teamId))
+                        .font(.caption)
+                        .frame(width: 52, alignment: .leading)
                     Text(row.stat.min).font(.caption).frame(width: 36)
                     Text("\(row.stat.points)").font(.caption).frame(width: 36)
                     Text("\(row.stat.totReb)").font(.caption).frame(width: 36)
@@ -350,8 +411,30 @@ struct PlayerStatsTableView: View {
         )
     }
     
-    private func opponentName(for game: Game, playerTeamId: String) -> String {
-        if game.homeTeam.id == playerTeamId { return game.awayTeam.name }
-        return game.homeTeam.name
+    private func formattedDate(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "M/d"
+        return formatter.string(from: date)
+    }
+
+    private func teamAbbrev(for game: Game, stat: PlayerStats) -> String {
+        let statAbbrev = stat.team.abbreviation
+        if !statAbbrev.trimmingCharacters(in: .whitespaces).isEmpty {
+            return statAbbrev
+        }
+        if game.homeTeam.id == stat.teamId {
+            return game.homeTeam.abbreviation ?? game.homeTeam.name
+        }
+        if game.awayTeam.id == stat.teamId {
+            return game.awayTeam.abbreviation ?? game.awayTeam.name
+        }
+        return stat.teamId
+    }
+
+    private func opponentDisplay(for game: Game, playerTeamId: String) -> String {
+        let isHome = game.homeTeam.id == playerTeamId
+        let opponent = isHome ? game.awayTeam : game.homeTeam
+        let prefix = isHome ? "vs" : "@"
+        return "\(prefix) \(opponent.abbreviation ?? opponent.name)"
     }
 }
