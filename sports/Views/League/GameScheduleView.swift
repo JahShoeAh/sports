@@ -11,6 +11,7 @@ struct GameScheduleView: View {
     let allGames: [Game]
     let teams: [Team]
     let selectedTeamIds: Set<String>
+    let excludedTeamIds: Set<String>
     let isLoading: Bool
     let errorMessage: String?
     let onGameTap: (Game) -> Void
@@ -24,11 +25,19 @@ struct GameScheduleView: View {
     @State private var scrollTarget: String?
     
     private var games: [Game] {
-        if selectedTeamIds.isEmpty {
+        if selectedTeamIds.isEmpty && excludedTeamIds.isEmpty {
             return allGames
-        } else {
+        } else if !selectedTeamIds.isEmpty {
+            // If teams are selected, show only games with selected teams (and exclude any excluded teams)
             return allGames.filter { game in
-                selectedTeamIds.contains(game.homeTeam.id) || selectedTeamIds.contains(game.awayTeam.id)
+                let hasSelectedTeam = selectedTeamIds.contains(game.homeTeam.id) || selectedTeamIds.contains(game.awayTeam.id)
+                let hasExcludedTeam = excludedTeamIds.contains(game.homeTeam.id) || excludedTeamIds.contains(game.awayTeam.id)
+                return hasSelectedTeam && !hasExcludedTeam
+            }
+        } else {
+            // If only excluded teams are set, filter out games where either team is excluded
+            return allGames.filter { game in
+                !excludedTeamIds.contains(game.homeTeam.id) && !excludedTeamIds.contains(game.awayTeam.id)
             }
         }
     }

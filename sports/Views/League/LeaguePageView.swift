@@ -19,6 +19,7 @@ struct LeaguePageView: View {
     @State private var errorMessage: String?
     @State private var showingTeamFilter: Bool = false
     @State private var selectedTeamIds: Set<String> = []
+    @State private var excludedTeamIds: Set<String> = []
     
     private let dataManager = SimpleDataManager.shared
     private let cacheService = CacheService.shared
@@ -136,8 +137,8 @@ struct LeaguePageView: View {
                             HStack(spacing: 4) {
                                 Image(systemName: "line.3.horizontal.decrease.circle")
                                     .foregroundColor(.blue)
-                                if !selectedTeamIds.isEmpty {
-                                    Text("\(selectedTeamIds.count)")
+                                if !selectedTeamIds.isEmpty || !excludedTeamIds.isEmpty {
+                                    Text("\(selectedTeamIds.count + excludedTeamIds.count)")
                                         .font(.caption)
                                         .foregroundColor(.blue)
                                 }
@@ -162,6 +163,7 @@ struct LeaguePageView: View {
                         allGames: games,
                         teams: teams,
                         selectedTeamIds: selectedTeamIds,
+                        excludedTeamIds: excludedTeamIds,
                         isLoading: isLoading,
                         errorMessage: errorMessage,
                         onGameTap: { game in
@@ -193,6 +195,7 @@ struct LeaguePageView: View {
             TeamFilterSheet(
                 teams: teams,
                 selectedTeamIds: $selectedTeamIds,
+                excludedTeamIds: $excludedTeamIds,
                 isPresented: $showingTeamFilter
             )
         }
@@ -365,6 +368,7 @@ struct LeaguePageView: View {
 struct TeamFilterSheet: View {
     let teams: [Team]
     @Binding var selectedTeamIds: Set<String>
+    @Binding var excludedTeamIds: Set<String>
     @Binding var isPresented: Bool
     
     private var sortedTeams: [Team] {
@@ -377,6 +381,7 @@ struct TeamFilterSheet: View {
                 // Clear Filters Button
                 Button(action: {
                     selectedTeamIds.removeAll()
+                    excludedTeamIds.removeAll()
                 }) {
                     HStack {
                         Image(systemName: "xmark.circle.fill")
@@ -392,7 +397,7 @@ struct TeamFilterSheet: View {
                     .cornerRadius(12)
                 }
                 .padding()
-                .disabled(selectedTeamIds.isEmpty)
+                .disabled(selectedTeamIds.isEmpty && excludedTeamIds.isEmpty)
                 
                 Divider()
                 
@@ -401,14 +406,9 @@ struct TeamFilterSheet: View {
                     ForEach(sortedTeams) { team in
                         TeamFilterRow(
                             team: team,
-                            isSelected: selectedTeamIds.contains(team.id)
-                        ) {
-                            if selectedTeamIds.contains(team.id) {
-                                selectedTeamIds.remove(team.id)
-                            } else {
-                                selectedTeamIds.insert(team.id)
-                            }
-                        }
+                            selectedTeamIds: $selectedTeamIds,
+                            excludedTeamIds: $excludedTeamIds
+                        )
                     }
                 }
                 .listStyle(PlainListStyle())
@@ -436,56 +436,95 @@ struct TeamFilterSheet: View {
 // MARK: - Team Filter Row
 struct TeamFilterRow: View {
     let team: Team
-    let isSelected: Bool
-    let onTap: () -> Void
+    @Binding var selectedTeamIds: Set<String>
+    @Binding var excludedTeamIds: Set<String>
+    
+    private var teamState: TeamFilterState {
+        if selectedTeamIds.contains(team.id) {
+            return .selected
+        } else if excludedTeamIds.contains(team.id) {
+            return .excluded
+        } else {
+            return .unselected
+        }
+    }
     
     var body: some View {
-        Button(action: onTap) {
-            HStack(spacing: 12) {
-                // Team Logo
-                AsyncImage(url: URL(string: team.logoURL ?? "")) { image in
-                    image
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                } placeholder: {
-                    RoundedRectangle(cornerRadius: 6)
-                        .fill(Color(.systemGray5))
-                        .overlay(
-                            Image(systemName: "person.3")
-                                .font(.title3)
-                                .foregroundColor(.secondary)
-                        )
-                }
-                .frame(width: 40, height: 40)
-                
-                // Team Info
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(team.name)
-                        .font(.headline)
-                        .foregroundColor(.primary)
-                    
-                    Text(team.city)
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
-                }
-                
-                Spacer()
-                
-                // Checkmark
-                if isSelected {
-                    Image(systemName: "checkmark.circle.fill")
-                        .foregroundColor(.blue)
-                        .font(.title2)
-                } else {
-                    Image(systemName: "circle")
-                        .foregroundColor(.secondary)
-                        .font(.title2)
-                }
+        HStack(spacing: 12) {
+            // Team Logo
+            AsyncImage(url: URL(string: team.logoURL ?? "")) { image in
+                image
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+            } placeholder: {
+                RoundedRectangle(cornerRadius: 6)
+                    .fill(Color(.systemGray5))
+                    .overlay(
+                        Image(systemName: "person.3")
+                            .font(.title3)
+                            .foregroundColor(.secondary)
+                    )
             }
-            .padding(.vertical, 4)
+            .frame(width: 40, height: 40)
+            
+            // Team Info
+            VStack(alignment: .leading, spacing: 2) {
+                Text(team.name)
+                    .font(.headline)
+                    .foregroundColor(.primary)
+                
+                Text(team.city)
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+            }
+            
+            Spacer()
+            
+            // State Indicator
+            switch teamState {
+            case .selected:
+                Image(systemName: "checkmark.circle.fill")
+                    .foregroundColor(.blue)
+                    .font(.title2)
+            case .excluded:
+                Image(systemName: "circle.slash")
+                    .foregroundColor(.red)
+                    .font(.title2)
+            case .unselected:
+                Image(systemName: "circle")
+                    .foregroundColor(.secondary)
+                    .font(.title2)
+            }
         }
-        .buttonStyle(PlainButtonStyle())
+        .padding(.vertical, 4)
+        .contentShape(Rectangle())
+        .onTapGesture {
+            cycleTeamState()
+        }
     }
+    
+    private func cycleTeamState() {
+        switch teamState {
+        case .unselected:
+            // Add to selected, remove from excluded
+            selectedTeamIds.insert(team.id)
+            excludedTeamIds.remove(team.id)
+        case .selected:
+            // Remove from selected, add to excluded
+            selectedTeamIds.remove(team.id)
+            excludedTeamIds.insert(team.id)
+        case .excluded:
+            // Remove from excluded, back to unselected
+            excludedTeamIds.remove(team.id)
+        }
+    }
+}
+
+// MARK: - Team Filter State
+enum TeamFilterState {
+    case unselected
+    case selected
+    case excluded
 }
 
 #Preview {
