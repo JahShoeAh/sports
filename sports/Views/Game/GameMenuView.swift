@@ -275,10 +275,6 @@ struct GameResultView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
-                Text("Game Result")
-                    .font(.headline)
-                    .fontWeight(.semibold)
-                
                 // Line Score Table
                 if let homeLineScore = game.homeLineScore, let awayLineScore = game.awayLineScore {
                     VStack(spacing: 0) {
@@ -290,7 +286,7 @@ struct GameResultView: View {
                                 .frame(maxWidth: .infinity, alignment: .leading)
                             
                             ForEach(0..<homeLineScore.count, id: \.self) { quarter in
-                                Text("Q\(quarter + 1)")
+                                Text(quarter == 4 ? "OT" : "Q\(quarter + 1)")
                                     .font(.subheadline)
                                     .fontWeight(.semibold)
                                     .frame(width: 40)
@@ -307,7 +303,7 @@ struct GameResultView: View {
                         // Away Team
                         HStack {
                             NavigationLink(destination: TeamMenuLoaderView(teamId: game.awayTeam.id)) {
-                                Text(game.awayTeam.name)
+                                Text(game.awayTeam.abbreviation)
                                     .font(.subheadline)
                                     .fontWeight(.bold)
                                     .foregroundColor(.primary)
@@ -330,7 +326,7 @@ struct GameResultView: View {
                         // Home Team
                         HStack {
                             NavigationLink(destination: TeamMenuLoaderView(teamId: game.homeTeam.id)) {
-                                Text(game.homeTeam.name)
+                                Text(game.homeTeam.abbreviation)
                                     .font(.subheadline)
                                     .fontWeight(.bold)
                                     .foregroundColor(.primary)
@@ -384,7 +380,7 @@ struct BoxScoreView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
                 NavigationLink(destination: TeamMenuLoaderView(teamId: team.id)) {
-                    Text("\(team.name) Box Score")
+                    Text(team.name)
                         .font(.headline)
                         .fontWeight(.bold)
                         .foregroundColor(.primary)

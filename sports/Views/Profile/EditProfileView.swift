@@ -97,7 +97,7 @@ struct EditProfileView: View {
                                 isValid: nameError == nil,
                                 hasError: nameError != nil
                             ))
-                            .onChange(of: displayName) { newValue in
+                            .onChange(of: displayName) { _, newValue in
                                 validateName(newValue)
                             }
                         
@@ -132,7 +132,7 @@ struct EditProfileView: View {
                                     isValid: usernameError == nil && !isUsernameTaken,
                                     hasError: usernameError != nil || isUsernameTaken
                                 ))
-                                .onChange(of: username) { newValue in
+                                .onChange(of: username) { _, newValue in
                                     validateUsername(newValue)
                                 }
                         }
@@ -176,7 +176,7 @@ struct EditProfileView: View {
                                 RoundedRectangle(cornerRadius: 8)
                                     .stroke(bioError != nil ? Color.red : Color.clear, lineWidth: 2)
                             )
-                            .onChange(of: bio) { newValue in
+                            .onChange(of: bio) { _, newValue in
                                 validateBio(newValue)
                             }
                         
@@ -221,7 +221,7 @@ struct EditProfileView: View {
                 loadCurrentProfile()
             }
             .photosPicker(isPresented: $showImagePicker, selection: $selectedPhoto)
-            .onChange(of: selectedPhoto) { newValue in
+            .onChange(of: selectedPhoto) { _, newValue in
                 Task {
                     if let newValue = newValue {
                         await loadImage(from: newValue)

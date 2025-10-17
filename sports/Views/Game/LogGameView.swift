@@ -12,14 +12,14 @@ struct LogGameView: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject private var firebaseService = FirebaseService.shared
     
-    @State private var entertainmentRating: Double = 5.0
-    @State private var selectedReaction: ReactionIcon = .heart
-    @State private var selectedViewingMethod: ViewingMethod = .liveOnTV
+    @State private var entertainmentRating: Double? = nil
+    @State private var selectedViewingMethod: ViewingMethod? = nil
     @State private var note: String = ""
     @State private var containsSpoilers: Bool = false
     @State private var tags: [String] = []
     @State private var newTag: String = ""
     @State private var isLoading = false
+    @State private var isLiked = false
     
     var body: some View {
         NavigationView {
@@ -38,9 +38,22 @@ struct LogGameView: View {
                     
                     // Entertainment Rating
                     VStack(alignment: .leading, spacing: 12) {
-                        Text("Entertainment Value")
-                            .font(.headline)
-                            .fontWeight(.semibold)
+                        HStack {
+                            Text("Good game?")
+                                .font(.headline)
+                                .fontWeight(.semibold)
+                            Spacer()
+                            Button(action: {
+                                print("Clicked: Heart (Like Game). From page: Log Game. Actions performed: isLiked = \(!isLiked). TODO: Save game to liked games")
+                                isLiked.toggle()
+                            }) {
+                                Image(systemName: isLiked ? "heart.fill" : "heart")
+                                    .font(.title2)
+                                    .foregroundColor(isLiked ? .red : .gray)
+                                    .scaleEffect(isLiked ? 1.1 : 1.0)
+                                    .animation(.easeInOut(duration: 0.2), value: isLiked)
+                            }
+                        }
                         
                         VStack(spacing: 8) {
                             HStack {
@@ -48,53 +61,101 @@ struct LogGameView: View {
                                     .font(.caption)
                                     .foregroundColor(.secondary)
                                 Spacer()
-                                Text("\(Int(entertainmentRating))")
-                                    .font(.title2)
-                                    .fontWeight(.bold)
+                                if let rating = entertainmentRating {
+                                    Text("\(Int(rating))/10")
+                                        .font(.title2)
+                                        .fontWeight(.bold)
+                                } else {
+                                    Text("Tap to rate")
+                                        .font(.title2)
+                                        .fontWeight(.bold)
+                                        .foregroundColor(.secondary)
+                                }
                                 Spacer()
                                 Text("10")
                                     .font(.caption)
                                     .foregroundColor(.secondary)
                             }
                             
-                            Slider(value: $entertainmentRating, in: 1...10, step: 1)
-                                .accentColor(.blue)
+                            GeometryReader { geometry in
+                                ZStack(alignment: .leading) {
+                                    // Background track
+                                    Rectangle()
+                                        .fill(Color(.systemGray5))
+                                        .frame(height: 4)
+                                        .cornerRadius(2)
+                                    
+                                    // Active track (only show if rating exists)
+                                    if let rating = entertainmentRating {
+                                        Rectangle()
+                                            .fill(Color.blue)
+                                            .frame(width: (geometry.size.width - 20) * (rating - 1) / 9, height: 4)
+                                            .cornerRadius(2)
+                                    }
+                                    
+                                    // Slider thumb (only show if rating exists)
+                                    if let rating = entertainmentRating {
+                                        Circle()
+                                            .fill(Color.blue)
+                                            .frame(width: 20, height: 20)
+                                            .position(x: 10 + (geometry.size.width - 20) * (rating - 1) / 9, y: 10)
+                                    }
+                                }
+                                .gesture(
+                                    DragGesture(minimumDistance: 0)
+                                        .onChanged { value in
+                                            // Calculate new rating based on drag position
+                                            let newRating = Double(1 + Int((value.location.x - 10) / (geometry.size.width - 20) * 9))
+                                            let clampedRating = max(1, min(10, newRating))
+                                            entertainmentRating = clampedRating
+                                        }
+                                        .onEnded { value in
+                                            // Check if this was a tap on the thumb (minimal movement)
+                                            if let currentRating = entertainmentRating {
+                                                let thumbX = 10 + (geometry.size.width - 20) * (currentRating - 1) / 9
+                                                let thumbCenter = CGPoint(x: thumbX, y: 10)
+                                                let distance = sqrt(pow(value.startLocation.x - thumbCenter.x, 2) + pow(value.startLocation.y - thumbCenter.y, 2))
+                                                let totalDistance = sqrt(pow(value.location.x - value.startLocation.x, 2) + pow(value.location.y - value.startLocation.y, 2))
+                                                
+                                                // If tap started on thumb and moved less than 5 points, clear rating
+                                                if distance <= 10 && totalDistance < 5 {
+                                                    entertainmentRating = nil
+                                                } else {
+                                                    // Otherwise, set rating to final position
+                                                    let newRating = Double(1 + Int((value.location.x - 10) / (geometry.size.width - 20) * 9))
+                                                    let clampedRating = max(1, min(10, newRating))
+                                                    entertainmentRating = clampedRating
+                                                }
+                                            } else {
+                                                // If no rating exists, set it to tapped position
+                                                let newRating = Double(1 + Int((value.location.x - 10) / (geometry.size.width - 20) * 9))
+                                                let clampedRating = max(1, min(10, newRating))
+                                                entertainmentRating = clampedRating
+                                            }
+                                        }
+                                )
+                            }
+                            .frame(height: 20)
                         }
                     }
                     
-                    // Reaction Icon
-                    VStack(alignment: .leading, spacing: 12) {
-                        Text("Reaction")
-                            .font(.headline)
-                            .fontWeight(.semibold)
-                        
-                        HStack(spacing: 16) {
-                            ForEach(ReactionIcon.allCases, id: \.self) { reaction in
-                                Button(action: {
-                                    print("Clicked: \(reaction.systemImageName) (Reaction). From page: Log Game. Actions performed: selectedReaction = \(reaction). TODO: Select reaction icon")
-                                    selectedReaction = reaction
-                                }) {
-                                    Image(systemName: reaction.systemImageName)
-                                        .font(.title2)
-                                        .foregroundColor(selectedReaction == reaction ? .red : .gray)
-                                        .scaleEffect(selectedReaction == reaction ? 1.2 : 1.0)
-                                        .animation(.easeInOut(duration: 0.2), value: selectedReaction)
-                                }
-                            }
-                        }
-                    }
                     
                     // Viewing Method
                     VStack(alignment: .leading, spacing: 12) {
-                        Text("Viewing Method")
+                        Text("How'd you watch?")
                             .font(.headline)
                             .fontWeight(.semibold)
                         
                         VStack(spacing: 8) {
                             ForEach(ViewingMethod.allCases, id: \.self) { method in
                                 Button(action: {
-                                    print("Clicked: \(method.displayName) (Viewing Method). From page: Log Game. Actions performed: selectedViewingMethod = \(method). TODO: Select viewing method")
-                                    selectedViewingMethod = method
+                                    if selectedViewingMethod == method {
+                                        print("Clicked: \(method.displayName) (Viewing Method - Deselect). From page: Log Game. Actions performed: selectedViewingMethod = nil. TODO: Deselect viewing method")
+                                        selectedViewingMethod = nil
+                                    } else {
+                                        print("Clicked: \(method.displayName) (Viewing Method - Select). From page: Log Game. Actions performed: selectedViewingMethod = \(method). TODO: Select viewing method")
+                                        selectedViewingMethod = method
+                                    }
                                 }) {
                                     HStack {
                                         Text(method.displayName)
@@ -116,7 +177,7 @@ struct LogGameView: View {
                     
                     // Note
                     VStack(alignment: .leading, spacing: 12) {
-                        Text("Add a note")
+                        Text("Write something:")
                             .font(.headline)
                             .fontWeight(.semibold)
                         
@@ -211,8 +272,8 @@ struct LogGameView: View {
         let review = Review(
             userId: userId,
             gameId: game.id,
-            entertainmentRating: Int(entertainmentRating),
-            reactionIcon: selectedReaction,
+            entertainmentRating: entertainmentRating != nil ? Int(entertainmentRating!) : nil,
+            reactionIcon: .heart,
             viewingMethod: selectedViewingMethod,
             note: note.isEmpty ? nil : note,
             containsSpoilers: containsSpoilers,

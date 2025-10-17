@@ -133,7 +133,7 @@ struct Player: Identifiable, Codable {
     
     /// Returns the position string with secondary position if available
     var positionString: String {
-        return position ?? ""
+        return position ?? "Unknown"
     }
     
     /// Returns true if the player is injured

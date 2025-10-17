@@ -61,7 +61,7 @@ struct AuthenticationView: View {
                                     hasError: nameError != nil
                                 ))
                                 .autocapitalization(.words)
-                                .onChange(of: displayName) { newValue in
+                                .onChange(of: displayName) { _, newValue in
                                     validateName(newValue)
                                 }
                             
@@ -94,7 +94,7 @@ struct AuthenticationView: View {
                                     ))
                                     .autocapitalization(.none)
                                     .autocorrectionDisabled()
-                                    .onChange(of: username) { newValue in
+                                    .onChange(of: username) { _, newValue in
                                         validateUsername(newValue)
                                     }
                             }

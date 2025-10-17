@@ -11,9 +11,9 @@ struct Review: Identifiable, Codable {
     let id: String
     let userId: String
     let gameId: String
-    let entertainmentRating: Int // 1-10 scale
+    let entertainmentRating: Int? // 1-10 scale, optional
     let reactionIcon: ReactionIcon
-    let viewingMethod: ViewingMethod
+    let viewingMethod: ViewingMethod? // optional
     let note: String?
     let containsSpoilers: Bool
     let tags: [String]
@@ -24,7 +24,7 @@ struct Review: Identifiable, Codable {
     let user: User?
     let game: Game?
     
-    init(userId: String, gameId: String, entertainmentRating: Int, reactionIcon: ReactionIcon, viewingMethod: ViewingMethod, note: String? = nil, containsSpoilers: Bool = false, tags: [String] = []) {
+    init(userId: String, gameId: String, entertainmentRating: Int? = nil, reactionIcon: ReactionIcon = .heart, viewingMethod: ViewingMethod? = nil, note: String? = nil, containsSpoilers: Bool = false, tags: [String] = []) {
         self.id = UUID().uuidString
         self.userId = userId
         self.gameId = gameId
@@ -67,7 +67,7 @@ enum ViewingMethod: String, Codable, CaseIterable {
     
     var displayName: String {
         switch self {
-        case .attended: return "Attended"
+        case .attended: return "Attended in person"
         case .liveOnTV: return "Live on TV"
         case .replay: return "Replay"
         case .justHighlights: return "Just Highlights"

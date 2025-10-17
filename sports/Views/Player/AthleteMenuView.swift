@@ -49,12 +49,12 @@ struct AthleteMenuView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
-        .navigationTitle(player.displayName)
-        .navigationBarTitleDisplayMode(.large)
+        .navigationTitle("")
+        .navigationBarTitleDisplayMode(.inline)
         .task {
             await loadPlayerData()
         }
-        .onChange(of: selectedSeason) { _ in
+        .onChange(of: selectedSeason) { _, _ in
             applySeasonFilter()
         }
     }
@@ -174,9 +174,12 @@ struct PlayerHeaderView: View {
                         .foregroundColor(.secondary)
                     
                     if let team = player.team {
-                        Text(team.name)
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
+                        NavigationLink(destination: TeamMenuLoaderView(teamId: team.id)) {
+                            Text(team.name)
+                                .font(.subheadline)
+                                .fontWeight(.medium)
+                                .foregroundColor(.blue)
+                        }
                     }
                     
                     HStack(spacing: 16) {
@@ -237,10 +240,6 @@ struct PlayerPastGamesView: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("Past Games")
-                .font(.headline)
-                .fontWeight(.semibold)
-            
             if isLoading {
                 ProgressView("Loading past games...")
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -314,22 +313,16 @@ struct PlayerStatsView: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            // Season and Team Selectors
-            VStack(spacing: 12) {
-                HStack {
-                    Text("Season:")
-                        .font(.headline)
-                        .fontWeight(.semibold)
-                    
-                    Picker("Season", selection: $selectedSeason) {
-                        ForEach(availableSeasons, id: \.self) { season in
-                            Text(season).tag(season)
-                        }
+            // Season Selector
+            HStack {
+                Picker("Season", selection: $selectedSeason) {
+                    ForEach(availableSeasons, id: \.self) { season in
+                        Text(season).tag(season)
                     }
-                    .pickerStyle(MenuPickerStyle())
-                    
-                    Spacer()
                 }
+                .pickerStyle(MenuPickerStyle())
+                
+                Spacer()
             }
             
             // Stats Table
@@ -364,7 +357,7 @@ struct PlayerStatsTableView: View {
     var body: some View {
         VStack(spacing: 0) {
             HStack {
-                Text("DATE").font(.caption).fontWeight(.semibold).frame(width: 60, alignment: .leading)
+                Text("DATE").font(.caption).fontWeight(.semibold).frame(width: 50, alignment: .leading)
                 Text("TEAM").font(.caption).fontWeight(.semibold).frame(width: 52, alignment: .leading)
                 Text("OPP").font(.caption).fontWeight(.semibold).frame(width: 52, alignment: .leading)
                 Text("MIN").font(.caption).fontWeight(.semibold).frame(width: 36)
@@ -382,13 +375,24 @@ struct PlayerStatsTableView: View {
                 HStack {
                     Text(formattedDate(row.game.gameTime))
                         .font(.caption)
-                        .frame(width: 60, alignment: .leading)
-                    Text(teamAbbrev(for: row.game, stat: row.stat))
-                        .font(.caption)
-                        .frame(width: 52, alignment: .leading)
-                    Text(opponentDisplay(for: row.game, playerTeamId: row.stat.teamId))
-                        .font(.caption)
-                        .frame(width: 52, alignment: .leading)
+                        .frame(width: 50, alignment: .leading)
+                    
+                    NavigationLink(destination: GameMenuView(game: row.game)) {
+                        Text(teamAbbrev(for: row.game, stat: row.stat))
+                            .font(.caption)
+                            .fontWeight(.bold)
+                            .foregroundColor(.primary)
+                    }
+                    .frame(width: 52, alignment: .leading)
+                    
+                    NavigationLink(destination: GameMenuView(game: row.game)) {
+                        Text(opponentDisplay(for: row.game, playerTeamId: row.stat.teamId))
+                            .font(.caption)
+                            .fontWeight(.bold)
+                            .foregroundColor(.primary)
+                    }
+                    .frame(width: 52, alignment: .leading)
+                    
                     Text(row.stat.min).font(.caption).frame(width: 36)
                     Text("\(row.stat.points)").font(.caption).frame(width: 36)
                     Text("\(row.stat.totReb)").font(.caption).frame(width: 36)

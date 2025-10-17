@@ -16,6 +16,12 @@ struct TeamMenuView: View {
     @State private var record: [Game] = []
     @State private var isLoading = false
     @State private var errorMessage: String?
+    @State private var selectedOpponentIds: Set<String> = []
+    @State private var excludedOpponentIds: Set<String> = []
+    @State private var showingOpponentFilter = false
+    @State private var showingFilterPopup = false
+    @State private var homeAwayFilter: HomeAwayFilter = .either
+    @State private var winLossFilter: WinLossFilter = .either
     private let dataManager = SimpleDataManager.shared
     private let cacheService = CacheService.shared
     
@@ -39,7 +45,19 @@ struct TeamMenuView: View {
                 RosterView(team: team, roster: $roster, isLoading: $isLoading)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else if selectedTab == 1 {
-                GamesView(team: team, games: $games, selectedSeason: $selectedSeason, isLoading: $isLoading, errorMessage: $errorMessage)
+                GamesView(
+                    team: team,
+                    games: $games,
+                    selectedSeason: $selectedSeason,
+                    selectedOpponentIds: $selectedOpponentIds,
+                    excludedOpponentIds: $excludedOpponentIds,
+                    showingOpponentFilter: $showingOpponentFilter,
+                    showingFilterPopup: $showingFilterPopup,
+                    homeAwayFilter: $homeAwayFilter,
+                    winLossFilter: $winLossFilter,
+                    isLoading: $isLoading,
+                    errorMessage: $errorMessage
+                )
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
                 RecordView(team: team, selectedSeason: $selectedSeason, record: $record, isLoading: $isLoading)
@@ -230,7 +248,7 @@ struct PlayerRow: View {
                         .font(.caption)
                         .foregroundColor(.secondary)
                     
-                    if let nationality = player.nationality {
+                    if player.nationality != nil {
                         Text(player.nationalityWithFlag)
                             .font(.caption2)
                             .foregroundColor(.secondary)
@@ -280,6 +298,12 @@ struct GamesView: View {
     let team: Team
     @Binding var games: [Game]
     @Binding var selectedSeason: String
+    @Binding var selectedOpponentIds: Set<String>
+    @Binding var excludedOpponentIds: Set<String>
+    @Binding var showingOpponentFilter: Bool
+    @Binding var showingFilterPopup: Bool
+    @Binding var homeAwayFilter: HomeAwayFilter
+    @Binding var winLossFilter: WinLossFilter
     @Binding var isLoading: Bool
     @Binding var errorMessage: String?
     @State private var collapsedMonths: Set<String> = []
@@ -289,16 +313,82 @@ struct GamesView: View {
         return values.sorted()
     }
     
+    private var hasActiveFilters: Bool {
+        !selectedOpponentIds.isEmpty || !excludedOpponentIds.isEmpty || homeAwayFilter != .either || winLossFilter != .either
+    }
+    
+    private var activeFilterCount: Int {
+        var count = 0
+        if !selectedOpponentIds.isEmpty || !excludedOpponentIds.isEmpty { count += 1 }
+        if homeAwayFilter != .either { count += 1 }
+        if winLossFilter != .either { count += 1 }
+        return count
+    }
+    
     private func monthKey(for date: Date) -> String {
         let formatter = DateFormatter()
         formatter.dateFormat = "LLLL yyyy" // e.g., October 2025
         return formatter.string(from: date)
     }
     
+    private var filteredGames: [Game] {
+        var filtered = selectedSeason.isEmpty ? games : games.filter { $0.season == selectedSeason }
+        
+        // Apply opponent filtering
+        if !selectedOpponentIds.isEmpty || !excludedOpponentIds.isEmpty {
+            filtered = filtered.filter { game in
+                let opponent = game.homeTeam.id == team.id ? game.awayTeam : game.homeTeam
+                
+                if !selectedOpponentIds.isEmpty {
+                    // If opponents are selected, show only games with selected opponents (and exclude any excluded opponents)
+                    let hasSelectedOpponent = selectedOpponentIds.contains(opponent.id)
+                    let hasExcludedOpponent = excludedOpponentIds.contains(opponent.id)
+                    return hasSelectedOpponent && !hasExcludedOpponent
+                } else {
+                    // If only opponents are excluded, filter out games where opponent is excluded
+                    return !excludedOpponentIds.contains(opponent.id)
+                }
+            }
+        }
+        
+        // Apply home/away filtering
+        if homeAwayFilter != .either {
+            filtered = filtered.filter { game in
+                let isHome = game.homeTeam.id == team.id
+                switch homeAwayFilter {
+                case .home: return isHome
+                case .away: return !isHome
+                case .either: return true
+                }
+            }
+        }
+        
+        // Apply win/loss filtering
+        if winLossFilter != .either {
+            filtered = filtered.filter { game in
+                guard game.isCompleted, let homeScore = game.homeScore, let awayScore = game.awayScore else {
+                    return false // Exclude incomplete games when filtering by win/loss
+                }
+                
+                let isHome = game.homeTeam.id == team.id
+                let teamScore = isHome ? homeScore : awayScore
+                let opponentScore = isHome ? awayScore : homeScore
+                let isWin = teamScore > opponentScore
+                
+                switch winLossFilter {
+                case .wins: return isWin
+                case .losses: return !isWin
+                case .either: return true
+                }
+            }
+        }
+        
+        return filtered
+    }
+    
     private var gamesByMonth: [String: [Game]] {
-        let filtered = selectedSeason.isEmpty ? games : games.filter { $0.season == selectedSeason }
         var grouped: [String: [Game]] = [:]
-        for game in filtered {
+        for game in filteredGames {
             let key = monthKey(for: game.gameTime)
             grouped[key, default: []].append(game)
         }
@@ -323,10 +413,6 @@ struct GamesView: View {
         VStack(alignment: .leading, spacing: 16) {
             // Header
             HStack {
-                Text("Games")
-                    .font(.headline)
-                    .fontWeight(.semibold)
-                Spacer()
                 if !seasons.isEmpty {
                     Picker("Season", selection: $selectedSeason) {
                         ForEach(seasons, id: \.self) { season in
@@ -338,6 +424,22 @@ struct GamesView: View {
                         // Ensure the selection is valid when seasons list changes
                         if !newSeasons.contains(selectedSeason) {
                             selectedSeason = newSeasons.last ?? ""
+                        }
+                    }
+                }
+                
+                Spacer()
+                
+                Button(action: {
+                    showingFilterPopup.toggle()
+                }) {
+                    HStack(spacing: 4) {
+                        Image(systemName: showingFilterPopup ? "line.3.horizontal.decrease.circle.fill" : "line.3.horizontal.decrease.circle")
+                            .foregroundColor(.blue)
+                        if hasActiveFilters {
+                            Text("\(activeFilterCount)")
+                                .font(.caption)
+                                .foregroundColor(.blue)
                         }
                     }
                 }
@@ -360,7 +462,7 @@ struct GamesView: View {
                         .multilineTextAlignment(.center)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
-            } else if games.isEmpty {
+            } else if filteredGames.isEmpty {
                 VStack {
                     Image(systemName: "calendar")
                         .font(.largeTitle)
@@ -417,6 +519,44 @@ struct GamesView: View {
                 selectedSeason = last
             }
         }
+        .sheet(isPresented: $showingOpponentFilter) {
+            OpponentFilterSheet(
+                team: team,
+                games: games,
+                selectedOpponentIds: $selectedOpponentIds,
+                excludedOpponentIds: $excludedOpponentIds,
+                isPresented: $showingOpponentFilter
+            )
+        }
+        .overlay(
+            // Filter Options Popup
+            Group {
+                if showingFilterPopup {
+                    VStack {
+                        HStack {
+                            Spacer()
+                            
+                            FilterOptionsPopup(
+                                team: team,
+                                selectedOpponentIds: $selectedOpponentIds,
+                                excludedOpponentIds: $excludedOpponentIds,
+                                showingOpponentFilter: $showingOpponentFilter,
+                                showingFilterPopup: $showingFilterPopup,
+                                homeAwayFilter: $homeAwayFilter,
+                                winLossFilter: $winLossFilter
+                            )
+                            .frame(width: 200)
+                            .transition(.move(edge: .top).combined(with: .opacity))
+                            .offset(y: 60) // Position close to the filter button
+                            .padding(.trailing, 16) // Align right edge close to filter button
+                        }
+                        
+                        Spacer()
+                    }
+                    .animation(.spring(response: 0.3, dampingFraction: 0.8), value: showingFilterPopup)
+                }
+            }
+        )
         .padding()
     }
 }
@@ -440,10 +580,6 @@ struct RecordView: View {
         VStack(alignment: .leading, spacing: 16) {
             // Season Selector
             HStack {
-                Text("Season:")
-                    .font(.headline)
-                    .fontWeight(.semibold)
-                
                 Picker("Season", selection: $selectedSeason) {
                     ForEach(seasons, id: \.self) { season in
                         Text(season).tag(season)
@@ -573,7 +709,7 @@ struct RecordRowView: View {
                 .frame(width: 60, alignment: .leading)
             
             // Opponent (clickable)
-            NavigationLink(destination: TeamMenuLoaderView(teamId: opponent.id)) {
+            NavigationLink(destination: GameMenuView(game: game)) {
                 Text(opponentDisplay)
                     .font(.subheadline)
                     .fontWeight(.bold)
@@ -604,5 +740,291 @@ struct RecordRowView: View {
         .background(Color.clear)
         
         // Note: Divider will be handled by the parent ForEach
+    }
+}
+
+// MARK: - Opponent Filter Sheet
+struct OpponentFilterSheet: View {
+    let team: Team
+    let games: [Game]
+    @Binding var selectedOpponentIds: Set<String>
+    @Binding var excludedOpponentIds: Set<String>
+    @Binding var isPresented: Bool
+    
+    private var opponentTeams: [Team] {
+        // Get all unique opponents from games, excluding the current team
+        let opponents = games.compactMap { game -> Team? in
+            if game.homeTeam.id == team.id {
+                return game.awayTeam
+            } else if game.awayTeam.id == team.id {
+                return game.homeTeam
+            }
+            return nil
+        }
+        
+        // Remove duplicates and sort by name
+        let uniqueOpponents = Array(Set(opponents.map { $0.id }))
+            .compactMap { id in opponents.first { $0.id == id } }
+            .sorted { $0.name < $1.name }
+        
+        return uniqueOpponents
+    }
+    
+    var body: some View {
+        NavigationView {
+            VStack(spacing: 0) {
+                // Clear Filters Button
+                Button(action: {
+                    selectedOpponentIds.removeAll()
+                    excludedOpponentIds.removeAll()
+                }) {
+                    HStack {
+                        Image(systemName: "xmark.circle.fill")
+                            .foregroundColor(.red)
+                        Text("Clear Filters")
+                            .font(.headline)
+                            .fontWeight(.semibold)
+                            .foregroundColor(.red)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(Color.red.opacity(0.1))
+                    .cornerRadius(12)
+                }
+                .padding()
+                .disabled(selectedOpponentIds.isEmpty && excludedOpponentIds.isEmpty)
+                
+                Divider()
+                
+                // Opponents List
+                List {
+                    ForEach(opponentTeams) { opponent in
+                        OpponentFilterRow(
+                            opponent: opponent,
+                            selectedOpponentIds: $selectedOpponentIds,
+                            excludedOpponentIds: $excludedOpponentIds
+                        )
+                    }
+                }
+                .listStyle(PlainListStyle())
+            }
+            .navigationTitle("Filter by Opponent")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("Cancel") {
+                        isPresented = false
+                    }
+                }
+                
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Done") {
+                        isPresented = false
+                    }
+                    .fontWeight(.semibold)
+                }
+            }
+        }
+    }
+}
+
+// MARK: - Opponent Filter Row
+struct OpponentFilterRow: View {
+    let opponent: Team
+    @Binding var selectedOpponentIds: Set<String>
+    @Binding var excludedOpponentIds: Set<String>
+    
+    private var opponentState: TeamFilterState {
+        if selectedOpponentIds.contains(opponent.id) {
+            return .selected
+        } else if excludedOpponentIds.contains(opponent.id) {
+            return .excluded
+        } else {
+            return .unselected
+        }
+    }
+    
+    var body: some View {
+        HStack(spacing: 12) {
+            // Opponent Logo
+            AsyncImage(url: URL(string: opponent.logoURL ?? "")) { image in
+                image
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+            } placeholder: {
+                RoundedRectangle(cornerRadius: 6)
+                    .fill(Color(.systemGray5))
+                    .overlay(
+                        Image(systemName: "person.3")
+                            .font(.title3)
+                            .foregroundColor(.secondary)
+                    )
+            }
+            .frame(width: 40, height: 40)
+            
+            // Opponent Info
+            VStack(alignment: .leading, spacing: 2) {
+                Text(opponent.name)
+                    .font(.headline)
+                    .foregroundColor(.primary)
+                
+                Text(opponent.city)
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+            }
+            
+            Spacer()
+            
+            // State Indicator
+            switch opponentState {
+            case .selected:
+                Image(systemName: "checkmark.circle.fill")
+                    .foregroundColor(.blue)
+                    .font(.title2)
+            case .excluded:
+                Image(systemName: "circle.slash")
+                    .foregroundColor(.red)
+                    .font(.title2)
+            case .unselected:
+                Image(systemName: "circle")
+                    .foregroundColor(.secondary)
+                    .font(.title2)
+            }
+        }
+        .padding(.vertical, 4)
+        .contentShape(Rectangle())
+        .onTapGesture {
+            cycleOpponentState()
+        }
+    }
+    
+    private func cycleOpponentState() {
+        switch opponentState {
+        case .unselected:
+            // Add to selected, remove from excluded
+            selectedOpponentIds.insert(opponent.id)
+            excludedOpponentIds.remove(opponent.id)
+        case .selected:
+            // Remove from selected, add to excluded
+            selectedOpponentIds.remove(opponent.id)
+            excludedOpponentIds.insert(opponent.id)
+        case .excluded:
+            // Remove from excluded, back to unselected
+            excludedOpponentIds.remove(opponent.id)
+        }
+    }
+}
+
+// MARK: - Filter Options Popup
+struct FilterOptionsPopup: View {
+    let team: Team
+    @Binding var selectedOpponentIds: Set<String>
+    @Binding var excludedOpponentIds: Set<String>
+    @Binding var showingOpponentFilter: Bool
+    @Binding var showingFilterPopup: Bool
+    @Binding var homeAwayFilter: HomeAwayFilter
+    @Binding var winLossFilter: WinLossFilter
+    
+    var body: some View {
+        VStack(spacing: 0) {
+            // Opponent Filter Option
+            Button(action: {
+                showingOpponentFilter = true
+                showingFilterPopup = false
+            }) {
+                HStack {
+                    Text("By opponent")
+                        .font(.subheadline)
+                        .foregroundColor(.primary)
+                    
+                    Spacer()
+                    
+                    if !selectedOpponentIds.isEmpty || !excludedOpponentIds.isEmpty {
+                        Text("\(selectedOpponentIds.count + excludedOpponentIds.count)")
+                            .font(.caption)
+                            .foregroundColor(.blue)
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 2)
+                            .background(Color.blue.opacity(0.1))
+                            .cornerRadius(8)
+                    }
+                    
+                    Image(systemName: "chevron.right")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 12)
+            }
+            .buttonStyle(PlainButtonStyle())
+            
+            Divider()
+            
+            // Home/Away Filter Option
+            Button(action: {
+                homeAwayFilter = homeAwayFilter.next
+            }) {
+                HStack {
+                    Text(homeAwayFilter.rawValue)
+                        .font(.subheadline)
+                        .foregroundColor(.primary)
+                    
+                    Spacer()
+                }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 12)
+            }
+            .buttonStyle(PlainButtonStyle())
+            
+            Divider()
+            
+            // Win/Loss Filter Option
+            Button(action: {
+                winLossFilter = winLossFilter.next
+            }) {
+                HStack {
+                    Text(winLossFilter.rawValue)
+                        .font(.subheadline)
+                        .foregroundColor(.primary)
+                    
+                    Spacer()
+                }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 12)
+            }
+            .buttonStyle(PlainButtonStyle())
+        }
+        .background(Color(.systemBackground))
+        .cornerRadius(12)
+        .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 4)
+    }
+}
+
+// MARK: - Filter Enums
+enum HomeAwayFilter: String, CaseIterable {
+    case either = "Home or away: either"
+    case home = "Home only"
+    case away = "Away only"
+    
+    var next: HomeAwayFilter {
+        switch self {
+        case .either: return .home
+        case .home: return .away
+        case .away: return .either
+        }
+    }
+}
+
+enum WinLossFilter: String, CaseIterable {
+    case either = "Win or loss: either"
+    case wins = "Wins only"
+    case losses = "Losses only"
+    
+    var next: WinLossFilter {
+        switch self {
+        case .either: return .wins
+        case .wins: return .losses
+        case .losses: return .either
+        }
     }
 }

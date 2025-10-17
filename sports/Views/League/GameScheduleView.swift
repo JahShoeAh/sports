@@ -364,7 +364,6 @@ struct GameScheduleView: View {
         let formatter = DateFormatter()
         formatter.dateStyle = .full
         
-        let calendar = Calendar.current
         let sortedDateStrings = sortedDates
         
         // Since dates are now in chronological order (oldest first), we need to find the closest date

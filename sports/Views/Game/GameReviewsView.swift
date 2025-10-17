@@ -239,11 +239,13 @@ struct ReviewCard: View {
                 Spacer()
                 
                 // Rating
-                HStack(spacing: 2) {
-                    ForEach(1...10, id: \.self) { star in
-                        Image(systemName: star <= review.entertainmentRating ? "star.fill" : "star")
-                            .font(.caption)
-                            .foregroundColor(star <= review.entertainmentRating ? .yellow : .gray)
+                if let rating = review.entertainmentRating {
+                    HStack(spacing: 2) {
+                        ForEach(1...10, id: \.self) { star in
+                            Image(systemName: star <= rating ? "star.fill" : "star")
+                                .font(.caption)
+                                .foregroundColor(star <= rating ? .yellow : .gray)
+                        }
                     }
                 }
             }
@@ -253,9 +255,11 @@ struct ReviewCard: View {
                 Image(systemName: review.reactionIcon.systemImageName)
                     .foregroundColor(.red)
                 
-                Text(review.viewingMethod.displayName)
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+                if let viewingMethod = review.viewingMethod {
+                    Text(viewingMethod.displayName)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
                 
                 Spacer()
             }
