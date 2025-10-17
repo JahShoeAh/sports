@@ -1,7 +1,8 @@
 Always use AthleteMenuLoaderView, GameMenuLoaderView, TeamMenuLoaderView etc when navigating to any menus (loader patterns may need to be created for other menus, if they don’t already exist). 
-Prioritize app performance, quick loading, quick processing, user experience, and comprehensive error handling, even if improving any of these things may lengthn code, require more work, require data schema/server side changes. 
+Prioritize app performance, quick loading, quick processing, user experience, and comprehensive error handling, even if improving any of these things may require lengthier code, more work, data schema changes, or server side changes. 
 Prioritize fixing bugs at the root cause. 
-Ensure consistency across app models and database tables. 
+iOS 18+ features are ok. 
+Ensure consistency across Swift models and database tables. 
 Follow existing view patterns: The app uses separate view files for each major component (TeamMenuView, AthleteMenuView, etc.)
 Use @StateObject for services like FirebaseService.shared and SimpleDataManager.shared
 Implement retry logic for API calls with fetchWithRetry patterns (max 2 retries with exponential backoff)
