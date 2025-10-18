@@ -4,6 +4,8 @@ const path = require('path');
 
 // Game IDs to fetch
 const gameIds = [12257, 12258, 12259, 12260, 12261, 12262, 12263, 12264];
+// ABOVE GAMES MAY NOT BE ALL ON APRIL 8TH, AND DO NOT INCLUDE ALL GAMES ON APRIL 8TH
+// DUE TO UTC TIMING ISSUES
 
 // API configuration
 const API_BASE_URL = 'https://v2.nba.api-sports.io/players/statistics';
