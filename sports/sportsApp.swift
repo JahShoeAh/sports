@@ -14,6 +14,7 @@ struct sportsApp: App {
     @StateObject private var firebaseService = FirebaseService.shared
     @StateObject private var dataManager = SimpleDataManager.shared
     @StateObject private var cacheService = CacheService.shared
+    @Environment(\.scenePhase) private var scenePhase
     
     init() {
         FirebaseApp.configure()
@@ -28,6 +29,15 @@ struct sportsApp: App {
                 MainTabView()
                     .environmentObject(dataManager)
                     .environmentObject(cacheService)
+                    .onChange(of: scenePhase) { _, newPhase in
+                        if newPhase == .background {
+                            print("[sportsApp] App going to background - clearing navigation state")
+                            NavigationStateManager.shared.endSession()
+                        } else if newPhase == .active {
+                            print("[sportsApp] App becoming active - starting new session")
+                            NavigationStateManager.shared.startSession()
+                        }
+                    }
             } else if firebaseService.isAuthenticated && firebaseService.needsEmailVerification {
                 EmailVerificationView()
             } else {

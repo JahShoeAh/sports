@@ -66,6 +66,48 @@ struct TeamMenuView: View {
         }
         .navigationTitle(team.name)
         .navigationBarTitleDisplayMode(.large)
+        .onAppear {
+            print("[TeamMenuView] onAppear for team \(team.id)")
+            NavigationStateManager.shared.printCurrentState()
+            
+            // Always try to load persisted state, fall back to defaults if none exists
+            print("[TeamMenuView] Loading state from NavigationStateManager")
+            selectedTab = NavigationStateManager.shared.getTeamTab(teamId: team.id)
+            selectedSeason = NavigationStateManager.shared.getTeamSeason(teamId: team.id)
+            let opponentFilters = NavigationStateManager.shared.getTeamOpponentFilters(teamId: team.id)
+            selectedOpponentIds = opponentFilters.selected
+            excludedOpponentIds = opponentFilters.excluded
+            homeAwayFilter = HomeAwayFilter(rawValue: NavigationStateManager.shared.getTeamHomeAwayFilter(teamId: team.id)) ?? .either
+            winLossFilter = WinLossFilter(rawValue: NavigationStateManager.shared.getTeamWinLossFilter(teamId: team.id)) ?? .either
+            print("[TeamMenuView] Loaded state - tab: \(selectedTab), season: '\(selectedSeason)', opponents: \(selectedOpponentIds.count) selected, \(excludedOpponentIds.count) excluded")
+        }
+        .onChange(of: selectedTab) { _, newTab in
+            print("[TeamMenuView] Tab changed to \(newTab)")
+            NavigationStateManager.shared.setTeamTab(teamId: team.id, tab: newTab)
+        }
+        .onChange(of: selectedSeason) { _, newSeason in
+            print("[TeamMenuView] Season changed to '\(newSeason)'")
+            NavigationStateManager.shared.setTeamSeason(teamId: team.id, season: newSeason)
+        }
+        .onChange(of: selectedOpponentIds) { _, newIds in
+            print("[TeamMenuView] Selected opponents changed to \(newIds.count) items")
+            NavigationStateManager.shared.setTeamOpponentFilters(teamId: team.id, selected: newIds, excluded: excludedOpponentIds)
+        }
+        .onChange(of: excludedOpponentIds) { _, newIds in
+            print("[TeamMenuView] Excluded opponents changed to \(newIds.count) items")
+            NavigationStateManager.shared.setTeamOpponentFilters(teamId: team.id, selected: selectedOpponentIds, excluded: newIds)
+        }
+        .onChange(of: homeAwayFilter) { _, newFilter in
+            print("[TeamMenuView] Home/Away filter changed to \(newFilter.rawValue)")
+            NavigationStateManager.shared.setTeamHomeAwayFilter(teamId: team.id, filter: newFilter.rawValue)
+        }
+        .onChange(of: winLossFilter) { _, newFilter in
+            print("[TeamMenuView] Win/Loss filter changed to \(newFilter.rawValue)")
+            NavigationStateManager.shared.setTeamWinLossFilter(teamId: team.id, filter: newFilter.rawValue)
+        }
+        .onDisappear {
+            print("[TeamMenuView] onDisappear")
+        }
         .task {
             await loadTeamData()
         }

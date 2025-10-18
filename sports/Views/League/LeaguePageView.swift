@@ -185,6 +185,35 @@ struct LeaguePageView: View {
             }
         }
         .navigationBarTitleDisplayMode(.inline)
+        .onAppear {
+            print("[LeaguePageView] onAppear for league \(league.id)")
+            
+            // Always try to load persisted state, fall back to defaults if none exists
+            print("[LeaguePageView] Loading state from NavigationStateManager")
+            let savedTab = NavigationStateManager.shared.getLeagueTab(leagueId: league.id)
+            selectedTab = LeagueTab(rawValue: savedTab) ?? .schedule
+            selectedSeason = NavigationStateManager.shared.getLeagueSeason(leagueId: league.id)
+            let teamFilters = NavigationStateManager.shared.getLeagueTeamFilters(leagueId: league.id)
+            selectedTeamIds = teamFilters.selected
+            excludedTeamIds = teamFilters.excluded
+            print("[LeaguePageView] Loaded state - tab: \(selectedTab.rawValue), season: '\(selectedSeason)', teams: \(selectedTeamIds.count) selected, \(excludedTeamIds.count) excluded")
+        }
+        .onChange(of: selectedTab) { _, newTab in
+            print("[LeaguePageView] Tab changed to \(newTab.rawValue)")
+            NavigationStateManager.shared.setLeagueTab(leagueId: league.id, tab: newTab.rawValue)
+        }
+        .onChange(of: selectedSeason) { _, newSeason in
+            print("[LeaguePageView] Season changed to '\(newSeason)'")
+            NavigationStateManager.shared.setLeagueSeason(leagueId: league.id, season: newSeason)
+        }
+        .onChange(of: selectedTeamIds) { _, newIds in
+            print("[LeaguePageView] Selected teams changed to \(newIds.count) items")
+            NavigationStateManager.shared.setLeagueTeamFilters(leagueId: league.id, selected: newIds, excluded: excludedTeamIds)
+        }
+        .onChange(of: excludedTeamIds) { _, newIds in
+            print("[LeaguePageView] Excluded teams changed to \(newIds.count) items")
+            NavigationStateManager.shared.setLeagueTeamFilters(leagueId: league.id, selected: selectedTeamIds, excluded: newIds)
+        }
         .task {
             await loadInitialData()
         }
@@ -198,6 +227,9 @@ struct LeaguePageView: View {
                 excludedTeamIds: $excludedTeamIds,
                 isPresented: $showingTeamFilter
             )
+        }
+        .onDisappear {
+            print("[LeaguePageView] onDisappear")
         }
     }
     

@@ -48,11 +48,26 @@ struct GameMenuView: View {
         }
         .navigationTitle(game.displayTitle)
         .navigationBarTitleDisplayMode(.large)
+        .onAppear {
+            print("[GameMenuView] onAppear for game \(game.id)")
+            
+            // Always try to load persisted state, fall back to defaults if none exists
+            print("[GameMenuView] Loading state from NavigationStateManager")
+            selectedTab = NavigationStateManager.shared.getGameTab(gameId: game.id)
+            print("[GameMenuView] Loaded state - tab: \(selectedTab)")
+        }
+        .onChange(of: selectedTab) { _, newTab in
+            print("[GameMenuView] Tab changed to \(newTab)")
+            NavigationStateManager.shared.setGameTab(gameId: game.id, tab: newTab)
+        }
         .sheet(isPresented: $showingLogGame) {
             LogGameView(game: game)
         }
         .sheet(isPresented: $showingReviews) {
             GameReviewsView(game: game)
+        }
+        .onDisappear {
+            print("[GameMenuView] onDisappear")
         }
     }
 }

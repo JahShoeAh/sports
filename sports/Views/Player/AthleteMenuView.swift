@@ -17,6 +17,7 @@ struct AthleteMenuView: View {
     @State private var filteredStats: [(stat: PlayerStats, game: Game)] = []
     @State private var isLoading = false
     @State private var errorMessage: String?
+    @State private var collapsedMonths: Set<String> = []
     private let dataManager = SimpleDataManager.shared
     private let cacheService = CacheService.shared
     
@@ -36,7 +37,7 @@ struct AthleteMenuView: View {
             
             // Tab Content
             if selectedTab == 0 {
-                PlayerPastGamesView(player: player, pastGames: $pastGames, isLoading: $isLoading)
+                PlayerPastGamesView(player: player, pastGames: $pastGames, isLoading: $isLoading, collapsedMonths: $collapsedMonths)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
                 PlayerStatsView(
@@ -51,11 +52,34 @@ struct AthleteMenuView: View {
         }
         .navigationTitle("")
         .navigationBarTitleDisplayMode(.inline)
+        .onAppear {
+            print("[AthleteMenuView] onAppear for player \(player.id)")
+            
+            // Always try to load persisted state, fall back to defaults if none exists
+            print("[AthleteMenuView] Loading state from NavigationStateManager")
+            selectedTab = NavigationStateManager.shared.getPlayerTab(playerId: player.id)
+            selectedSeason = NavigationStateManager.shared.getPlayerSeason(playerId: player.id)
+            collapsedMonths = NavigationStateManager.shared.getCollapsedMonths(playerId: player.id)
+            print("[AthleteMenuView] Loaded state - tab: \(selectedTab), season: '\(selectedSeason)', collapsed months: \(collapsedMonths.count)")
+        }
+        .onChange(of: selectedTab) { _, newTab in
+            print("[AthleteMenuView] Tab changed to \(newTab)")
+            NavigationStateManager.shared.setPlayerTab(playerId: player.id, tab: newTab)
+        }
+        .onChange(of: selectedSeason) { _, newSeason in
+            print("[AthleteMenuView] Season changed to '\(newSeason)'")
+            NavigationStateManager.shared.setPlayerSeason(playerId: player.id, season: newSeason)
+            applySeasonFilter()
+        }
+        .onChange(of: collapsedMonths) { _, newMonths in
+            print("[AthleteMenuView] Collapsed months changed to \(newMonths.count) items")
+            NavigationStateManager.shared.setCollapsedMonths(playerId: player.id, months: newMonths)
+        }
+        .onDisappear {
+            print("[AthleteMenuView] onDisappear")
+        }
         .task {
             await loadPlayerData()
-        }
-        .onChange(of: selectedSeason) { _, _ in
-            applySeasonFilter()
         }
     }
     
@@ -207,7 +231,7 @@ struct PlayerPastGamesView: View {
     let player: Player
     @Binding var pastGames: [Game]
     @Binding var isLoading: Bool
-    @State private var collapsedMonths: Set<String> = []
+    @Binding var collapsedMonths: Set<String>
     
     private func monthKey(for date: Date) -> String {
         let formatter = DateFormatter()
